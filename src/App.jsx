@@ -6,9 +6,9 @@ import Carrito from "./componentes/Carrito";
 import Confirmacion from "./paginas/Confirmacion";
 import CarritoIcon from "./componentes/carritoIcon";
 
-import Inicio from "./navegacion/Inicio";
-import Nosotros from "./navegacion/Nosotros";
-import Contacto from  "./navegacion/Contacto";
+import Inicio from "./paginas/Inicio";
+import Nosotros from "./paginas/Nosotros";
+import Contacto from  "./paginas/Contacto";
 import "./App.css";
 
 function App() {
