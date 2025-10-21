@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { CarritoProvider } from "./context/CarritoContext";
 import Productos from "./paginas/Productos";
 import ProductoDetalle from "./paginas/ProductoDetalle";
@@ -17,22 +17,26 @@ import "./App.css";
 
 function App() {
   return (
+    
     <CarritoProvider>
       <Router>
-        {/* ✅ Navbar simple con logo y carrito */}
+        {/* ✅ Navbar con logo y carrito */}
         <nav className="flex justify-between items-center p-4 shadow bg-white">
-          <a href="/" className="text-2xl font-bold text-pink-500">
-          <a href="/login" className="hover:text-pink-500">Iniciar Sesión</a>
+          <Link to="/" className="text-2xl font-bold text-pink-500">NovaGlow</Link>
 
-            Moda & Estilo 💋
-          </a>
-          <div className="flex space-x-6 text-lg font-medium">
-            <a href="/inicio" className="hover:text-pink-500">Inicio</a>
-            <a href="/productos" className="hover:text-pink-500">Productos</a>
-            <a href="/nosotros" className="hover:text-pink-500">Nosotros</a>
-            <a href="/contacto" className="hover:text-pink-500">Contacto</a>
+          <div className="flex items-center">
+            <div className="flex space-x-6 text-lg font-medium">
+              <Link to="/inicio" className="hover:text-pink-500">Inicio</Link>
+              <Link to="/productos" className="hover:text-pink-500">Productos</Link>
+              <Link to="/nosotros" className="hover:text-pink-500">Nosotros</Link>
+              <Link to="/contacto" className="hover:text-pink-500">Contacto</Link>
+            </div>
           </div>
-          <CarritoIcon />
+
+          <div className="flex items-center space-x-4">
+            <Link to="/login" className="hover:text-pink-500">Iniciar Sesión</Link>
+            <CarritoIcon />
+          </div>
         </nav>
         <Routes className="min-h-screen bg-gray-50">
           <Route path="/inicio" element={<Inicio />} />
@@ -48,8 +52,7 @@ function App() {
            
         </Routes>
 
-        <CarritoIcon />
-        {/* ✅ Footer opcional */}
+        {/* ✅ Footer simple */}
         <footer className="text-center p-4 text-gray-500 text-sm mt-10">
           © {new Date().getFullYear()} Moda & Estilo. Todos los derechos reservados.
         </footer>
