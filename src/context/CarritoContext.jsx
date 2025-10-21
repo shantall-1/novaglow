@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext,useMemo, useContext, useState } from "react";
 
 const CarritoContext = createContext();
 
@@ -38,10 +38,10 @@ export function CarritoProvider({ children }) {
 
   const vaciarCarrito = () => setCarrito([]);
 
-  const total = carrito.reduce(
+  const total =  useMemo(() => carrito.reduce(
     (acc, item) => acc + item.price * item.cantidad,
     0
-  );
+  ), [carrito]);
 
   return (
     <CarritoContext.Provider
