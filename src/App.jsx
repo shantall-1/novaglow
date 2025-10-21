@@ -8,9 +8,15 @@ import Confirmacion from "./paginas/Confirmacion";
 import CarritoIcon from "./componentes/CarritoIcon";
 
 
+<<<<<<< HEAD
 import Inicio from "./navegacion/Inicio";
 import Nosotros from "./navegacion/Nosotros";
 import Contacto from "./navegacion/Contacto";
+=======
+import Inicio from "./paginas/Inicio";
+import Nosotros from "./paginas/Nosotros";
+import Contacto from  "./paginas/Contacto";
+>>>>>>> 4646b6da98543d9e9494612955fcd0810aa96f82
 import "./App.css";
 
 function App() {

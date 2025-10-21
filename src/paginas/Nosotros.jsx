@@ -1,7 +1,5 @@
 // --- COMPONENTES AUXILIARES DE NOSOTROS ---
-import react from "react";
 import { Sparkles, Zap, Heart } from "lucide-react";
-import { footer } from "framer-motion/client";
 
 
 // Componente auxiliar para los principios
@@ -27,8 +25,7 @@ const TeamMember = ({ name, role, tagline }) => (
 
 
 // --- 3. VISTA NOSOTROS (Corregido para aceptar 'setPage' y fusionado el contenido) ---
-export default function Nosotros({ setPage }) {
-  return (
+export default function Nosotros() {
     <div className="max-w-6xl mx-auto p-4 md:p-8">
       
       <header className="text-center py-12 bg-pink-50 rounded-3xl shadow-xl mb-12">
@@ -91,8 +88,7 @@ export default function Nosotros({ setPage }) {
         </div>
       </section>
     </div>
-
-  );
+;
 }
 
 

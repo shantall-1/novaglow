@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { productosData } from "../assets/productosData";
 import { useCarrito } from "../context/CarritoContext";
 
+<<<<<<< HEAD
 const ProductoDetalles = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -94,6 +95,82 @@ const ProductoDetalles = () => {
     { id: 3, nombre: "Flowers - Miley Cyrus", url: "#" },
   ];
 
+=======
+export default function ProductoDetalles({ productId = 1 }) {
+  const producto = productosData.find((p) => p.id === productId) || productosData[0];
+
+  // --- ESTADOS ---
+  const [imagenPrincipal, setImagenPrincipal] = useState(
+    producto.gallery?.[0] || producto.image || ""
+  );
+  const [colorSeleccionado, setColorSeleccionado] = useState(
+    producto.colors ? producto.colors[0] : null
+  );
+  const [review, setReview] = useState("");
+  const [reviews, setReviews] = useState([]);
+
+  // --- CARGAR RESEÑAS DESDE localStorage ---
+  useEffect(() => {
+    const stored = localStorage.getItem(`reviews_${producto.id}`);
+    if (stored) {
+      setReviews(JSON.parse(stored));
+    } else {
+      setReviews([
+        "Excelente calidad y bonito diseño.",
+        "Llegó rápido y el empaque estaba impecable.",
+        "Se ve igual que en las fotos, muy recomendado."
+      ]);
+    }
+  }, [producto.id]);
+
+  // --- GUARDAR RESEÑAS EN localStorage ---
+  useEffect(() => {
+    if (reviews.length > 0) {
+      localStorage.setItem(`reviews_${producto.id}`, JSON.stringify(reviews));
+    }
+  }, [producto.id, reviews]);
+
+  // --- CALCULAR DESCUENTO ---
+  const precioDescuento = (
+    producto.price -
+    producto.price * (producto.discount / 100)
+  ).toFixed(2);
+
+  // --- AÑADIR NUEVA RESEÑA ---
+  const handleReviewSubmit = (e) => {
+    e.preventDefault();
+    if (review.trim()) {
+      const nuevas = [
+        {
+          id: Date.now(),
+          texto: review.trim(),
+          fecha: new Date().toLocaleString("es-ES", {
+            dateStyle: "short",
+            timeStyle: "short"
+          })
+        },
+        ...reviews
+      ];
+      setReviews(nuevas);
+      setReview("");
+    }
+  };
+
+  // --- ESTRELLAS ---
+  const renderStars = (rating) => {
+    const estrellas = [];
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i)
+        estrellas.push(<Star key={i} className="text-yellow-400 fill-yellow-400" />);
+      else if (rating >= i - 0.5)
+        estrellas.push(<StarHalf key={i} className="text-yellow-400 fill-yellow-400" />);
+      else estrellas.push(<StarEmpty key={i} className="text-gray-300" />);
+    }
+    return estrellas;
+  };
+
+  // --- RENDER ---
+>>>>>>> 4646b6da98543d9e9494612955fcd0810aa96f82
   return (
     <div className="flex flex-col">
       {/* --- SECCIÓN PRINCIPAL DEL PRODUCTO --- */}
@@ -148,7 +225,37 @@ const ProductoDetalles = () => {
             ${producto.price.toFixed(2)}
           </p>
 
+<<<<<<< HEAD
           <div className="flex items-center space-x-4">
+=======
+        {/* RESEÑAS */}
+        <div className="mt-8 border-t pt-5">
+          <h3 className="text-xl font-semibold mb-3">Opiniones de clientes</h3>
+
+          <div className="space-y-3 mb-5">
+            {reviews.length > 0 ? (
+              reviews.map((r) => (
+                <div key={r.id || r} className="bg-gray-50 p-3 rounded-lg shadow-sm">
+                  <p className="text-gray-800">{r.texto || r}</p>
+                  {r.fecha && (
+                    <p className="text-xs text-gray-500 mt-1">{r.fecha}</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 italic">Aún no hay reseñas.</p>
+            )}
+          </div>
+
+          <form onSubmit={handleReviewSubmit} className="flex flex-col space-y-3">
+            <textarea
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              placeholder="Escribe tu reseña..."
+              className="border rounded-lg p-3 focus:ring-2 focus:ring-pink-400"
+              rows="3"
+            />
+>>>>>>> 4646b6da98543d9e9494612955fcd0810aa96f82
             <button
               onClick={() => setCantidad(Math.max(1, cantidad - 1))}
               className="px-3 py-1 border rounded-lg text-lg"
@@ -282,6 +389,10 @@ const ProductoDetalles = () => {
       </section>
     </div>
   );
+<<<<<<< HEAD
 };
 
 export default ProductoDetalles;
+=======
+}
+>>>>>>> 4646b6da98543d9e9494612955fcd0810aa96f82
