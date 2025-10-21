@@ -14,11 +14,18 @@
     "aos": "^2.3.4",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.546.0",
+<<<<<<< HEAD
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
     "styled-components": "^6.1.19",
     "sweetalert2": "^11.26.3"
+=======
+    "motion": "^12.23.24",
+    "react": "^19.2.0",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.4"
+>>>>>>> 4646b6da98543d9e9494612955fcd0810aa96f82
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -4,10 +4,9 @@ import { Star, StarHalf, Star as StarEmpty } from "lucide-react";
 import { productosData } from "../assets/productosData";
 
 export default function ProductoDetalles({ productId = 1 }) {
-  // Buscar el producto o usar uno de respaldo
   const producto = productosData.find((p) => p.id === productId) || productosData[0];
 
-  // Estados
+  // --- ESTADOS ---
   const [imagenPrincipal, setImagenPrincipal] = useState(
     producto.gallery?.[0] || producto.image || ""
   );
@@ -17,63 +16,67 @@ export default function ProductoDetalles({ productId = 1 }) {
   const [review, setReview] = useState("");
   const [reviews, setReviews] = useState([]);
 
-  // 🔹 Cargar reseñas desde localStorage al iniciar
+  // --- CARGAR RESEÑAS DESDE localStorage ---
   useEffect(() => {
-    const storedReviews = localStorage.getItem(`reviews_${producto.id}`);
-    if (storedReviews) {
-      setReviews(JSON.parse(storedReviews));
+    const stored = localStorage.getItem(`reviews_${producto.id}`);
+    if (stored) {
+      setReviews(JSON.parse(stored));
     } else {
-      // Si no hay reseñas guardadas, ponemos algunas por defecto
-      const defaultReviews = [
+      setReviews([
         "Excelente calidad y bonito diseño.",
         "Llegó rápido y el empaque estaba impecable.",
         "Se ve igual que en las fotos, muy recomendado."
-      ];
-      setReviews(defaultReviews);
-      localStorage.setItem(`reviews_${producto.id}`, JSON.stringify(defaultReviews));
+      ]);
     }
   }, [producto.id]);
 
-  // 🔹 Guardar reseñas en localStorage cuando cambien
+  // --- GUARDAR RESEÑAS EN localStorage ---
   useEffect(() => {
-    localStorage.setItem(`reviews_${producto.id}`, JSON.stringify(reviews));
+    if (reviews.length > 0) {
+      localStorage.setItem(`reviews_${producto.id}`, JSON.stringify(reviews));
+    }
   }, [producto.id, reviews]);
 
-  // Calcular precio con descuento
+  // --- CALCULAR DESCUENTO ---
   const precioDescuento = (
     producto.price -
     producto.price * (producto.discount / 100)
   ).toFixed(2);
 
-  // Manejar envío de nueva reseña
+  // --- AÑADIR NUEVA RESEÑA ---
   const handleReviewSubmit = (e) => {
     e.preventDefault();
     if (review.trim()) {
-      const nuevasReseñas = [review, ...reviews];
-      setReviews(nuevasReseñas);
+      const nuevas = [
+        {
+          id: Date.now(),
+          texto: review.trim(),
+          fecha: new Date().toLocaleString("es-ES", {
+            dateStyle: "short",
+            timeStyle: "short"
+          })
+        },
+        ...reviews
+      ];
+      setReviews(nuevas);
       setReview("");
-      localStorage.setItem(`reviews_${producto.id}`, JSON.stringify(nuevasReseñas)); // guardar de inmediato
     }
   };
 
-  // Mostrar estrellas
+  // --- ESTRELLAS ---
   const renderStars = (rating) => {
     const estrellas = [];
     for (let i = 1; i <= 5; i++) {
       if (rating >= i)
-        estrellas.push(
-          <Star key={i} className="text-yellow-400 fill-yellow-400" />
-        );
+        estrellas.push(<Star key={i} className="text-yellow-400 fill-yellow-400" />);
       else if (rating >= i - 0.5)
-        estrellas.push(
-          <StarHalf key={i} className="text-yellow-400 fill-yellow-400" />
-        );
+        estrellas.push(<StarHalf key={i} className="text-yellow-400 fill-yellow-400" />);
       else estrellas.push(<StarEmpty key={i} className="text-gray-300" />);
     }
     return estrellas;
   };
 
-  // Render
+  // --- RENDER ---
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-10">
       {/* GALERÍA */}
@@ -195,9 +198,12 @@ export default function ProductoDetalles({ productId = 1 }) {
 
           <div className="space-y-3 mb-5">
             {reviews.length > 0 ? (
-              reviews.map((r, i) => (
-                <div key={i} className="bg-gray-50 p-3 rounded-lg shadow-sm">
-                  <p className="text-gray-700">{r}</p>
+              reviews.map((r) => (
+                <div key={r.id || r} className="bg-gray-50 p-3 rounded-lg shadow-sm">
+                  <p className="text-gray-800">{r.texto || r}</p>
+                  {r.fecha && (
+                    <p className="text-xs text-gray-500 mt-1">{r.fecha}</p>
+                  )}
                 </div>
               ))
             ) : (
