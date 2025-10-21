@@ -5,10 +5,14 @@ import ProductoDetalle from "./paginas/ProductoDetalle";
 import Carrito from "./componentes/Carrito";
 import Confirmacion from "./paginas/Confirmacion";
 import CarritoIcon from "./componentes/carritoIcon";
+import Registro from "./paginas/Registro";
 
+
+import Login from "./navegacion/Login";
 import Inicio from "./navegacion/Inicio";
 import Nosotros from "./navegacion/Nosotros";
 import Contacto from  "./navegacion/Contacto";
+import "aos/dist/aos.css";
 import "./App.css";
 
 function App() {
@@ -18,6 +22,8 @@ function App() {
         {/* ✅ Navbar simple con logo y carrito */}
         <nav className="flex justify-between items-center p-4 shadow bg-white">
           <a href="/" className="text-2xl font-bold text-pink-500">
+          <a href="/login" className="hover:text-pink-500">Iniciar Sesión</a>
+
             Moda & Estilo 💋
           </a>
           <div className="flex space-x-6 text-lg font-medium">
@@ -36,6 +42,10 @@ function App() {
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/confirmacion" element={<Confirmacion />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+
+           
         </Routes>
 
         <CarritoIcon />
