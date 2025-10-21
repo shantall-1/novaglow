@@ -1,4 +1,4 @@
-import { createContext,useMemo, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 const CarritoContext = createContext();
 
@@ -6,42 +6,41 @@ export function CarritoProvider({ children }) {
   const [carrito, setCarrito] = useState([]);
 
   const agregarAlCarrito = (producto, cantidad = 1) => {
-    setCarrito(prev => {
-      const existente = prev.find(item => item.id === producto.id);
+    if (!producto || !producto.id) return;
+
+    setCarrito((prev) => {
+      const existente = prev.find((item) => item.id === producto.id);
       if (existente) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.id === producto.id
             ? { ...item, cantidad: item.cantidad + cantidad }
             : item
         );
-      } else {
-        return [...prev, { ...producto, cantidad }];
       }
+      return [...prev, { ...producto, cantidad }];
     });
   };
 
   const eliminarDelCarrito = (id) => {
-    setCarrito(prev => prev.filter(item => item.id !== id));
+    setCarrito((prev) => prev.filter((item) => item.id !== id));
   };
 
   const actualizarCantidad = (id, nuevaCantidad) => {
-    if (nuevaCantidad <= 0) {
-      eliminarDelCarrito(id);
-      return;
-    }
-    setCarrito(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, cantidad: nuevaCantidad } : item
-      )
+    setCarrito((prev) =>
+      nuevaCantidad <= 0
+        ? prev.filter((item) => item.id !== id)
+        : prev.map((item) =>
+            item.id === id ? { ...item, cantidad: nuevaCantidad } : item
+          )
     );
   };
 
   const vaciarCarrito = () => setCarrito([]);
 
-  const total =  useMemo(() => carrito.reduce(
-    (acc, item) => acc + item.price * item.cantidad,
-    0
-  ), [carrito]);
+  const total = useMemo(
+    () => carrito.reduce((acc, item) => acc + item.price * item.cantidad, 0),
+    [carrito]
+  );
 
   return (
     <CarritoContext.Provider
@@ -59,4 +58,11 @@ export function CarritoProvider({ children }) {
   );
 }
 
-export const useCarrito = () => useContext(CarritoContext);
+export const useCarrito = () => {
+  const context = useContext(CarritoContext);
+  if (context === undefined) {
+    throw new Error("useCarrito debe usarse dentro de un CarritoProvider");
+  }
+  return context;
+};
+
