@@ -4,12 +4,14 @@ import Productos from "./paginas/Productos";
 import ProductoDetalle from "./paginas/ProductoDetalle";
 import Carrito from "./componentes/Carrito";
 import Confirmacion from "./paginas/Confirmacion";
-import CarritoIcon from "./componentes/carritoIcon";
 import Inicio from "./paginas/Inicio";
 import Nosotros from "./paginas/Nosotros";
 import Contacto from "./paginas/Contacto";
 import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
+import Login from "./paginas/Login";
+import Registro from "./paginas/Registro";
+import ProtectedRoute from "./componentes/ProtectedRoute";
 import "./App.css";
 
 function App() {
@@ -22,11 +24,29 @@ function App() {
           <Route path="/productos" element={<Productos />} />
           <Route path="/producto/:id" element={<ProductoDetalle />} />
           <Route path="/nosotros" element={<Nosotros />} />
-          <Route path="/carrito" element={<Carrito />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/confirmacion" element={<Confirmacion />} />
-        </Routes>
 
+          {/* 🔒 Estas rutas sí requieren sesión */}
+          <Route
+            path="/carrito"
+            element={
+              <ProtectedRoute>
+                <Carrito />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/confirmacion"
+            element={
+              <ProtectedRoute>
+                <Confirmacion />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+        </Routes>
         <Footer />
       </Router>
     </CarritoProvider>
