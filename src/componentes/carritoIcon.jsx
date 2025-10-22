@@ -1,10 +1,8 @@
-import { Link } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useCarrito } from "../context/CarritoContext";
 
 export default function CarritoIcon({ setPage }) {
   // --- 2. ICONO DEL CARRITO (carritoIcon.jsx) ---
-function CarritoIcon({ setPage }) {
   const { carrito } = useCarrito();
   const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
@@ -19,4 +17,3 @@ function CarritoIcon({ setPage }) {
     </button>
   );
 }
- }

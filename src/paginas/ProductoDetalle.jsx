@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 // Usaremos elementos nativos en lugar de framer-motion para evitar dependencias externas.
 // Las importaciones de router y context se simulan o se eliminan para que el archivo sea ejecutable.
 
@@ -112,7 +112,6 @@ const StarEmpty = ({ className }) => (
 
 export default function ProductoDetalles({ productId = 1 }) {
   // SIMULACIÓN DE HOOKS QUE FALTABAN
-  const navigate = (path) => console.log(`Navegando a: ${path}`);
   const agregarAlCarrito = (item) => {
     alert(`Agregado al carrito: ${item.name} x ${item.cantidad}`);
   };

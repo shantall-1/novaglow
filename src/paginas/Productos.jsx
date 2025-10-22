@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../componentes/Sidebar";
 import { productosData } from "../assets/productosData";
-import { FaSearch } from "react-icons/fa"; // ✅ Ícono
+
 
 export default function Productos() {
   const [productos, setProductos] = useState(productosData);
@@ -61,9 +61,9 @@ export default function Productos() {
             </button>
 
             <h3 className="font-bold text-lg mt-2">{p.name}</h3>
-            <p className="text-gray-600 text-sm flex-1">{p.description1 || p.description}</p>
+            <h3 className="font-bold text-lg mt-2">{p.name}</h3>
+            <p className="text-gray-600 text-sm flex-1">{p.description}</p>
             <p className="text-pink-600 font-semibold mt-2">
-              ${p.price.toFixed(2)}{" "}
               {p.discount && (
                 <span className="text-gray-400 text-sm line-through ml-2">
                   ${(p.price / (1 - p.discount / 100)).toFixed(2)}
