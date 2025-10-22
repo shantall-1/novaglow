@@ -94,7 +94,7 @@ export default function Productos() {
             </button>
 
             <img
-              src={}
+              src={ productoSeleccionado.image}
               alt={productoSeleccionado.name}
               className="rounded-xl mb-4 w-full h-64 object-cover"
             />

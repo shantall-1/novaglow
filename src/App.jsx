@@ -7,11 +7,14 @@ import Confirmacion from "./paginas/Confirmacion";
 import CarritoIcon from "./componentes/carritoIcon";
 import Registro from "./paginas/Registro";
 
+import BlogInspiraciones from "./descubre/Blog-Inspiracion";
 
-import Login from "./navegacion/Login";
-import Inicio from "./navegacion/Inicio";
-import Nosotros from "./navegacion/Nosotros";
-import Contacto from  "./navegacion/Contacto";
+import Footer from "./paginas/Footer";
+import Login from "./paginas/Login";
+import Inicio from "./paginas/Inicio";
+import Nosotros from "./paginas/Nosotros";
+import Contacto from  "./paginas/Contacto";
+
 import "aos/dist/aos.css";
 import "./App.css";
 
@@ -48,14 +51,12 @@ function App() {
           <Route path="/confirmacion" element={<Confirmacion />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/blog-inspiracion" element={<BlogInspiraciones />} />
 
            
         </Routes>
 
-        {/* ✅ Footer simple */}
-        <footer className="text-center p-4 text-gray-500 text-sm mt-10">
-          © {new Date().getFullYear()} Moda & Estilo. Todos los derechos reservados.
-        </footer>
+        <Footer />
       </Router>
     </CarritoProvider>
   );
