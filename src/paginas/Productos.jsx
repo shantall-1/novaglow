@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../componentes/Sidebar";
@@ -94,7 +93,7 @@ export default function Productos() {
             </button>
 
             <img
-              src={}
+              src={productoSeleccionado.image}
               alt={productoSeleccionado.name}
               className="rounded-xl mb-4 w-full h-64 object-cover"
             />

@@ -8,10 +8,10 @@ import CarritoIcon from "./componentes/carritoIcon";
 import Registro from "./paginas/Registro";
 
 
-import Login from "./navegacion/Login";
-import Inicio from "./navegacion/Inicio";
-import Nosotros from "./navegacion/Nosotros";
-import Contacto from  "./navegacion/Contacto";
+import Login from "./paginas/Login";
+import Inicio from "./paginas/Inicio";
+import Nosotros from "./paginas/Nosotros";
+import Contacto from  "./paginas/Contacto";
 import "aos/dist/aos.css";
 import "./App.css";
 
