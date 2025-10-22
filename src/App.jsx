@@ -27,7 +27,6 @@ function App() {
           <Route path="/confirmacion" element={<Confirmacion />} />
         </Routes>
 
-        <CarritoIcon />
         <Footer />
       </Router>
     </CarritoProvider>
