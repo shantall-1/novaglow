@@ -41,7 +41,7 @@ const Registro = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-linear-gradient-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
       <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-10 w-full max-w-md transform transition-all hover:scale-[1.02]">
         <h1 className="text-4xl font-extrabold text-center text-pink-600 mb-4 font-[Poppins]">
           💕 Crea tu cuenta NovaGlow 💕

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import Swal from "sweetalert2";
 import AOS from "aos";
-import "aos/dist/aos.css";
+import Swal from "sweetalert2";
+
 
 export default function Contacto() {
   const sectionRef = useRef(null);
@@ -59,7 +59,7 @@ export default function Contacto() {
       {/* 🌸 Banner más pequeño, no fijo */}
       <header
         data-aos="fade-down"
-        className="w-full bg-gradient-to-r from-pink-300 via-pink-400 to-pink-500 text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
+        className="w-full bg-linear-gradient-to-r from-pink-300 via-pink-400 to-pink-500 text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
       >
         <img
           src="https://instagram.flim28-2.fna.fbcdn.net/v/t51.2885-19/472336448_1352704565888446_6811578739214593275_n.jpg?stp=dst-jpg_s150x150_tt6"
