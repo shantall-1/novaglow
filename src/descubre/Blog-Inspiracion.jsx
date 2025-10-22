@@ -1,5 +1,3 @@
-import React from 'react';
-// CORRECCIÓN 1: Se eliminó la importación genérica 'Icon' de Lucide
 import { Sparkles, Star, Feather, Sun } from 'lucide-react';
 
 

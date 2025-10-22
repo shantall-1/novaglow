@@ -28,15 +28,16 @@ const Footer = () => {
                 </div>
 
                 {/* Columna 2: Inspiración y Blog */}
-                <div>
-                    <h4 className="font-semibold text-white mb-4">Descubre</h4>
-                    <ul className="space-y-2 text-sm">
+            <div>
+                    <a href="/Blog-Inspiracion" className="font-semibold mb-4 text-white hover:underline">Descubre</a>
+                    <ul className="mt-4 space-y-3 text-sm">
                         {/* Usamos <Link> con la ruta definida en App.jsx */}
-                        <li><Link to="/blog-inspiracion" className="text-gray-400 hover:text-fuchsia-300 transition">Blog / Inspiración</Link></li>
+                        <li><Link to="/blog-inspiracion" className="text-gray-400 hover:text-fuchsia-300 transition">Inspiración</Link></li>
                         <li><Link to="/guia-estilo" className="text-gray-400 hover:text-fuchsia-300 transition">Guía de Estilo</Link></li>
                         <li><Link to="/tendencias-noche" className="text-gray-400 hover:text-fuchsia-300 transition">Tendencias de Noche</Link></li>
                     </ul>
                 </div>
+
 
                 {/* Columna 3: Información y Ayuda */}
                 <div>
