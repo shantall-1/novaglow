@@ -2,19 +2,16 @@ import { useCarrito } from "../context/CarritoContext";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Carrito() {
-  const { carrito, eliminarDelCarrito, actualizarCantidad, total, vaciarCarrito } = useCarrito();
+  const { carrito, eliminarDelCarrito, actualizarCantidad, total } = useCarrito();
   const navigate = useNavigate();
-
-  const manejarPago = () => {
-    vaciarCarrito();
-    navigate("/confirmacion");
-  };
 
   if (carrito.length === 0) {
     return (
       <div className="p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Tu carrito está vacío 🛒</h2>
-        <Link to="/" className="text-pink-500 underline">Volver a la tienda</Link>
+        <Link to="/" className="text-pink-500 underline">
+          Volver a la tienda
+        </Link>
       </div>
     );
   }
@@ -23,11 +20,19 @@ export default function Carrito() {
     <div className="p-6 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Tu carrito de compras</h2>
 
+      {/* PRODUCTOS DEL CARRITO */}
       <div className="space-y-4">
-        {carrito.map(item => (
-          <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-xl shadow">
+        {carrito.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between bg-white p-4 rounded-xl shadow"
+          >
             <div className="flex items-center gap-4">
-              <img src={item.image} alt={item.name} className="w-20 h-24 rounded-lg object-cover" />
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-20 h-24 rounded-lg object-cover"
+              />
               <div>
                 <h3 className="font-semibold">{item.name}</h3>
                 <p className="text-sm text-gray-600">${item.price.toFixed(2)}</p>
@@ -66,10 +71,11 @@ export default function Carrito() {
         ))}
       </div>
 
+      {/* TOTAL Y BOTÓN DE PAGO */}
       <div className="mt-6 text-right">
         <p className="text-xl font-semibold">Total: ${total.toFixed(2)}</p>
         <button
-          onClick={manejarPago}
+          onClick={() => navigate("/pago")}
           className="mt-4 bg-pink-500 text-white px-6 py-2 rounded-xl hover:bg-pink-600"
         >
           Pagar

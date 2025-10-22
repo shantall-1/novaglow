@@ -135,7 +135,6 @@ export default function ProductoDetalles({ productId = 1 }) {
       color: colorSeleccionado,
       size: sizeSeleccionado
     });
-alert(`Agregado al carrito: ${producto.name} x ${cantidad}`);
   };
 
   const handleReviewSubmit = (e) => {
