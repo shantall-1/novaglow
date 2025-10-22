@@ -19,6 +19,7 @@ function App() {
         <Navbar />
         <Routes className="min-h-screen bg-gray-50">
           <Route path="/" element={<Inicio />} />
+           <Route path="/inicio" element={<Inicio />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/producto/:id" element={<ProductoDetalles />} />
           <Route path="/nosotros" element={<Nosotros />} />
