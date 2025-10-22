@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Zap, Heart, Sparkles, Sunrise, Feather } from "lucide-react";
 
 // --- Componente para Tarjetas de Contenido (reutilizable) ---
