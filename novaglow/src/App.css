@@ -1,0 +1,27 @@
+.cupon-transition {
+    transition: opacity 0.45s ease-out, transform 0.45s ease-out;
+  }
+  
+  /* Estado inicial (oculto) */
+  .cupon-oculto {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+
+  /* Estado final (visible) */
+  .cupon-visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  @keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 10s ease infinite;
+}
