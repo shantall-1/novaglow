@@ -12,6 +12,9 @@ import Navbar from "./paginas/NavBar";
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import ProtectedRoute from "./componentes/ProtectedRoute";
+import BlogInspiraciones from './descubre/Blog-Inspiracion'
+import BlogDetalle from "./paginas/BlogDetalles";
+
 import "./App.css";
 
 function App() {
@@ -20,11 +23,13 @@ function App() {
       <Router>
         <Navbar />
         <Routes className="min-h-screen bg-gray-50">
-          <Route path="/" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/producto/:id" element={<ProductoDetalle />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/bloginspiraciones" element={<BlogInspiraciones />} />
+          <Route path="/inspiracion/:slug" element={<BlogDetalle />} />
 
           {/* 🔒 Estas rutas sí requieren sesión */}
           <Route

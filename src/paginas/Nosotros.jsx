@@ -1,4 +1,9 @@
-import { Zap, Heart, Sparkles, Sunrise, Feather } from "lucide-react";
+import { useState } from 'react';
+import { Zap, Heart, Sparkles, Star } from "lucide-react";
+
+import SubscriptionNovaGlow from '../layouts/Suscripcion';
+import BlogInspiraciones from '../descubre/Blog-Inspiracion'
+
 
 // --- Componente para Tarjetas de Contenido (reutilizable) ---
 const ContentCard = ({ title, description, imageUrl, linkText = 'Ver Detalle' }) => (
@@ -7,12 +12,12 @@ const ContentCard = ({ title, description, imageUrl, linkText = 'Ver Detalle' })
       src={imageUrl}
       alt={title}
       className="w-full h-48 object-cover"
-      onError={(e) => e.target.src = "https://placehold.co/600x400/cccccc/000?text=Imagen+No+Disponible"}
+      onError={(e) => e.target.src = "https://via.placeholder.com/300x200?text=NovaGlow"} // Fallback URL
     />
     <div className="p-4">
       <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
       <p className="text-gray-600 text-sm mb-4 line-clamp-3">{description}</p>
-      <a href="#" className="inline-flex items-center text-pink-600 font-semibold hover:text-pink-800 transition">
+      <a href="./BlogInspiraciones" className="inline-flex items-center text-pink-600 font-semibold hover:text-pink-800 transition">
         {linkText}
         <svg className="ml-1 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
       </a>
@@ -31,7 +36,7 @@ const Principio = ({ title, icon, description }) => (
 
 // Componente auxiliar para el equipo
 const TeamMember = ({ name, role, tagline, imageUrl }) => (
-  <div className="flex flex-col items-center max-w-[150px] p-4 bg-gray-50 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-pink-50">
+  <div className="flex flex-col items-center max-w-[150px] p-4 bg-white rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-pink-50">
     <img
       src={imageUrl}
       alt={name}
@@ -44,24 +49,35 @@ const TeamMember = ({ name, role, tagline, imageUrl }) => (
   </div>
 );
 
-// Nota: El componente InspirationMiniPreview no se usa en el export default Nosotros, pero se mantiene por si acaso.
-const InspirationMiniPreview = () => (
-  <div className="space-y-6">
-    {/* ... contenido no relevante para el Nosotros principal ... */}
-  </div>
-);
 
 // --- 3. VISTA NOSOTROS (Principal) ---
 export default function Nosotros() {
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
+  const handleOpenSubscription = () => {
+    setShowSubscriptionModal(true);
+  };
+
+  const handleCloseSubscription = () => {
+    // En un caso real, podrías querer agregar lógica aquí (ej: trackear el cierre)
+    setShowSubscriptionModal(false);
+  };
+
+  const handleClaimSubscription = () => {
+    // Lógica a ejecutar cuando la suscripción es exitosa (ej: mostrar un toast)
+    console.log("Suscripción reclamada o confirmada en el modal.");
+  };
+
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8">
 
-      {/* HEADER DRAMÁTICO PARA ROPA DE NOCHE: Degradado oscuro y texto claro/brillante */}
-      <header src="./imgen/imafe.jpg" className="text-center py-14 rounded-3xl shadow-2xl mb-12 bg-linear-to-bl from-gray-900 to-fuchsia-900">
+      {/* HEADER DRAMÁTICO */}
+      <header className="text-center py-14 rounded-3xl shadow-2xl mb-12 bg-linear-to-br from-purple-900 to-pink-700">
         <h1 className="text-5xl font-bold text-white mb-3">
           Nuestra Historia: El Viaje Nova Glow
         </h1>
-        <p className="text-xl font-sans text-pink-400">
+        <p className="text-xl font-sans text-pink-300">
           Moda con Propósito y Pasión
         </p>
       </header>
@@ -80,18 +96,52 @@ export default function Nosotros() {
         {/* Bloque de Imagen Destacada */}
         <div className="mt-6 h-64 rounded-2xl overflow-hidden shadow-xl">
           <img
-            src=".https://lh3.googleusercontent.com/gg-dl/AJfQ9KTjXYBrvUgoAAC8vNJ9bIs9pgcrZmNh4RZaDT32XNWaP2YzlbScl95B5qe4N_Wxq2MN4b0UinXp-_F4rhBodNv30fkZ3uyWJm6ExJ24qyEA5nkr1Ga8x0Y7-DgE9w0GFxneqLmUm6NotIkYweTOe6pFTwMzDy96oREkRTX9F-e49C9O=s1024-rj"
+            src="https://png.pngtree.com/thumb_back/fh260/background/20230425/pngtree-multi-toned-clothing-on-hangers-image_2556296.jpg"
             alt="Una mujer en un vestido brillante de noche"
-            className="w-full h-full object-cover transition duration-500 hover:scale-105"
+            className="w-full h-full object-cover transition duration-300 hover:scale-105"
           />
         </div>
       </section>
 
       {/* 2. Transparencia: Nuestros Principios (Cuadrícula de 3 columnas) */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
-        <Principio title="Brillo Sostenible" icon="✨" description="Diseñamos con responsabilidad, priorizando materiales duraderos y procesos éticos para un glamour sin culpa." />
-        <Principio title="Ajuste Perfecto" icon="📏" description="Cada pieza pasa por rigurosas pruebas de ajuste para asegurar que te sientas cómoda y espectacular toda la noche." />
-        <Principio title="Confianza Instantánea" icon="❤️" description="Nuestra misión es simple: al ponerte Nova Glow, la confianza se activa al instante. Vendemos protagonismo." />
+      <section className="
+                grid grid-cols-1 md:grid-cols-3
+                gap-8
+                text-center
+                mb-12
+                max-w-7xl mx-auto
+            ">
+
+        {/* Título: Ocupa las 3 columnas */}
+        <h2 className="col-span-full text-3xl font-extrabold text-pink-700 mb-4 md:mb-8">
+          Nuestros Principios
+        </h2>
+
+        
+        <div className="p-3 bg-gray-100 rounded-xl">
+          <Principio
+            title="Brillo Sostenible"
+            icon="✨"
+            description="Diseñamos con responsabilidad, priorizando materiales duraderos y procesos éticos para un glamour sin culpa."
+          />
+        </div>
+
+        <div className="p-3 bg-gray-100 rounded-xl">
+          <Principio
+            title="Ajuste Perfecto"
+            icon="📏"
+            description="Cada pieza pasa por rigurosas pruebas de ajuste para asegurar que te sientas cómoda y espectacular toda la noche."
+          />
+        </div>
+
+        <div className="p-3 bg-gray-100 rounded-xl">
+          <Principio
+            title="Confianza Instantánea"
+            icon="❤️"
+            description="Nuestra misión es simple: al ponerte Nova Glow, la confianza se activa al instante. Vendemos protagonismo."
+          />
+        </div>
+
       </section>
 
       {/* 3. Equipo Detrás del Glamour */}
@@ -99,6 +149,7 @@ export default function Nosotros() {
         <h2 className="text-3xl font-extrabold text-pink-700 text-center mb-8">
           Conoce al Equipo Detrás del Glamour
         </h2>
+        {/* Nota: Cambié el bg-gray-90 a bg-white en TeamMember para mejor contraste */}
         <div className="flex justify-center space-x-12 flex-wrap gap-8">
           <TeamMember
             name="Valentina C."
@@ -106,7 +157,6 @@ export default function Nosotros() {
             tagline="Mi pieza favorita para brillar es un buen top de satín."
             imageUrl="https://images.imagenmia.com/model_version/1df843cb6790d0651e956078c93e0f37a1535300950019cc576ef7b8cc5d62a5/1723977778333-output.jpg"
           />
-          {/* ... otros miembros del equipo ... */}
           <TeamMember
             name="Leo C."
             role="Directora de Marketing"
@@ -141,10 +191,32 @@ export default function Nosotros() {
         </div>
         <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
           <img
-            src="./imagen/am.png"
+            src="https://finartsa.com/wp-content/uploads/2023/05/WhatsApp-Image-2023-05-31-at-11.29.03-AM.jpeg"
             alt="Nuestra Misión Visual"
             className="w-full h-full object-cover transition duration-500 hover:scale-105"
           />
+        </div>
+      </section>
+
+      {/* 4. Sección de VISIÓN (Layout Split Screen - Invertida) */}
+      <section className="grid md:grid-cols-2 gap-12 items-center mb-12">
+        <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl order-2 md:order-1">
+          <img
+            src="https://conciencia.eco/wp-content/uploads/2024/03/Estilo-y-Conciencia-Vestido-Ecologico-Tenido-con-Tintes-Naturales-768x768.jpg"
+            alt="Nuestra Visión Visual"
+            className="w-full h-full object-cover transition duration-500 hover:scale-105"
+          />
+        </div>
+        <div className="order-1 md:order-2">
+          <h2 className="text-3xl font-sans text-gray-800 mb-4 flex items-center gap-2"><Star className="w-8 h-8 text-yellow-500" />
+            Nuestra Visión
+          </h2>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            Liderar la evolución de la moda de fiesta hacia un futuro transparente y sostenible, siendo la elección predilecta de la mujer moderna que busca piezas de calidad excepcional que reflejen su poder interior en cada celebración.
+          </p>
+          <p className="text-gray-700 leading-relaxed font-sans font-bold">
+            ¡Eres grandiosa!
+          </p>
         </div>
       </section>
 
@@ -159,12 +231,11 @@ export default function Nosotros() {
 
         {/* Layout de 3 Columnas para las tarjetas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-8">
-
           {/* Tarjeta 1: Blog/Artículos */}
           <ContentCard
             title="[Blog] El Poder del Negro"
             description="Analizamos por qué el 'Little Black Dress' nunca pasará de moda y cómo reinventarlo."
-            imageUrl="https://placehold.co/600x400/111111/fff?text=LBD+NovaGlow"
+            imageUrl="https://invitadisima.com/41684-home_default/vestido-de-fiesta-largo-con-cuerpo-plisado-y-falda-de-tul.jpg"
             linkText="Leer Artículo"
           />
 
@@ -172,7 +243,7 @@ export default function Nosotros() {
           <ContentCard
             title="[Tendencia] Lentejuelas 'Quiet Luxury'"
             description="Te mostramos la tendencia de las lentejuelas sutiles y elegantes para esta temporada de eventos."
-            imageUrl="https://placehold.co/600x400/d4af37/fff?text=Lentejuela+Sutil"
+            imageUrl="https://bridalroomboutique.com/wp-content/uploads/2021/06/falda-entallada-hasta-el-suelo-abertura-lateral-en-la-pierna-venezuela-evening-dress-boutique-vestidos-fiesta-largos-lentejuelas.jpg"
             linkText="Ver Tendencia"
           />
 
@@ -180,19 +251,23 @@ export default function Nosotros() {
           <ContentCard
             title="[Guía] El Accesorio Perfecto"
             description="Descubre cómo elegir el bolso y las joyas ideales para complementar tu look de noche."
-            imageUrl="https://placehold.co/600x400/800080/fff?text=Joyas+Clutch"
+            imageUrl="https://cdn-0.somosmamas.com.ar/wp-content/uploads/2018/12/shutterstock_535898149.jpg"
             linkText="Descargar Guía"
           />
         </div>
-
+      </section>
+      {/* Sección de Novedades y Tendencias (Mini-Galería Horizontal) */}
+      <section className="py-12 md:py-16 mt-12 bg-gray-50 rounded-3xl shadow-inner">
+        {/* ... contenido ... */}
         {/* CTA al final de la sección */}
         <div className="text-center mt-12">
-          <a href="/Blog-Inspiracion" className="bg-fuchsia-700 hover:bg-fuchsia-900 text-white font-bold py-3 px-8 rounded-full shadow-xl transition-transform transform hover:scale-105 inline-block">
+          <a href="./BlogInspiraciones" className="bg-fuchsia-700 hover:bg-fuchsia-900 text-white font-bold py-3 px-8 rounded-full shadow-xl transition-transform transform hover:scale-105 inline-block">
             Explora el Universo Nova Glow (Ver Blog Completo)
           </a>
         </div>
       </section>
 
+      {/* 6. CTA de Suscripción (Llamada al Modal) */}
       <section className="mt-12 py-16 px-8 bg-gray-900 rounded-3xl text-center shadow-2xl border-b-8 border-pink-600">
         <Sparkles className="w-12 h-12 text-yellow-300 mx-auto mb-4" />
         <h2 className="text-4xl font-extrabold text-white mb-3">
@@ -203,18 +278,25 @@ export default function Nosotros() {
         </p>
 
         <div className="text-center mt-12 flex flex-col md:flex-row justify-center items-center gap-4">
-          
-          <a
-            href="#"
-            className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105"
+          <button
+            onClick={handleOpenSubscription}
+            className="inline-block bg-white text-pink-600 border border-pink-500 hover:bg-pink-50 font-bold py-4 px-10 rounded-full shadow-lg transform transition duration-300 hover:scale-105"
           >
-            ¡Suscribirme y Brillar!
-          </a>
+            ✨ ¡Reclamar Oferta Secreta!
+          </button>
         </div>
         <p className="text-xs text-gray-400 mt-4">
           Prometemos no saturar tu bandeja. Lee nuestra Política de Privacidad.
         </p>
       </section>
- </div>
-        ); 
-} 
+
+      {/* 7. MODAL DE SUSCRIPCIÓN (Condicional) */}
+      {showSubscriptionModal && (
+        <SubscriptionNovaGlow
+          onClose={handleCloseSubscription}
+          onClaim={handleClaimSubscription}
+        />
+      )}
+    </div>
+  );
+}

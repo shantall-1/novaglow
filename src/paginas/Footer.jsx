@@ -2,6 +2,7 @@
 import React from 'react';
 import { Mail, Instagram, Twitter } from "lucide-react";
 import { Link } from "react-router-dom";
+import BlogInspiraciones from '../descubre/Blog-Inspiracion'
 
 
 // El componente Footer ya no necesita el prop 'font-script' 
@@ -10,7 +11,7 @@ import { Link } from "react-router-dom";
 const Footer = () => {
     return (
         // El div contenedor del footer
-        <footer className="bg-gray-800 text-white rounded-3xl p-10 mt-12">
+        <footer className="bg-gray-800 text-white rounded-1xl p-10 mt-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-b border-gray-700 pb-8 mb-8">
 
                 {/* Columna 1: Logo/Marca */}
@@ -29,34 +30,34 @@ const Footer = () => {
 
                 {/* Columna 2: Inspiración y Blog */}
             <div>
-                    <a href="/Blog-Inspiracion" className="font-semibold mb-4 text-white hover:underline">Descubre</a>
+                    <a href="./BlogInspiraciones" className="font-semibold mb-4 text-white hover:text-fuchsia-400 transition">Descubre</a>
                     <ul className="mt-4 space-y-3 text-sm">
                         {/* Usamos <Link> con la ruta definida en App.jsx */}
-                        <li><Link to="/blog-inspiracion" className="text-gray-400 hover:text-fuchsia-300 transition">Inspiración</Link></li>
-                        <li><Link to="/guia-estilo" className="text-gray-400 hover:text-fuchsia-300 transition">Guía de Estilo</Link></li>
-                        <li><Link to="/tendencias-noche" className="text-gray-400 hover:text-fuchsia-300 transition">Tendencias de Noche</Link></li>
+                        <li><Link to="./BlogInspiraciones" className="text-gray-400 hover:text-fuchsia-300 transition">Inspiración</Link></li>
+                        <li><Link to="./BlogInspiraciones" className="text-gray-400 hover:text-fuchsia-300 transition">Guía de Estilo</Link></li>
+                        <li><Link to="./BlogInspiraciones" className="text-gray-400 hover:text-fuchsia-300 transition">Tendencias de Noche</Link></li>
                     </ul>
                 </div>
 
 
                 {/* Columna 3: Información y Ayuda */}
                 <div>
-                    <h4 className="font-semibold text-white mb-4">Descubre</h4>
+                    <h4 className="font-semibold text-white mb-4">Ayuda</h4>
                     <ul className="space-y-2 text-sm">
                         {/* Usando el nombre del archivo JSX como ruta */}
                         <li>
-                            <Link to="/Blog-Inspiracion" className="text-gray-400 hover:text-fuchsia-300 transition">
+                            <Link to="#" className="text-gray-400 hover:text-fuchsia-300 transition">
                                 Blog / Inspiración
                             </Link>
                         </li>
                         <li>
-                            <Link to="/Guia" className="text-gray-400 hover:text-fuchsia-300 transition">
+                            <Link to="#" className="text-gray-400 hover:text-fuchsia-300 transition">
                                 Guía de Estilo
                             </Link>
                         </li>
                         <li>
-                            <Link to="/Tendencias-Noche" className="text-gray-400 hover:text-fuchsia-300 transition">
-                                Tendencias de Noche
+                            <Link to="#" className="text-gray-400 hover:text-fuchsia-300 transition">
+                                ..
                             </Link>
                         </li>
                     </ul>
@@ -68,16 +69,8 @@ const Footer = () => {
                     <p className="text-sm text-gray-400 mb-3">
                         Sé la primera en saber sobre nuevas colecciones y ofertas exclusivas.
                     </p>
-                    <div className="flex">
-                        <input
-                            type="email"
-                            placeholder="Tu email"
-                            className="p-2 rounded-l-lg text-gray-700 w-full focus:ring-fuchsia-500 focus:border-fuchsia-500"
-                        />
-                        <button className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-semibold p-2 rounded-r-lg transition">
-                            Suscribir
-                        </button>
-                    </div>
+                        
+                    
                 </div>
             </div>
 
