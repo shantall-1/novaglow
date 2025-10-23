@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { productosData } from "../assets/productosData";
+import { useCarrito } from "../context/CarritoContext"; // <-- 1. IMPORTAR EL CONTEXTO
 
 // --- Datos recomendados, frases y canciones ---
 const maquillaje = [
@@ -49,6 +50,7 @@ const StarEmpty = ({ className }) => (
 // --- Componente principal ---
 export default function ProductoDetalles() {
   const { id } = useParams();
+  const { agregarAlCarrito } = useCarrito(); // <-- 2. OBTENER LA FUNCIÓN DEL CONTEXTO
   const producto = productosData.find((p) => p.id === parseInt(id)) || productosData[0];
 
   const [imagenPrincipal, setImagenPrincipal] = useState(producto.gallery?.[0] || producto.image || "");
@@ -70,9 +72,29 @@ export default function ProductoDetalles() {
     return estrellas;
   };
 
+  // --- 3. FUNCIÓN MODIFICADA ---
   const handleAgregar = () => {
-    if (!sizeSeleccionado) return alert("Selecciona una talla antes de agregar al carrito.");
-    alert(`Agregado al carrito: ${producto.name} x ${cantidad} (${colorSeleccionado}, ${sizeSeleccionado})`);
+    // Mantenemos la validación de la talla
+    if (!sizeSeleccionado) {
+      alert("Por favor, selecciona una talla antes de agregar al carrito.");
+      return;
+    }
+
+    // Creamos un objeto con los detalles del producto seleccionado
+    // Es importante pasar el precio con descuento y los detalles
+    const itemParaCarrito = {
+      ...producto, // Pasa el ID, nombre, categoría, etc.
+      price: parseFloat(precioDescuento), // Usa el precio final calculado
+      image: imagenPrincipal, // Usa la imagen principal actual
+      size: sizeSeleccionado,
+      color: colorSeleccionado,
+    };
+
+    // Usamos la función del contexto en lugar del 'alert'
+    agregarAlCarrito(itemParaCarrito, cantidad);
+
+    // Opcional: Podrías agregar una notificación "toast" aquí
+    // para una mejor experiencia de usuario.
   };
 
   const handleReviewSubmit = (e) => {
@@ -86,12 +108,6 @@ export default function ProductoDetalles() {
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Breadcrumb / Volver a Productos */}
-        <div className="mb-6">
-          <Link to="/productos" className="inline-block bg-pink-500 text-white px-5 py-2 rounded-xl shadow-lg hover:bg-pink-600 transition-all font-semibold">
-            ← Volver a Productos
-          </Link>
-        </div>
 
         {/* Producto */}
         <div className="bg-white rounded-3xl shadow-xl p-6 grid md:grid-cols-2 gap-10">
@@ -125,8 +141,7 @@ export default function ProductoDetalles() {
               {producto.colors?.map(c => (
                 <div key={c} onClick={() => setColorSeleccionado(c)}
                   className={`w-8 h-8 rounded-full border-4 cursor-pointer transition-all duration-200 ${colorSeleccionado===c?"border-pink-500 scale-110 shadow-md":"border-gray-200 hover:border-pink-300"}`}
-                  style={{ backgroundColor: c==="Rosa"?"#F472B6":c==="Negro"?"#111827":"#EAB308" }} title={c}></div>
-              ))}
+                  style={{ backgroundColor: c==="Rosa"?"#F472B6":c==="Negro"?"#111827":"#EAB308" }} title={c}></div>              ))}
             </div>
 
             {/* Tallas */}
@@ -161,7 +176,8 @@ export default function ProductoDetalles() {
             <h3 className="text-xl font-medium mb-4 text-gray-800 border-b pb-2">💄 Maquillaje sugerido</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{maquillaje.map(item=>(
               <div key={item.id} className="bg-gray-50 shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-[1.03] cursor-pointer">
-                <img src={item.imagen} alt={item.nombre} className="w-full h-44 object-cover"/>
+                {/* --- CORRECCIÓN AQUÍ: era item.imagen --- */}
+                <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover"/>
                 <div className="p-3 text-center"><p className="text-gray-700 font-medium">{item.nombre}</p></div>
               </div>
             ))}</div>
@@ -172,7 +188,8 @@ export default function ProductoDetalles() {
             <h3 className="text-xl font-medium mb-4 text-gray-800 border-b pb-2"> Accesorios recomendados</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{accesorios.map(item=>(
               <div key={item.id} className="bg-gray-50 shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-[1.03] cursor-pointer">
-                <img src={item.imagen} alt={item.nombre} className="w-full h-44 object-cover"/>
+                {/* --- CORRECCIÓN AQUÍ: era item.imagen --- */}
+                <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover"/>
                 <div className="p-3 text-center"><p className="text-gray-700 font-medium">{item.nombre}</p></div>
               </div>
             ))}</div>
@@ -217,4 +234,3 @@ export default function ProductoDetalles() {
     </div>
   );
 }
-
