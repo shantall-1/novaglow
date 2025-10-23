@@ -1,108 +1,81 @@
-import { useState, useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import CarritoIcon from "../componentes/carritoIcon";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import CarritoIcon from "../componentes/CarritoIcon";
 
-function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
+const Navbar = () => {
   const navigate = useNavigate();
+  const [usuario, setUsuario] = useState(null);
 
+  // 🔄 Cargar usuario inicial y escuchar cambios
   useEffect(() => {
-    const session = localStorage.getItem("novaglow_session");
-    if (session) {
-      setUser(JSON.parse(session));
-    }
+    const cargarUsuario = () => {
+      const sesion = localStorage.getItem("novaglow_session");
+      setUsuario(sesion ? JSON.parse(sesion) : null);
+    };
+
+    cargarUsuario();
+
+    // Escucha cambios de sesión (login/logout)
+    window.addEventListener("storage", cargarUsuario);
+    window.addEventListener("novaglow_session_change", cargarUsuario);
+
+    return () => {
+      window.removeEventListener("storage", cargarUsuario);
+      window.removeEventListener("novaglow_session_change", cargarUsuario);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("novaglow_session");
-    setUser(null);
-    navigate("/login");
+    setUsuario(null);
+    alert("👋 Sesión cerrada correctamente.");
+    window.dispatchEvent(new Event("novaglow_session_change")); // 🔔 Notifica a todos los componentes
+    navigate("/");
   };
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-  const closeMenu = () => setMenuOpen(false);
-
   return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="bg-pink-100 shadow-md py-4 fixed top-0 left-0 w-full z-50 transition-all duration-500">
+      <div className="container mx-auto flex justify-between items-center px-6">
         <Link
           to="/"
-          className="text-3xl font-extrabold text-pink-500 hover:text-pink-600 transition-colors"
-          onClick={closeMenu}
+          className="text-2xl font-extrabold text-pink-600 font-[Poppins] hover:scale-105 transition-transform"
         >
-          NovaGlow 💖
+          💖 NovaGlow
         </Link>
 
-        {/* Botón Hamburguesa */}
-        <button
-          className="md:hidden text-gray-700 focus:outline-none"
-          onClick={toggleMenu}
-        >
-          {menuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
+        <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
+          <Link to="/" className="hover:text-pink-500 transition">Inicio</Link>
+          <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
+          <Link to="/nosotros" className="hover:text-pink-500 transition">Nosotros</Link>
+          <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
+        </div>
 
-        {/* Links Desktop */}
-        <div className="hidden md:flex items-center space-x-8 text-lg font-medium">
-          <NavLink to="/inicio" className={({ isActive }) => isActive ? "text-pink-500" : "hover:text-pink-500"}>Inicio</NavLink>
-          <NavLink to="/productos" className={({ isActive }) => isActive ? "text-pink-500" : "hover:text-pink-500"}>Productos</NavLink>
-          <NavLink to="/nosotros" className={({ isActive }) => isActive ? "text-pink-500" : "hover:text-pink-500"}>Nosotros</NavLink>
-          <NavLink to="/contacto" className={({ isActive }) => isActive ? "text-pink-500" : "hover:text-pink-500"}>Contacto</NavLink>
-
-          {user ? (
-            <>
-              <span className="text-pink-600 font-semibold">
-                Hola, {user.nombre?.split(" ")[0] || "Amiga"} 💖
+        <div className="flex items-center space-x-4">
+          <CarritoIcon />
+          {usuario ? (
+            <div className="flex items-center space-x-3">
+              <span className="text-pink-700 font-semibold">
+                Hola, {usuario.nombre?.split(" ")[0]} ✨
               </span>
               <button
                 onClick={handleLogout}
-                className="bg-pink-100 hover:bg-pink-200 text-pink-700 font-medium px-3 py-1 rounded-lg transition"
+                className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
               >
-                Cerrar sesión
+                Cerrar Sesión
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <NavLink to="/login" className="hover:text-pink-500">Iniciar sesión</NavLink>
-              <NavLink to="/registro" className="hover:text-pink-500">Registrarse</NavLink>
-            </>
+            <Link
+              to="/login"
+              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
+            >
+              Iniciar Sesión
+            </Link>
           )}
-          <CarritoIcon />
         </div>
       </div>
-
-      {/* Menú móvil */}
-      {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 flex flex-col items-center space-y-4 py-4 text-lg font-medium">
-          <NavLink to="/inicio" onClick={closeMenu} className="hover:text-pink-500">Inicio</NavLink>
-          <NavLink to="/productos" onClick={closeMenu} className="hover:text-pink-500">Productos</NavLink>
-          <NavLink to="/nosotros" onClick={closeMenu} className="hover:text-pink-500">Nosotros</NavLink>
-          <NavLink to="/contacto" onClick={closeMenu} className="hover:text-pink-500">Contacto</NavLink>
-
-          {user ? (
-            <>
-              <span className="text-pink-600 font-semibold">
-                Hola, {user.nombre?.split(" ")[0] || "Amiga"} 💖
-              </span>
-              <button
-                onClick={() => { handleLogout(); closeMenu(); }}
-                className="bg-pink-100 hover:bg-pink-200 text-pink-700 font-medium px-3 py-1 rounded-lg transition"
-              >
-                Cerrar sesión
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" onClick={closeMenu} className="hover:text-pink-500">Iniciar sesión</NavLink>
-              <NavLink to="/registro" onClick={closeMenu} className="hover:text-pink-500">Registrarse</NavLink>
-            </>
-          )}
-          <CarritoIcon />
-        </div>
-      )}
     </nav>
   );
-}
+};
 
 export default Navbar;
