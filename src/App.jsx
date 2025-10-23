@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CarritoProvider } from "./context/CarritoContext";
 import Productos from "./paginas/Productos";
-import ProductoDetalle from "./paginas/ProductoDetalle";
 import Carrito from "./componentes/Carrito";
 import Confirmacion from "./paginas/Confirmacion";
 import Inicio from "./paginas/Inicio";
@@ -9,13 +8,9 @@ import Nosotros from "./paginas/Nosotros";
 import Contacto from "./paginas/Contacto";
 import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
-import Login from "./paginas/Login";
-import Registro from "./paginas/Registro";
-import ProtectedRoute from "./componentes/ProtectedRoute";
-import BlogInspiraciones from './descubre/Blog-Inspiracion'
-import BlogDetalle from "./paginas/BlogDetalles";
-
 import "./App.css";
+import ProductoDetalles from "./paginas/ProductoDetalle";
+import MetodosPago from "./layouts/MetodosPago";
 
 function App() {
   return (
@@ -23,35 +18,17 @@ function App() {
       <Router>
         <Navbar />
         <Routes className="min-h-screen bg-gray-50">
-          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/" element={<Inicio />} />
+           <Route path="/inicio" element={<Inicio />} />
           <Route path="/productos" element={<Productos />} />
-          <Route path="/producto/:id" element={<ProductoDetalle />} />
+          <Route path="/producto/:id" element={<ProductoDetalles />} />
           <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/carrito" element={<Carrito />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/bloginspiraciones" element={<BlogInspiraciones />} />
-          <Route path="/inspiracion/:slug" element={<BlogDetalle />} />
-
-          {/* 🔒 Estas rutas sí requieren sesión */}
-          <Route
-            path="/carrito"
-            element={
-              <ProtectedRoute>
-                <Carrito />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/confirmacion"
-            element={
-              <ProtectedRoute>
-                <Confirmacion />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} />
+          <Route path="/confirmacion" element={<Confirmacion />} />
+          <Route path="/pago" element={<MetodosPago />} />
         </Routes>
+
         <Footer />
       </Router>
     </CarritoProvider>

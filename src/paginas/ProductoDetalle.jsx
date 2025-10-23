@@ -1,10 +1,7 @@
 import { useState } from "react";
-// Usaremos elementos nativos en lugar de framer-motion para evitar dependencias externas.
-// Las importaciones de router y context se simulan o se eliminan para que el archivo sea ejecutable.
+import { useCarrito } from "../context/CarritoContext";
 
-// --- 1. SIMULACIÓN DE DATOS (PRODUCTOS Y RECOMENDACIONES) ---
-
-// Mock Data de un producto completo (simulando productosData)
+// --- (Todos tus datos mock: productosData, maquillaje, accesorios, etc. van aquí... los omito por brevedad) ---
 const productosData = [
   {
     id: 1,
@@ -25,38 +22,30 @@ const productosData = [
   },
   { id: 2, name: "Producto Mock", price: 50, image: "https://placehold.co/800x1200/cccccc/000?text=Mock" }
 ];
-
-// Mock Data de recomendaciones (faltaba en el código original)
 const maquillaje = [
   { id: 1, nombre: "Labial rosa nude", imagen: "https://placehold.co/100x100/f7799e/fff?text=Labial", link: "#" },
   { id: 2, nombre: "Sombras tonos cálidos", imagen: "https://placehold.co/100x100/f06c9b/fff?text=Sombras", link: "#" },
   { id: 3, nombre: "Iluminador dorado", imagen: "https://placehold.co/100x100/ffb9b6/000?text=Iluminador", link: "#" },
   { id: 4, nombre: "Rímel volumen total", imagen: "https://placehold.co/100x100/e06b8b/fff?text=Rimel", link: "#" },
 ];
-
 const accesorios = [
   { id: 101, nombre: "Collar minimalista dorado", imagen: "https://placehold.co/100x100/fff/f06c9b?text=Collar", link: "#" },
   { id: 102, nombre: "Aretes en forma de corazón", imagen: "https://placehold.co/100x100/fff/f7799e?text=Aretes", link: "#" },
   { id: 103, nombre: "Bolso pequeño beige", imagen: "https://placehold.co/100x100/feeae9/f06c9b?text=Bolso", link: "#" },
   { id: 104, nombre: "Pulsera con charms", imagen: "https://placehold.co/100x100/fec8d8/f06c9b?text=Pulsera", link: "#" },
 ];
-
 const frasesPositivas = [
   "✨ Eres más fuerte de lo que crees.",
   "💖 La moda no te define, tu actitud sí.",
   "🌸 Amarte es el primer paso para brillar.",
   "💫 Cada día es una nueva oportunidad para florecer.",
 ];
-
 const canciones = [
   { id: 1, nombre: "Confident - Demi Lovato", url: "#" },
   { id: 2, nombre: "Run the World (Girls) - Beyoncé", url: "#" },
   { id: 3, nombre: "Flowers - Miley Cyrus", url: "#" },
 ];
-
-// --- 2. COMPONENTES SVG PARA ÍCONOS DE ESTRELLAS ---
-
-// Iconos Star de Lucide (in-line SVG)
+// --- (Todos tus componentes SVG: Star, StarHalf, StarEmpty van aquí... los omito por brevedad) ---
 const Star = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +62,6 @@ const Star = ({ className }) => (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
-
 const StarHalf = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +78,6 @@ const StarHalf = ({ className }) => (
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77V2z" />
   </svg>
 );
-
 const StarEmpty = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -107,54 +94,47 @@ const StarEmpty = ({ className }) => (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
-
 // --- 3. COMPONENTE PRINCIPAL ---
 
 export default function ProductoDetalles({ productId = 1 }) {
-  // SIMULACIÓN DE HOOKS QUE FALTABAN
-  const agregarAlCarrito = (item) => {
-    alert(`Agregado al carrito: ${item.name} x ${item.cantidad}`);
-  };
-
+  
+  const { agregarAlCarrito } = useCarrito();
+  
   const producto = productosData.find((p) => p.id === productId) || productosData[0];
-
-  // --- ESTADOS ---
+  
   const [imagenPrincipal, setImagenPrincipal] = useState(
     producto.gallery?.[0] || producto.image || ""
   );
   const [colorSeleccionado, setColorSeleccionado] = useState(
     producto.colors ? producto.colors[0] : null
   );
-  const [cantidad, setCantidad] = useState(1); // ESTADO FALTANTE
-  const [review, setReview] = useState("");
-  const [reviews, setReviews] = useState([
-    // Reviews de ejemplo (reemplazo de localStorage)
-    { id: 1, texto: "Excelente calidad y bonito diseño.", fecha: "15/07/2024" },
-    { id: 2, texto: "Se ve igual que en las fotos, muy recomendado.", fecha: "15/07/2024" }
-  ]);
+  const [cantidad, setCantidad] = useState(1);
   const [sizeSeleccionado, setSizeSeleccionado] = useState(
     producto.sizes ? producto.sizes[0] : null
   );
+  const [review, setReview] = useState("");
+  const [reviews, setReviews] = useState([
+    { id: 1, texto: "Excelente calidad y bonito diseño.", fecha: "15/07/2024" },
+    { id: 2, texto: "Se ve igual que en las fotos, muy recomendado.", fecha: "15/07/2024" }
+  ]);
 
-  // --- CÁLCULOS ---
-  const precioDescuento = (
+  // --- (Todas tus funciones: precioDescuento, handleAgregar, handleReviewSubmit, renderStars... van aquí) ---
+ const precioDescuento = (
     producto.price -
     producto.price * (producto.discount / 100)
   ).toFixed(2);
 
-  // --- FUNCIONES FALTANTES ---
   const handleAgregar = () => {
     if (!sizeSeleccionado) {
       alert("Por favor, selecciona una talla antes de agregar al carrito.");
       return;
     }
-    agregarAlCarrito({ 
-        ...producto, 
-        cantidad, 
-        color: colorSeleccionado, 
-        size: sizeSeleccionado 
+ agregarAlCarrito({
+      ...producto,
+      cantidad,
+      color: colorSeleccionado,
+      size: sizeSeleccionado
     });
-    // navigate("/carrito"); // Simulación de navegación
   };
 
   const handleReviewSubmit = (e) => {
@@ -166,8 +146,7 @@ export default function ProductoDetalles({ productId = 1 }) {
           texto: review.trim(),
           fecha: new Date().toLocaleDateString("es-ES", {
             dateStyle: "short",
-            timeStyle: "short"
-          })
+          }) // Simplificado para que coincida con el mock
         },
         ...reviews
       ];
@@ -176,7 +155,6 @@ export default function ProductoDetalles({ productId = 1 }) {
     }
   };
 
-  // --- ESTRELLAS ---
   const renderStars = (rating) => {
     const estrellas = [];
     for (let i = 1; i <= 5; i++) {
@@ -189,7 +167,6 @@ export default function ProductoDetalles({ productId = 1 }) {
     return estrellas;
   };
 
-  // Si el producto no existe (aunque debería existir por el mock), muestra error.
   if (!producto) {
     return (
       <div className="text-center text-red-500 py-20 font-bold text-xl">
@@ -200,10 +177,12 @@ export default function ProductoDetalles({ productId = 1 }) {
 
   // --- RENDER DEL COMPONENTE ---
   return (
+    // --- CAMBIO AQUÍ ---
+    // Este div 'bg-gray-50' ahora envuelve todo, pero el 'max-w-7xl' NO
     <div className="bg-gray-50 min-h-screen">
+      
+      {/* --- SECCIÓN PRINCIPAL (CONTENIDO CENTRADO) --- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        {/* --- SECCIÓN PRINCIPAL DEL PRODUCTO --- */}
         <div className="bg-white rounded-3xl shadow-xl p-6 grid md:grid-cols-2 gap-10">
           
           {/* --- GALERÍA DE IMÁGENES --- */}
@@ -218,7 +197,6 @@ export default function ProductoDetalles({ productId = 1 }) {
               }
               className="w-full rounded-2xl shadow-lg object-cover h-[450px] transition-transform duration-300 hover:scale-[1.02]"
             />
-
             <div className="flex space-x-3 overflow-x-auto pb-2 w-full justify-center">
               {(producto.gallery || []).map((img, index) => (
                 <img
@@ -241,16 +219,12 @@ export default function ProductoDetalles({ productId = 1 }) {
             <h1 className="text-4xl font-extrabold text-gray-800">
               {producto.name}
             </h1>
-            
-            {/* Rating */}
             <div className="flex items-center space-x-2">
               <div className="flex">{renderStars(producto.rating)}</div>
               <span className="text-sm text-gray-500">
                 ({producto.rating} / 5, {reviews.length} reseñas)
               </span>
             </div>
-
-            {/* Precio */}
             <div className="flex items-baseline space-x-3">
               {producto.discount > 0 && (
                 <span className="text-lg text-gray-500 line-through">
@@ -266,12 +240,9 @@ export default function ProductoDetalles({ productId = 1 }) {
                 </span>
               )}
             </div>
-
             <p className="text-gray-600 leading-relaxed border-b pb-5">
                 {producto.description}
             </p>
-
-            {/* Opciones (Colores) */}
             {producto.colors && producto.colors.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
@@ -296,8 +267,6 @@ export default function ProductoDetalles({ productId = 1 }) {
                 </div>
               </div>
             )}
-
-            {/* Opciones (Tallas) */}
             {producto.sizes && producto.sizes.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
@@ -320,9 +289,6 @@ export default function ProductoDetalles({ productId = 1 }) {
                 </div>
               </div>
             )}
-
-
-            {/* Control de Cantidad y Agregar */}
             <div className="flex items-center space-x-4 pt-4">
               <div className="flex items-center space-x-2 border border-gray-300 rounded-lg p-1">
                 <button
@@ -339,7 +305,6 @@ export default function ProductoDetalles({ productId = 1 }) {
                   +
                 </button>
               </div>
-
               <button
                 onClick={handleAgregar}
                 className="flex-1 bg-pink-500 text-white font-extrabold text-lg py-3 rounded-xl hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.005]"
@@ -347,15 +312,20 @@ export default function ProductoDetalles({ productId = 1 }) {
                 🛒 Agregar al carrito
               </button>
             </div>
-            
             <p className="text-sm text-gray-500 italic">
-                Solo quedan **{producto.stock}** unidades disponibles.
+              Solo quedan {producto.stock} unidades disponibles.
             </p>
           </div>
         </div>
+      </div> 
+      {/* --- CAMBIO AQUÍ --- 
+          Cerramos el div 'max-w-7xl' para que las siguientes secciones
+          puedan ocupar todo el ancho.
+      */}
 
-        {/* --- SECCIÓN DE RESEÑAS --- */}
-        <div className="mt-12 p-8 bg-white rounded-3xl shadow-xl">
+      {/* --- SECCIÓN DE RESEÑAS (FONDO BLANCO FULL-WIDTH) --- */}
+      <div className="mt-12 p-8 bg-white shadow-xl py-12"> {/* Contenedor full-width */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Contenido centrado */}
           <h2 className="text-3xl font-extrabold text-pink-700 mb-6 border-b pb-3">
             💬 Opiniones de Clientes ({reviews.length})
           </h2>
@@ -401,9 +371,11 @@ export default function ProductoDetalles({ productId = 1 }) {
             )}
           </div>
         </div>
-      
-        {/* --- MAQUILLAJE Y ACCESORIOS (Recomendaciones) --- */}
-        <section className="mt-12">
+      </div>
+
+      {/* --- MAQUILLAJE Y ACCESORIOS (FONDO GRIS FULL-WIDTH, CONTENIDO CENTRADO) --- */}
+      <section className="mt-12 py-12"> {/* Contenedor full-width (usa el fondo bg-gray-50) */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Contenido centrado */}
             <h2 className="text-3xl font-extrabold text-pink-700 mb-8 text-center">
               ✨ Recomendaciones para completar tu look ✨
             </h2>
@@ -455,10 +427,16 @@ export default function ProductoDetalles({ productId = 1 }) {
                 ))}
               </div>
             </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 💬 MENSAJES POSITIVOS + 🎵 CANCIONES */}
-        <section className="bg-pink-100 py-10 rounded-3xl text-center shadow-inner">
+      {/* 💬 MENSAJES POSITIVOS + 🎵 CANCIONES (FONDO ROSA FULL-WIDTH) */}
+      <section className="bg-pink-100 py-10 shadow-inner"> {/* Contenedor full-width */}
+        {/* --- CAMBIO AQUÍ --- 
+            Quitamos 'rounded-3xl' para que ocupe todo el ancho
+            y agregamos el contenedor 'max-w-7xl' adentro.
+        */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"> {/* Contenido centrado */}
           <h2 className="text-3xl font-extrabold text-pink-700 mb-8">
             💖 Inspírate y siéntete poderosa
           </h2>
@@ -494,8 +472,9 @@ export default function ProductoDetalles({ productId = 1 }) {
               ))}
             </div>
           </div>
-        </section>
-      </div>
-    </div>
+        </div>
+      </section>
+
+    </div> 
   );
 }
