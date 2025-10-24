@@ -14,7 +14,6 @@ const Inicio = () => {
 
   return (
     <>
-      {/* HERO PRINCIPAL */}
       <section className="relative flex items-center justify-center min-h-screen overflow-hidden bg-linear-to-br from-rose-50 via-white to-pink-100 text-center">
         {/* efectos glow suaves */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,192,203,0.35),transparent_60%)]"></div>

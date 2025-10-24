@@ -5,6 +5,7 @@ import { CarritoProvider } from "./context/CarritoContext";
 import Productos from "./paginas/Productos";
 import ProductoDetalle from "./paginas/ProductoDetalle";
 import Carrito from "./componentes/Carrito";
+import ScrollToTop from "./componentes/ScrollToTop";
 import Confirmacion from "./paginas/Confirmacion";
 import Inicio from "./paginas/Inicio";
 import Nosotros from "./paginas/Nosotros";
@@ -13,17 +14,24 @@ import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
-import Logout from "./paginas/Logout"; // ✅ Modal de sesión cerrada
+import Logout from "./paginas/Logout"; 
 
+//BLOG
+import BlogInspiracion from "./paginas/Blog-Inspiracion";
+
+
+import ArticuloDetalle from './descubre/ArticuloDetalle';
 // 🔒 Protección de rutas
 import ProtectedRoute from "./componentes/ProtectedRoute";
-
+import ErrorBoundary from "./ErrorBoundary";
 import "./App.css";
+
 
 function App() {
   return (
     <CarritoProvider>
       <Router>
+         <ScrollToTop /> {/* ✅ Aquí está bien ubicado */}
         <div className="flex flex-col min-h-screen bg-gray-50">
           {/* 🌸 Barra superior */}
           <Navbar />
@@ -37,6 +45,15 @@ function App() {
               <Route path="/producto/:id" element={<ProductoDetalle />} />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/contacto" element={<Contacto />} />
+
+              {/* Ruta para la galería / blog de inspiración */}
+              <Route path="/inspiracion" element={<BlogInspiracion />} />
+
+              {/* Ruta dinámica para detalle de artículo según slug */}
+              <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
+
+              
+
 
               {/* 👤 Autenticación */}
               <Route path="/login" element={<Login />} />

@@ -30,7 +30,11 @@ export default function Productos() {
     <div className="flex p-6 gap-6 relative bg-pink-50 min-h-screen">
       {/* Sidebar */}
       <Sidebar 
-        categorias={[...new Set(productosData.map((p) => p.category || "Ropa"))]} 
+        categorias={[
+          "Ropa",
+          "Maquillaje",
+          "Accesorios",
+        ]} 
         onFilter={filtrarProductos} 
         className="bg-white rounded-3xl p-6 shadow-lg w-64"
       />
@@ -43,11 +47,14 @@ export default function Productos() {
             className="bg-white p-4 rounded-3xl shadow-md hover:shadow-xl transition-all relative flex flex-col"
           >
             <div className="overflow-hidden rounded-2xl relative">
-              <img 
-                src={p.image} 
-                alt={p.name} 
-                className="w-full h-64 object-cover transition-transform duration-500 hover:scale-105"
-              />
+              <Link to={`/producto/${p.id}`}>
+                <img 
+                  src={p.image} 
+                  alt={p.name} 
+                  className="w-full h-64 object-cover transition-transform duration-500 hover:scale-105 cursor-pointer"
+                />
+              </Link>
+
               <button 
                 onClick={() => setProductoSeleccionado(p)} 
                 className="absolute top-3 right-3 bg-white/80 p-3 rounded-full hover:bg-pink-200 transition"
@@ -60,10 +67,10 @@ export default function Productos() {
             <p className="text-gray-600 text-sm mt-1 flex-1">{p.description}</p>
 
             <p className="text-pink-600 font-semibold mt-3">
-              ${p.price.toFixed(2)}
+              S/{p.price ? p.price.toFixed(2) : "0.00"}
               {p.discount > 0 && (
                 <span className="text-gray-400 text-sm line-through ml-2">
-                  ${(p.price / (1 - p.discount / 100)).toFixed(2)}
+                  S/{p.price ? (p.price / (1 - p.discount / 100)).toFixed(2) : "0.00"}
                 </span>
               )}
             </p>
@@ -93,11 +100,13 @@ export default function Productos() {
 
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Imagen más grande */}
-              <img 
-                src={productoSeleccionado.image} 
-                alt={productoSeleccionado.name} 
-                className="rounded-2xl w-full lg:w-1/2 h-auto max-h-[600px] object-cover transition-transform hover:scale-105"
-              />
+              <Link to={`/producto/${productoSeleccionado.id}`} onClick={() => setProductoSeleccionado(null)}>
+                <img 
+                  src={productoSeleccionado.image} 
+                  alt={productoSeleccionado.name} 
+                  className="rounded-2xl w-full lg:w-1/2 h-auto max-h-[600px] object-cover transition-transform hover:scale-105 cursor-pointer"
+                />
+              </Link>
 
               <div className="flex flex-col justify-between lg:w-1/2">
                 <div>
@@ -107,10 +116,11 @@ export default function Productos() {
 
                 <div>
                   <p className="text-pink-600 font-semibold text-xl mb-4">
-                    ${productoSeleccionado.price.toFixed(2)}
+                    S/{productoSeleccionado.price ? productoSeleccionado.price.toFixed(2) : "0.00"}
                   </p>
                   <Link 
                     to={`/producto/${productoSeleccionado.id}`} 
+                    onClick={() => setProductoSeleccionado(null)} 
                     className="block text-center bg-pink-500 text-white py-3 rounded-2xl hover:bg-pink-600 transition font-semibold"
                   >
                     Ver producto completo
