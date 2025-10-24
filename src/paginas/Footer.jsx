@@ -7,10 +7,10 @@ const Footer = () => {
     return (
         // CAMBIO: Fondo oscuro (bg-gray-800) a rosa pálido (bg-pink-100)
         // CAMBIO: Texto principal (text-white) a oscuro (text-gray-900)
-        <footer className="bg-pink-100 text-gray-900 rounded-3xl p-10 mt-12">
+        <footer className="bg-pink-100 text-gray-900 rounded-3xl p-10 mt-12 justify-center">
             
             {/* CAMBIO: El borde ahora es un tono de rosa más oscuro */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-b border-pink-200 pb-8 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 border-b border-pink-200 pb-8 mb-8">
 
                 {/* Columna 1: Logo/Marca */}
                 <div className="space-y-3 col-span-2 md:col-span-1">
@@ -41,29 +41,6 @@ const Footer = () => {
                     </ul>
                 </div>
 
-                {/* Columna 3: Información y Ayuda */}
-                <div>
-                    {/* CAMBIO: Título (text-white) a (text-gray-900) */}
-                    <h4 className="font-semibold text-gray-900 mb-4">Descubre</h4>
-                    <ul className="space-y-2 text-sm">
-                         {/* CAMBIO: Links (text-gray-400) a (text-gray-600) con hover fucsia */}
-                        <li>
-                            <Link to="/Blog-Inspiracion" className="text-gray-600 hover:text-pink-500 transition">
-                                Blog / Inspiración
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/Guia" className="text-gray-600 hover:text-pink-500 transition">
-                                Guía de Estilo
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/Tendencias-Noche" className="text-gray-600 hover:text-pink-500 transition">
-                                Tendencias de Noche
-                            </Link>
-                        </li>
-                    </ul>
-                </div>
 
                 {/* Columna 4: Novedades / Newsletter */}
                 <div className="col-span-2 md:col-span-1">
