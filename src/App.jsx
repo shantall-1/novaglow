@@ -23,7 +23,6 @@ import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import ArticuloDetalle from './descubre/ArticuloDetalle';
 // 🔒 Protección de rutas
 import ProtectedRoute from "./componentes/ProtectedRoute";
-import ErrorBoundary from "./ErrorBoundary";
 import "./App.css";
 
 
