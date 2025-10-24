@@ -33,16 +33,10 @@ const Navbar = () => {
   return (
     <nav className="bg-pink-100 shadow-md py-4 fixed top-0 left-0 w-full z-50 transition-all duration-500">
       <div className="container mx-auto flex justify-between items-center px-6">
-
-        {/* 🌸 Logo con texto */}
+        {/* 🌸 Logo */}
         <Link to="/" className="flex items-center space-x-2 group">
-          <img
-            src="/logo.png"
-            alt="NovaGlow Logo"
-            className="h-10 w-10 rounded-full shadow-md group-hover:scale-110 transition-transform"
-          />
           <span className="text-2xl font-extrabold text-pink-600 font-[Poppins] group-hover:text-pink-700 transition-colors">
-            NovaGlow
+           🌸NovaGlow
           </span>
         </Link>
 
