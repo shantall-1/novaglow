@@ -122,8 +122,8 @@ export default function ProductoDetalles() {
               <span className="text-sm text-gray-500">({producto.rating} / 5, {reviews.length} reseñas)</span>
             </div>
             <div className="flex items-baseline space-x-3">
-              {producto.discount > 0 && <span className="text-lg text-gray-500 line-through">${producto.price.toFixed(2)}</span>}
-              <span className="text-4xl font-bold text-pink-600">${precioDescuento}</span>
+              {producto.discount > 0 && <span className="text-lg text-gray-500 line-through">S/{producto.price.toFixed(2)}</span>}
+              <span className="text-4xl font-bold text-pink-600">S/{precioDescuento}</span>
               {producto.discount > 0 && <span className="text-base font-bold bg-red-100 text-red-600 px-3 py-1 rounded-full">{producto.discount}% OFF</span>}
             </div>
             <p className="text-gray-600 leading-relaxed border-b pb-5">{producto.description}</p>

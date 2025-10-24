@@ -67,10 +67,10 @@ export default function Productos() {
             <p className="text-gray-600 text-sm mt-1 flex-1">{p.description}</p>
 
             <p className="text-pink-600 font-semibold mt-3">
-              ${p.price ? p.price.toFixed(2) : "0.00"}
+              S/{p.price ? p.price.toFixed(2) : "0.00"}
               {p.discount > 0 && (
                 <span className="text-gray-400 text-sm line-through ml-2">
-                  ${p.price ? (p.price / (1 - p.discount / 100)).toFixed(2) : "0.00"}
+                  S/{p.price ? (p.price / (1 - p.discount / 100)).toFixed(2) : "0.00"}
                 </span>
               )}
             </p>
@@ -116,7 +116,7 @@ export default function Productos() {
 
                 <div>
                   <p className="text-pink-600 font-semibold text-xl mb-4">
-                    ${productoSeleccionado.price ? productoSeleccionado.price.toFixed(2) : "0.00"}
+                    S/{productoSeleccionado.price ? productoSeleccionado.price.toFixed(2) : "0.00"}
                   </p>
                   <Link 
                     to={`/producto/${productoSeleccionado.id}`} 
