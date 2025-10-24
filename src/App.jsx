@@ -14,7 +14,8 @@ import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
-import Logout from "./paginas/Logout"; // ✅ Modal de sesión cerrada
+import Logout from "./paginas/Logout"; 
+
 //BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 

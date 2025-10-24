@@ -12,7 +12,7 @@ export default function CouponNovaGlow({
   const [showCoupon, setShowCoupon] = useState(false);
   const [usuario, setUsuario] = useState(null);
   const [mensaje, setMensaje] = useState("");
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     // Revisar si hay usuario logueado
@@ -21,7 +21,7 @@ export default function CouponNovaGlow({
       setUsuario(JSON.parse(user));
     }
 
-    // Temporizador de cinemática → mostrar cupón
+    // Temporizador
     const t = setTimeout(() => {
       setShowCinematic(false);
       setShowCoupon(true);
@@ -31,7 +31,6 @@ export default function CouponNovaGlow({
 
   const handleReclamar = () => {
     if (!usuario) {
-      // No logueado → redirigir al login
       navigate("/login");
       return;
     }

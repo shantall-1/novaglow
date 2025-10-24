@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Sparkles, ArrowLeft, Calendar, Clock } from 'lucide-react';
 import ContentRenderer from './ContentRenderer';
-import { allArticles } from "../paginas/Blog-Inspiracion";
+import { allArticles } from "../descubre/articlesData";
  // 👈 Importar aquí
 
 

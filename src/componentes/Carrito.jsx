@@ -1,14 +1,14 @@
-import { useState } from "react"; // <-- 1. Importa useState
+import { useState } from "react"; 
 import { useCarrito } from "../context/CarritoContext";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Carrito() {
-  // <-- 2. Obtén 'vaciarCarrito' del contexto
+
   const { carrito, eliminarDelCarrito, actualizarCantidad, total, vaciarCarrito } =
     useCarrito();
   const navigate = useNavigate();
 
-  // <-- 3. Añade los estados para el formulario
+  // Estados para el formulario
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
@@ -17,7 +17,7 @@ export default function Carrito() {
     direccion: "",
   });
 
-  // <-- 4. Añade los manejadores para el formulario
+  // Manejadores para el formulario
   const manejarCambio = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -26,8 +26,7 @@ export default function Carrito() {
   // Manejador para cuando se envía el formulario de pago
   const manejarPago = (e) => {
     e.preventDefault();
-    // Aquí iría la lógica real de pago...
-    // Como simulación, vaciamos el carrito y navegamos a confirmación
+    // Vaciamos el carrito y navegamos a confirmación
     vaciarCarrito();
     navigate("/confirmacion");
   };
@@ -54,7 +53,7 @@ export default function Carrito() {
             key={item.id}
             className="flex items-center justify-between bg-white p-4 rounded-xl shadow"
           >
-            {/* ... (el mapeo de tus productos sigue igual) ... */}
+
             <div className="flex items-center gap-4">
               <img
                 src={item.image}
@@ -103,7 +102,7 @@ export default function Carrito() {
       <div className="mt-6 text-right">
         <p className="text-xl font-semibold">Total: ${total.toFixed(2)}</p>
 
-        {/* <-- 5. Muestra el botón 'Pagar' solo si el formulario NO está visible */}
+        {/* Mostrar botón de pagar */}
         {!mostrarFormulario ? (
           <button
             onClick={() => setMostrarFormulario(true)} // <-- Cambia el estado, no navega
@@ -114,7 +113,7 @@ export default function Carrito() {
         ) : null}
       </div>
 
-      {/* <-- 6. Muestra el formulario SÓLO SI 'mostrarFormulario' es true */}
+      {/* Muestra el formulario SÓLO SI 'mostrarFormulario' es true */}
       {mostrarFormulario && (
         <form
           onSubmit={manejarPago}
