@@ -1,5 +1,4 @@
 // Footer.jsx
-import React from 'react';
 import { Mail, Instagram, Twitter } from "lucide-react";
 import { Link } from "react-router-dom";
 
