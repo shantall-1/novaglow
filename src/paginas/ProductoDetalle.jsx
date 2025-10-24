@@ -5,17 +5,17 @@ import { useCarrito } from "../context/CarritoContext"; // <-- 1. IMPORTAR EL CO
 
 // --- Datos recomendados, frases y canciones ---
 const maquillaje = [
-  { id: 12, nombre: "Labial rosa nude", link: "https://i.pinimg.com/736x/ca/b8/29/cab8294334fe8a3d1bdcd72b3b57b25d.jpg" },
-  { id: 13, nombre: "Sombras tonos cálidos", link: "https://i.pinimg.com/736x/7b/ca/82/7bca82b43809c4cb08e19748c7a64a92.jpg" },
-  { id: 14, nombre: "Iluminador dorado", link: "https://i.pinimg.com/736x/72/76/9c/72769c8635a64eff714c4a5904c6cd4f.jpg" },
-  { id: 15, nombre: "Rímel volumen total", link: "https://i.pinimg.com/736x/3f/f8/43/3ff843f98b18b7b4a84ad27889ec34b2.jpg" },
+  { id: 16, nombre: "Labial rosa nude", link: "https://i.pinimg.com/736x/ca/b8/29/cab8294334fe8a3d1bdcd72b3b57b25d.jpg" },
+  { id: 17, nombre: "Sombras tonos cálidos", link: "https://i.pinimg.com/736x/7b/ca/82/7bca82b43809c4cb08e19748c7a64a92.jpg" },
+  { id: 18, nombre: "Iluminador dorado", link: "https://i.pinimg.com/736x/72/76/9c/72769c8635a64eff714c4a5904c6cd4f.jpg" },
+  { id: 19, nombre: "Rímel volumen total", link: "https://i.pinimg.com/736x/3f/f8/43/3ff843f98b18b7b4a84ad27889ec34b2.jpg" },
 ];
 
 const accesorios = [
-  { id: 16, nombre: "Collar minimalista dorado", link: "https://i.pinimg.com/736x/fe/eb/75/feeb75122196d09c7790e70ae0167d12.jpg" },
-  { id: 17, nombre: "Argolla dorado", link: "https://i.pinimg.com/736x/80/cf/da/80cfda63ef970b64d57f177b371ace49.jpg" },
-  { id: 18, nombre: "Bolso pequeño beige", link: "https://i.pinimg.com/736x/18/e0/49/18e0491791e065357f0637c97933b591.jpg" },
-  { id: 19, nombre: "Pulsera con charms", link: "https://i.pinimg.com/736x/5f/f9/bc/5ff9bcbb5852580f4f5d67e624e5dd89.jpg" },
+  { id: 20, nombre: "Collar minimalista dorado", link: "https://i.pinimg.com/736x/fe/eb/75/feeb75122196d09c7790e70ae0167d12.jpg" },
+  { id: 21, nombre: "Argolla dorado", link: "https://i.pinimg.com/736x/80/cf/da/80cfda63ef970b64d57f177b371ace49.jpg" },
+  { id: 22, nombre: "Bolso pequeño beige", link: "https://i.pinimg.com/736x/18/e0/49/18e0491791e065357f0637c97933b591.jpg" },
+  { id: 23, nombre: "Pulsera con charms", link: "https://i.pinimg.com/736x/5f/f9/bc/5ff9bcbb5852580f4f5d67e624e5dd89.jpg" },
 ];
 
 const frasesPositivas = [

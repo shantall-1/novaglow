@@ -184,7 +184,7 @@ category: "Ropa",
 
 //maquillaje
     {
-    id: 17,
+    id: 12,
     category: "Maquillaje",
     name: "Labial Brillante",
     price: 74.99,
@@ -196,7 +196,7 @@ category: "Ropa",
     stock: 40,
   },
   {
-    id: 18,
+    id: 13,
     name: "Corector Líquido",
     category: "Maquillaje",
     
@@ -209,7 +209,7 @@ category: "Ropa",
     stock: 60,
   },
   {
-    id: 18,
+    id: 14,
     name: "Labial Mate",
     category: "Maquillaje",
     
@@ -221,7 +221,7 @@ category: "Ropa",
     stock: 60,
   },
     {
-    id: 18,
+    id: 15,
     name: "Bene Tint",
     category: "Maquillaje",
     price: 49.99,
@@ -235,7 +235,7 @@ category: "Ropa",
 
   // --- MAQUILLAJE ---
   {
-    id: 12,
+    id: 16,
     name: "Labial rosa nude",
     category: "Maquillaje",
     price: 12.99,
@@ -249,7 +249,7 @@ category: "Ropa",
     stock: 20
   },
   {
-    id: 13,
+    id: 17,
     name: "Sombras tonos cálidos",
     category: "Maquillaje",
     price: 18.99,
@@ -263,7 +263,7 @@ category: "Ropa",
     stock: 15
   },
   {
-    id: 14,
+    id: 18,
     name: "Iluminador dorado",
     category: "Maquillaje",
     price: 15.49,
@@ -277,7 +277,7 @@ category: "Ropa",
     stock: 18
   },
   {
-    id: 15,
+    id: 19,
     name: "Rímel volumen total",
     category: "Maquillaje",
     price: 13.99,
@@ -293,7 +293,7 @@ category: "Ropa",
 
   // --- ACCESORIOS ---
        {
-    id: 15,
+    id: 20,
     name: "Rímel volumen total",
     category: "Accesorios",
     price: 13.99,
@@ -307,7 +307,7 @@ category: "Ropa",
     stock: 30
   },
          {
-    id: 15,
+    id: 21,
     name: "Rímel volumen total",
     category: "Accesorios",
     price: 13.99,
@@ -321,7 +321,7 @@ category: "Ropa",
     stock: 30
   },
            {
-    id: 15,
+    id: 22,
     name: "Rímel volumen total",
     category: "Accesorios",
     price: 13.99,
