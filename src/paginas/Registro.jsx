@@ -49,7 +49,7 @@ export default function Registro() {
     setSuccess("");
     setLoading(true);
 
-    const { nombre, email, password, confirmPassword } = formData;
+   const { nombre, email, password, confirmPassword } = formData;
     const emailLower = email.trim().toLowerCase();
 
     // ✅ Validaciones
