@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { db } from "../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Registro() {
   const navigate = useNavigate();
-  const { register, loginWithGoogle } = useAuth();
+  const auth = getAuth();
+  const googleProvider = new GoogleAuthProvider();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -58,7 +61,22 @@ export default function Registro() {
     }
 
     try {
-      await register(nombre, emailLower, password);
+      // ✅ Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, emailLower, password);
+      const user = userCredential.user;
+
+      // ✅ Guardar datos en Firestore
+      await setDoc(doc(db, "usuarios", user.uid), {
+        nombre,
+        email: emailLower,
+        creadoEn: new Date(),
+      });
+
+      // ✅ Guardar sesión local (para Navbar)
+      const sessionData = { nombre, email: emailLower };
+      localStorage.setItem("novaglow_session", JSON.stringify(sessionData));
+      window.dispatchEvent(new Event("novaglow_session_change"));
+
       setSuccess("✨ ¡Registro exitoso! Redirigiendo...");
       setTimeout(() => navigate("/productos"), 1500);
     } catch (err) {
@@ -70,9 +88,24 @@ export default function Registro() {
   const handleGoogle = async () => {
     setError("");
     try {
-      await loginWithGoogle();
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // ✅ Guardar usuario en Firestore si no existe
+      await setDoc(doc(db, "usuarios", user.uid), {
+        nombre: user.displayName || "Usuario NovaGlow",
+        email: user.email,
+        creadoEn: new Date(),
+      }, { merge: true });
+
+      // ✅ Guardar sesión local
+      const sessionData = { nombre: user.displayName, email: user.email };
+      localStorage.setItem("novaglow_session", JSON.stringify(sessionData));
+      window.dispatchEvent(new Event("novaglow_session_change"));
+
       navigate("/productos");
     } catch (err) {
+      console.log(err);
       setError(traducirError(err.code));
     }
   };
@@ -187,3 +220,4 @@ export default function Registro() {
     </div>
   );
 }
+
