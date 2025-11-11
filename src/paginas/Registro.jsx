@@ -1,10 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+
+// ✅ FIREBASE AUTH & FIRESTORE
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+
+const auth = getAuth();
+const db = getFirestore();
+const googleProvider = new GoogleAuthProvider();
 
 export default function Registro() {
   const navigate = useNavigate();
-  const { register, loginWithGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -15,6 +21,7 @@ export default function Registro() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,8 +36,10 @@ export default function Registro() {
         return "El correo no es válido.";
       case "auth/weak-password":
         return "La contraseña es muy débil (mínimo 6 caracteres).";
+      case "auth/popup-closed-by-user":
+        return "Se cerró la ventana de Google antes de finalizar.";
       default:
-        return "Ocurrió un error. Intenta nuevamente.";
+        return "Ocurrió un error inesperado. Intenta nuevamente.";
     }
   };
 
@@ -38,71 +47,118 @@ export default function Registro() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
-    const { nombre, email, password, confirmPassword } = formData;
+   const { nombre, email, password, confirmPassword } = formData;
     const emailLower = email.trim().toLowerCase();
 
+    // ✅ Validaciones
     if (!nombre || !email || !password || !confirmPassword) {
       setError("⚠️ Todos los campos son obligatorios.");
+      setLoading(false);
       return;
     }
 
     if (password.length < 6) {
       setError("🔒 La contraseña debe tener al menos 6 caracteres.");
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("💔 Las contraseñas no coinciden.");
+      setLoading(false);
       return;
     }
 
     try {
-      await register(nombre, emailLower, password);
+      // ✅ CREAR USUARIO EN AUTHENTICATION
+      const result = await createUserWithEmailAndPassword(auth, emailLower, password);
+
+      const uid = result.user.uid;
+
+      // ✅ GUARDAR EN FIRESTORE
+      await setDoc(doc(db, "usuarios", uid), {
+        nombre,
+        email: emailLower,
+        creadoEn: new Date(),
+      });
+
       setSuccess("✨ ¡Registro exitoso! Redirigiendo...");
       setTimeout(() => navigate("/productos"), 1500);
+
     } catch (err) {
-      console.log(err);
-      setError(traducirError(err.code));
+      console.error(err);
+      setError(traducirError(err.code || "default"));
+      setLoading(false);
+
+    } finally {
+      if (!success) setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
     setError("");
+    setLoading(true);
+
     try {
-      await loginWithGoogle();
+      // ✅ LOGIN CON GOOGLE EN AUTH
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // ✅ GUARDAR EN FIRESTORE SI NO EXISTE
+      await setDoc(
+        doc(db, "usuarios", user.uid),
+        {
+          nombre: user.displayName || "",
+          email: user.email,
+          creadoEn: new Date(),
+        },
+        { merge: true }
+      );
+
       navigate("/productos");
+
     } catch (err) {
-      setError(traducirError(err.code));
+      console.error(err);
+      setError(traducirError(err.code || "default"));
+
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
-      <div className="relative bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-10 w-full max-w-md z-10 transform transition-all hover:scale-[1.02]">
-        <h1 className="text-4xl font-extrabold text-center text-pink-600 mb-4">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-pink-100 via-pink-200 to-pink-300 p-6 font-sans">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');`}</style>
+      
+      <div className="relative bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-10 w-full max-w-md z-10 transform transition-all duration-300 hover:scale-[1.02]">
+        <h1 className="text-4xl font-extrabold text-center text-pink-600 mb-4 tracking-tight">
           💖 Crea tu cuenta NovaGlow 💖
         </h1>
-        <p className="text-gray-500 text-center mb-8">
+        <p className="text-gray-500 text-center mb-8 text-sm">
           Únete a nuestra comunidad de brillo y glamour ✨
         </p>
 
+        {/* Error */}
         {error && (
-          <p className="bg-pink-100 border border-pink-300 text-pink-700 p-3 rounded-md mb-4 text-center">
+          <div className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-xl mb-4 text-center font-medium shadow-sm">
             {error}
-          </p>
+          </div>
         )}
 
+        {/* Success */}
         {success && (
-          <p className="bg-green-100 border border-green-300 text-green-700 p-3 rounded-md mb-4 text-center">
+          <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded-xl mb-4 text-center font-medium shadow-sm">
             {success}
-          </p>
+          </div>
         )}
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Nombre */}
+          
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-pink-700 font-medium mb-1 text-sm">
               Nombre completo
             </label>
             <input
@@ -111,13 +167,13 @@ export default function Registro() {
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Ej. Camila López"
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              className="w-full p-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition placeholder:text-gray-400"
+              disabled={loading}
             />
           </div>
 
-          {/* Email */}
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-pink-700 font-medium mb-1 text-sm">
               Correo electrónico
             </label>
             <input
@@ -126,13 +182,13 @@ export default function Registro() {
               value={formData.email}
               onChange={handleChange}
               placeholder="ejemplo@correo.com"
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              className="w-full p-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition placeholder:text-gray-400"
+              disabled={loading}
             />
           </div>
 
-          {/* Contraseña */}
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-pink-700 font-medium mb-1 text-sm">
               Contraseña
             </label>
             <input
@@ -141,13 +197,13 @@ export default function Registro() {
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              className="w-full p-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition placeholder:text-gray-400"
+              disabled={loading}
             />
           </div>
 
-          {/* Confirmar contraseña */}
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-pink-700 font-medium mb-1 text-sm">
               Confirmar contraseña
             </label>
             <input
@@ -156,23 +212,39 @@ export default function Registro() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              className="w-full p-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition placeholder:text-gray-400"
+              disabled={loading}
             />
           </div>
 
-          {/* Botón registrar */}
           <button
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]"
+            disabled={loading}
+            className={`w-full font-bold py-3 rounded-xl shadow-lg transition transform duration-300 
+              ${loading 
+                ? 'bg-pink-300 text-pink-100 cursor-not-allowed flex items-center justify-center'
+                : 'bg-pink-500 hover:bg-pink-600 text-white hover:scale-[1.01]'
+              }`}
           >
-            Registrarme 💅
+            {loading ? "Registrando..." : "Registrarme 💅"}
           </button>
         </form>
 
-        {/* Google Login */}
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white/90 text-gray-500">O</span>
+          </div>
+        </div>
+
         <button
           onClick={handleGoogle}
-          className="w-full mt-4 bg-white border border-pink-300 text-pink-700 font-medium py-3 rounded-lg shadow transition hover:bg-pink-50"
+          disabled={loading}
+          className={`w-full bg-white border border-pink-300 text-pink-700 font-medium py-3 rounded-xl shadow transition duration-300
+            ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-pink-50'}
+          `}
         >
           Continuar con Google 🌸
         </button>
