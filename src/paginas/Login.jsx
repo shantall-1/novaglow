@@ -7,10 +7,9 @@ import { db } from "../lib/firebase";
 import {
   getAuth,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,6 +36,21 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const traducirError = (code) => {
+    switch (code) {
+      case "auth/invalid-email":
+        return "El correo no es válido.";
+      case "auth/user-not-found":
+        return "No existe una cuenta con este correo.";
+      case "auth/wrong-password":
+        return "La contraseña es incorrecta.";
+      case "auth/missing-password":
+        return "Debes ingresar una contraseña.";
+      default:
+        return "Ocurrió un error. Intenta nuevamente.";
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const email = formData.email.trim().toLowerCase();
@@ -48,21 +62,38 @@ const Login = () => {
     }
 
     try {
-      // 🔑 Intentar iniciar sesión
+      // 🔑 Iniciar sesión con Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // 📄 Comprobar si existe en Firestore
+      // 📄 Buscar datos del usuario en Firestore
       const userRef = doc(db, "usuarios", user.uid);
       const userSnap = await getDoc(userRef);
 
+      // 🩷 Si no existe, lo creamos automáticamente
       if (!userSnap.exists()) {
-        await setDoc(userRef, { email: user.email, creado: new Date() });
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          nombre: user.email.split("@")[0],
+          creadoEn: serverTimestamp(),
+          ultimaConexion: serverTimestamp(),
+        });
+      } else {
+        // Actualiza la fecha de última conexión
+        await setDoc(
+          userRef,
+          { ultimaConexion: serverTimestamp() },
+          { merge: true }
+        );
       }
 
-      const nombre = email.split("@")[0];
+      const nombre = userSnap.exists()
+        ? userSnap.data().nombre
+        : user.email.split("@")[0];
+
+      // 💾 Guardar sesión local (para Navbar)
       localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
-      localStorage.setItem("novaglow_message", `✨ Bienvenida de nuevo, ${nombre} 💅`);
       window.dispatchEvent(new Event("novaglow_session_change"));
 
       setModalMessage("💖 ¡Inicio de sesión exitoso!");
@@ -73,39 +104,12 @@ const Login = () => {
         navigate(from, { replace: true });
       }, 2000);
     } catch (error) {
-      // Si no existe, crear cuenta automáticamente
-      if (error.code === "auth/user-not-found") {
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-
-          await setDoc(doc(db, "usuarios", user.uid), {
-            email: user.email,
-            creado: new Date(),
-          });
-
-          const nombre = email.split("@")[0];
-          localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
-          localStorage.setItem("novaglow_message", `💝 ¡Bienvenida, ${nombre}! Tu cuenta fue creada 💅`);
-          window.dispatchEvent(new Event("novaglow_session_change"));
-
-          setModalMessage("💝 ¡Cuenta creada e inicio de sesión exitoso!");
-          setShowModal(true);
-
-          setTimeout(() => {
-            setShowModal(false);
-            navigate(from, { replace: true });
-          }, 2000);
-        } catch (regError) {
-          setError("❌ Error al crear la cuenta: " + regError.message);
-        }
-      } else {
-        setError("⚠️ Credenciales incorrectas o error: " + error.message);
-      }
+      console.error(error);
+      setError(traducirError(error.code));
     }
   };
 
-  // 👀 Detectar sesión activa y redirigir automáticamente
+  // 👀 Si hay sesión activa, mantenerla sincronizada
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -196,6 +200,7 @@ const Login = () => {
 };
 
 export default Login;
+
 
 
 
