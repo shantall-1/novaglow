@@ -1,44 +1,148 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/firebase"; 
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function CouponNovaGlow({
   items = ["Chaqueta acolchada", "Suéter de punto", "Pantalón cargo", "Vestido midi"],
   onClaim = () => {},
   onClose = () => {},
-  delay = 2500, // duración de la cinemática antes del cupón
+  delay = 2500 
 }) {
+
+  const { user } = useAuth();        // ✅ Usuario Firebase
+  const navigate = useNavigate();
+
   const [showCinematic, setShowCinematic] = useState(true);
   const [showCoupon, setShowCoupon] = useState(false);
-  const [usuario, setUsuario] = useState(null);
-  const [mensaje, setMensaje] = useState("");
-  const navigate = useNavigate(); 
+  const [yaReclamado, setYaReclamado] = useState(false);
+  const [mensaje, setMensaje] = useState(""); // ✅ Mensaje final al reclamar
+  
+
+  const [selectedItem, setSelectedItem] = useState(null); 
+
+  const [errorSeleccion, setErrorSeleccion] = useState("");
+
+  const CUPON_ID = "PRIMERA20";      // ✅ ID del cupón en la BD
 
   useEffect(() => {
-    // Revisar si hay usuario logueado
-    const user = localStorage.getItem("usuarioNovaGlow");
-    if (user) {
-      setUsuario(JSON.parse(user));
-    }
+    // ✅ Función: Verificar si el cupón ya fue reclamado
+    const verificarCupon = async () => {
+      if (!user) return;
 
-    // Temporizador
+      const ref = doc(db, "cuponesReclamados", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        setYaReclamado(true);
+        setShowCinematic(false);
+        setShowCoupon(false);
+      }
+    };
+
+    verificarCupon();
+
+    // ✅ Temporizador para mostrar cinemática
     const t = setTimeout(() => {
-      setShowCinematic(false);
-      setShowCoupon(true);
+      if (!yaReclamado) {
+        setShowCinematic(false);
+        setShowCoupon(true);
+      }
     }, delay);
+
     return () => clearTimeout(t);
-  }, [delay]);
+  }, [user, delay, yaReclamado]);
 
-  const handleReclamar = () => {
-    if (!usuario) {
-      navigate("/login");
-      return;
-    }
+/**
+ * ⚡ FUNCIÓN CORREGIDA: handleReclamar
+ * Se eliminaron las asignaciones redundantes de showCinematic y showCoupon
+ * y se agregó setYaReclamado(true) al éxito.
+ */
+const handleReclamar = async () => {
+  // Validación del ítem seleccionado
+  if (!selectedItem) {
+    setErrorSeleccion("Por favor, selecciona un producto para aplicar el descuento.");
+    return;
+  }
+  setErrorSeleccion("");
 
-    // Logueado → mostrar mensaje
-    setMensaje(`💌 Te hemos enviado el cupón a tu correo registrado (${usuario.email}).`);
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    // Guardar en Firestore
+    await setDoc(doc(db, "cuponesReclamados", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      fecha: new Date().toISOString(),
+      cupon: CUPON_ID,
+      productoReclamado: selectedItem,
+      estado: "reclamado"
+    });
+
+    // ✅ 1. Mensaje que activa el Bloque Final (Contenedor 3)
+    const successMessage =
+      `💌 ¡Felicidades! Te enviamos el código ${CUPON_ID} a tu correo (${user.email}).\n` +
+      `El descuento aplica para la prenda: **${selectedItem}**.`;
+
+    setMensaje(successMessage);
+    
+    // ✅ 2. Bloquea futuros reclamos durante esta sesión (Contenedor 1)
+    setYaReclamado(true);
+
+    // ❌ Se eliminaron las líneas redundantes:
+    // setShowCinematic(false);
+    // setShowCoupon(true); 
+
     onClaim();
+
+  } catch (error) {
+    console.error("Error guardando cupón:", error);
+    setMensaje("Hubo un error al intentar reclamar el cupón. Inténtalo de nuevo.");
+    
+    setShowCinematic(false);
+    setShowCoupon(true);
+  }
+};
+
+  
+  // 🆕 Función para manejar la selección del item
+  const handleSelect = (item) => {
+      setSelectedItem(item);
+      setErrorSeleccion("");
   };
+
+  // ✅ 1. CONTENEDOR: El cupón YA FUE RECLAMADO (Bloqueo inicial)
+  if (yaReclamado && !mensaje) { // Añadimos !mensaje para evitar que se active inmediatamente después del éxito
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white/90 p-8 rounded-2xl shadow-xl max-w-md text-center border border-pink-200"
+        >
+          <h2 className="text-3xl font-bold text-pink-600 mb-3">
+           ¡Cupón ya reclamado!
+          </h2>
+
+          <p className="text-gray-700 leading-relaxed">
+            Revisa tu correo para más detalles o explora nuestra tienda para más ofertas exclusivas.
+          </p>
+
+          <button
+            onClick={onClose}
+            className="mt-6 bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-xl shadow font-medium"
+          >
+            Cerrar
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -50,7 +154,7 @@ export default function CouponNovaGlow({
         transition={{ duration: 0.8, ease: "easeInOut" }}
         className="fixed inset-0 z-50 bg-linear-to-br from-pink-700/90 via-purple-900/90 to-black/90 backdrop-blur-md flex items-center justify-center"
       >
-        {/* Cinemática NovaGlow */}
+        {/* -------- CINEMÁTICA -------- */}
         {showCinematic && (
           <motion.div
             key="cinematic"
@@ -61,7 +165,7 @@ export default function CouponNovaGlow({
             className="absolute inset-0 flex items-center justify-center overflow-hidden"
           >
             {/* Fondos y partículas */}
-              <div className="absolute inset-0">
+            <div className="absolute inset-0">
               <div className="nova-bg absolute inset-0" />
               <div className="nova-ring absolute -top-24 -left-24 w-240 h-240" />
               <div className="absolute inset-0 pointer-events-none">
@@ -90,7 +194,7 @@ export default function CouponNovaGlow({
           </motion.div>
         )}
 
-        {/* Cupón */}
+        {/* -------- CUPÓN -------- */}
         {showCoupon && (
           <motion.div
             key="coupon"
@@ -100,6 +204,7 @@ export default function CouponNovaGlow({
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative z-20 w-full max-w-2xl mx-4"
           >
+            {/* Contenedor del cupón */}
             <div className="mx-auto bg-linear-to-br from-white/95 to-pink-50/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-100/60 overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div>
@@ -121,30 +226,50 @@ export default function CouponNovaGlow({
               </div>
 
               <div className="px-6 py-6 md:py-8 text-center">
+                
+                {/* 2. CONTENEDOR: Muestra la lista de productos/formulario de selección */}
                 {!mensaje ? (
                   <>
                     <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                       OBTUVO UN DESCUENTO DEL{" "}
                       <span className="font-semibold">20%</span> EN PRENDAS
                       SELECCIONADAS POR SU PRIMERA COMPRA.
+                      <br/>
+                      **¡Selecciona una prenda para activar tu descuento!**
                     </p>
 
                     <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {items.map((it, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center space-x-3 bg-white/80 rounded-xl p-3 border border-gray-100 shadow-sm"
-                        >
-                          <div className="w-10 h-10 rounded-md bg-linear-to-br from-pink-100 to-pink-50 flex items-center justify-center text-pink-600 font-semibold text-sm">
-                            {i + 1}
-                          </div>
-                          <div className="text-sm text-gray-800">{it}</div>
-                        </div>
-                      ))}
-                    </div>
+                      {items.map((it, i) => {
+                        // 🆕 Lógica para el estilo seleccionado
+                        const isSelected = selectedItem === it;
+                        const itemClass = isSelected 
+                          ? "bg-pink-100/90 border-pink-500 ring-2 ring-pink-500 scale-[1.02]" 
+                          : "bg-white/80 border-gray-100 hover:bg-pink-50/70";
 
-                    <p className="mt-4 text-xs text-gray-500">
-                      *Aplica solo en prendas seleccionadas. Ver términos en la tienda.
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => handleSelect(it)}
+                            className={`flex items-center space-x-3 rounded-xl p-3 border shadow-sm transition transform text-left w-full ${itemClass}`}
+                          >
+                            <div className={`w-10 h-10 rounded-md bg-linear-to-br flex items-center justify-center font-semibold text-sm ${isSelected ? 'from-pink-500 to-pink-600 text-white' : 'from-pink-100 to-pink-50 text-pink-600'}`}>
+                              {i + 1}
+                            </div>
+                            <div className="text-sm text-gray-800">{it}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* 🆕 Mensaje de error de selección */}
+                    {errorSeleccion && (
+                        <p className="mt-3 text-sm font-medium text-red-600 animate-pulse">
+                            {errorSeleccion}
+                        </p>
+                    )}
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      Aplica solo en la prenda seleccionada. Ver términos en la tienda.
                     </p>
 
                     <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -166,33 +291,60 @@ export default function CouponNovaGlow({
                         <div>
                           Código:{" "}
                           <span className="font-semibold text-gray-700">
-                            PRIMERA20
+                            {CUPON_ID}
                           </span>
                         </div>
                         <div className="mt-1">Válido: 30 días desde la recepción</div>
                       </div>
                     </div>
                   </>
-                ) : (
-                  <>
+                ) :
+            
+                 // 3. CONTENEDOR: Muestra el mensaje final tras reclamar (El modal de éxito)
+                (
+                  <div key="success-message">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="mx-auto mb-5 w-full bg-pink-100 border border-pink-300 text-pink-700 text-sm font-medium px-4 py-3 rounded-xl shadow-md"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span className="font-bold">¡Cupón reclamado con éxito!</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Título */}
                     <h2 className="text-3xl font-bold text-pink-600 mb-4">
                       🎁 ¡Cupón Enviado!
                     </h2>
-                    <p className="text-gray-700">{mensaje}</p>
+
+                    {/* Mensaje final (usando dangerouslySetInnerHTML para el bold **text**) */}
+                    <p 
+                        className="text-gray-700 whitespace-pre-line leading-relaxed text-left max-w-md mx-auto"
+                        dangerouslySetInnerHTML={{
+                            __html: mensaje.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        }}
+                    >
+                    </p>
+
+                    {/* Botón cerrar */}
                     <button
                       onClick={onClose}
-                      className="mt-6 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-xl font-medium transition"
+                      className="mt-6 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-xl font-medium transition shadow-lg"
                     >
                       Cerrar
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </motion.div>
         )}
       </motion.div>
-
       {/* --- Estilos NovaGlow --- */}
       <style>{`
         .nova-bg {
