@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import AnimatedModal from "../componentes/AnimatedModal";
 
+// 🔥 Firebase
+import { db } from "../lib/firebase";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const auth = getAuth();
 
-  const from = location.state?.from?.pathname || "/";
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  const from = location.state?.from?.pathname || "/productos";
 
   useEffect(() => {
     if (location.state?.message) {
@@ -20,73 +32,154 @@ const Login = () => {
     }
   }, [location.state]);
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  if (!email || !password) {
-    setModalMessage("⚠️ Por favor, completa todos los campos.");
-    setShowModal(true);
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
 
-  const nombre = email.split("@")[0];
-  const user = { nombre, email };
-  localStorage.setItem("novaglow_session", JSON.stringify(user));
+    if (!email || !password) {
+      setError("💔 Por favor, completa todos los campos.");
+      return;
+    }
 
-  // 🔔 Notifica al Navbar que hay un nuevo usuario
-  window.dispatchEvent(new Event("novaglow_session_change"));
+    try {
+      // 🔑 Intentar iniciar sesión
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-  setModalMessage("💖 ¡Inicio de sesión exitoso!");
-  setShowModal(true);
+      // 📄 Comprobar si existe en Firestore
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
 
-  setTimeout(() => {
-    setShowModal(false);
-    navigate(from);
-  }, 2000);
-};
+      if (!userSnap.exists()) {
+        await setDoc(userRef, { email: user.email, creado: new Date() });
+      }
 
+      const nombre = email.split("@")[0];
+      localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
+      localStorage.setItem("novaglow_message", `✨ Bienvenida de nuevo, ${nombre} 💅`);
+      window.dispatchEvent(new Event("novaglow_session_change"));
+
+      setModalMessage("💖 ¡Inicio de sesión exitoso!");
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+        navigate(from, { replace: true });
+      }, 2000);
+    } catch (error) {
+      // Si no existe, crear cuenta automáticamente
+      if (error.code === "auth/user-not-found") {
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          await setDoc(doc(db, "usuarios", user.uid), {
+            email: user.email,
+            creado: new Date(),
+          });
+
+          const nombre = email.split("@")[0];
+          localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
+          localStorage.setItem("novaglow_message", `💝 ¡Bienvenida, ${nombre}! Tu cuenta fue creada 💅`);
+          window.dispatchEvent(new Event("novaglow_session_change"));
+
+          setModalMessage("💝 ¡Cuenta creada e inicio de sesión exitoso!");
+          setShowModal(true);
+
+          setTimeout(() => {
+            setShowModal(false);
+            navigate(from, { replace: true });
+          }, 2000);
+        } catch (regError) {
+          setError("❌ Error al crear la cuenta: " + regError.message);
+        }
+      } else {
+        setError("⚠️ Credenciales incorrectas o error: " + error.message);
+      }
+    }
+  };
+
+  // 👀 Detectar sesión activa y redirigir automáticamente
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const email = user.email;
+        const nombre = email.split("@")[0];
+        localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
+        window.dispatchEvent(new Event("novaglow_session_change"));
+      }
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-pink-50">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-pink-100">
-        <h2 className="text-3xl font-extrabold text-center text-pink-600 mb-6">
-          ✨ Inicia Sesión ✨
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
+      <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-10 w-full max-w-md transform transition-all hover:scale-[1.02]">
+        <h1 className="text-4xl font-extrabold text-center text-pink-600 mb-4 font-[Poppins]">
+          💖 Bienvenida a NovaGlow 💖
+        </h1>
+        <p className="text-gray-500 text-center mb-8">
+          Inicia sesión y sigue brillando con estilo ✨
+        </p>
+
+        {error && (
+          <p className="bg-pink-100 border border-pink-300 text-pink-700 p-3 rounded-md mb-4 text-center">
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-pink-700 font-medium mb-1">
               Correo electrónico
             </label>
             <input
               type="email"
-              placeholder="tuemail@ejemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-pink-200 rounded-lg p-3 focus:ring-2 focus:ring-pink-400 outline-none"
+              name="email"
+              placeholder="ejemplo@correo.com"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-pink-700 font-medium mb-1">
               Contraseña
             </label>
             <input
               type="password"
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-pink-200 rounded-lg p-3 focus:ring-2 focus:ring-pink-400 outline-none"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg transition-transform hover:scale-105"
+            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]"
           >
-            Iniciar Sesión
+            Iniciar Sesión 💅
           </button>
         </form>
+
+        <div className="mt-6 text-center text-gray-600 text-sm">
+          ¿No tienes una cuenta?{" "}
+          <Link
+            to="/registro"
+            className="text-pink-600 font-semibold hover:underline"
+          >
+            Regístrate aquí
+          </Link>
+        </div>
       </div>
 
       {showModal && (
