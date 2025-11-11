@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import AOS from "aos";
 import Swal from "sweetalert2";
 
+// ✅ Importaciones nuevas para Firebase
+import { db } from "../lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Contacto() {
   const sectionRef = useRef(null);
@@ -27,7 +30,8 @@ export default function Contacto() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  // 🔥 Funcionalidad para guardar los datos en Firestore
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre || !formData.email || !formData.mensaje) {
@@ -40,14 +44,32 @@ export default function Contacto() {
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: "¡Mensaje enviado!",
-      text: "Gracias por contactarte con NovaGlow 🌸 Te responderemos pronto.",
-      confirmButtonColor: "#e06b8b",
-    });
+    try {
+      // 💾 Guardar datos en Firebase Firestore
+      await addDoc(collection(db, "mensajesContacto"), {
+        nombre: formData.nombre,
+        email: formData.email,
+        mensaje: formData.mensaje,
+        fecha: serverTimestamp(),
+      });
 
-    setFormData({ nombre: "", email: "", mensaje: "" });
+      Swal.fire({
+        icon: "success",
+        title: "¡Mensaje enviado!",
+        text: "Gracias por contactarte con NovaGlow 🌸 Te responderemos pronto.",
+        confirmButtonColor: "#e06b8b",
+      });
+
+      setFormData({ nombre: "", email: "", mensaje: "" });
+    } catch (error) {
+      console.error("Error al guardar en Firebase:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al enviar",
+        text: "Hubo un problema al guardar tu mensaje 😢 Intenta nuevamente.",
+        confirmButtonColor: "#e06b8b",
+      });
+    }
   };
 
   return (
@@ -62,11 +84,13 @@ export default function Contacto() {
         className="w-full bg-linear-gradient-to-r from-pink-300 via-pink-400 to-pink-500 text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
       >
         <img
-          src="https://instagram.flim28-2.fna.fbcdn.net/v/t51.2885-19/472336448_1352704565888446_6811578739214593275_n.jpg?stp=dst-jpg_s150x150_tt6"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdLs5Kjrl497ZOGYAMibYSX4tY-8HF8uM33Q&s"
           alt="Logo NovaGlow"
-          className="w-12 h-12 rounded-full object-cover border-2 border-pink-100 shadow-md"
+          className="w-12 h-12 rounded-full object-cover border-2 border-pink-400 shadow-md"
         />
-        <h1 className="text-2xl font-bold tracking-wide">NovaGlow ✨</h1>
+        <h1 className="text-2xl text-pink-600 font-bold tracking-wide">
+          NovaGlow ✨
+        </h1>
       </header>
 
       {/* Fondo decorativo */}
@@ -136,7 +160,7 @@ export default function Contacto() {
           </button>
         </form>
 
-        {/* 🩷 Sección de información: AHORA ANTES DEL MAPA */}
+        {/* 🩷 Sección de información */}
         <div
           data-aos="fade-up"
           className="bg-white rounded-2xl border border-pink-200 p-5 mt-10 text-pink-700 shadow-sm"
@@ -145,7 +169,8 @@ export default function Contacto() {
             💖 ¿Quieres visitarnos?
           </h3>
           <p className="text-center mb-4">
-            Estamos ubicados en <strong>Av. Perú 2456, San Martín de Porres, Lima</strong>  
+            Estamos ubicados en{" "}
+            <strong>Av. Perú 2456, San Martín de Porres, Lima</strong>  
             (dentro del CETPRO San Martín de Porres).
           </p>
 
@@ -165,7 +190,8 @@ export default function Contacto() {
           <p className="font-semibold">🚗 Transporte privado:</p>
           <p>
             Si vienes en auto, puedes ingresar por la Av. Perú.  
-            Encuéntranos fácilmente en Google Maps como <strong>NovaGlow</strong> 💅
+            Encuéntranos fácilmente en Google Maps como{" "}
+            <strong>NovaGlow</strong> 💅
           </p>
         </div>
 
@@ -190,7 +216,8 @@ export default function Contacto() {
         </div>
 
         <p className="text-center text-pink-600 mt-6 font-semibold">
-          💗 Visítanos en <span className="text-pink-700">NovaGlow</span> y brilla con estilo ✨
+          💗 Visítanos en <span className="text-pink-700">NovaGlow</span> y
+          brilla con estilo ✨
         </p>
       </div>
 
