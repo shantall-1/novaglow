@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion"; // 💫 animaciones elegantes
 import AOS from "aos";
 import Swal from "sweetalert2";
 
@@ -78,9 +79,12 @@ export default function Contacto() {
       className="min-h-screen flex flex-col items-center bg-pink-50 relative overflow-hidden"
       id="contacto"
     >
-      {/* 🌸 Banner más pequeño, no fijo */}
-      <header
+      {/* 🌸 Header con entrada elegante */}
+      <motion.header
         data-aos="fade-down"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
         className="w-full bg-linear-gradient-to-r from-pink-300 via-pink-400 to-pink-500 text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
       >
         <img
@@ -91,78 +95,100 @@ export default function Contacto() {
         <h1 className="text-2xl text-pink-600 font-bold tracking-wide">
           NovaGlow ✨
         </h1>
-      </header>
+      </motion.header>
 
-      {/* Fondo decorativo */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,192,203,0.3),transparent),radial-gradient(circle_at_80%_70%,rgba(255,182,193,0.3),transparent)]"></div>
+      {/* Fondo con movimiento sutil */}
+      <motion.div
+        className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,192,203,0.25),transparent),radial-gradient(circle_at_80%_70%,rgba(255,182,193,0.25),transparent)]"
+        animate={{
+          backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+        }}
+        transition={{
+          duration: 20,
+          ease: "linear",
+          repeat: Infinity,
+        }}
+      />
 
       {/* Contenedor principal */}
-      <div
+      <motion.div
         data-aos="fade-up"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.3, ease: "easeOut" }}
         className="relative bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 mt-12 w-full max-w-lg border border-pink-200 z-10"
       >
-        <h2 className="text-3xl font-bold text-pink-700 mb-6 text-center">
+        <motion.h2
+          className="text-3xl font-bold text-pink-700 mb-6 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
           💌 Contáctanos
-        </h2>
+        </motion.h2>
+
         <p className="text-center text-pink-600 mb-6">
           ¿Tienes dudas sobre tallas, colores o envíos?  
           En <strong>NovaGlow</strong> queremos ayudarte a brillar con estilo ✨
         </p>
 
-        {/* Formulario */}
+        {/* Formulario con interacción sutil */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-pink-700 font-semibold mb-2">
-              Nombre
-            </label>
-            <input
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-pink-300 focus:ring-2 focus:ring-pink-400 outline-none bg-white"
-              placeholder="Tu nombre"
-            />
-          </div>
+          {["nombre", "email", "mensaje"].map((field, idx) => (
+            <motion.div
+              key={field}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 + 0.5, duration: 0.6 }}
+              whileHover={{ scale: 1.01 }}
+            >
+              <label className="block text-pink-700 font-semibold mb-2 capitalize">
+                {field === "email" ? "Correo electrónico" : field}
+              </label>
+              {field === "mensaje" ? (
+                <textarea
+                  name="mensaje"
+                  value={formData.mensaje}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-pink-300 focus:ring-2 focus:ring-pink-400 outline-none bg-white h-32 transition-all"
+                  placeholder="Cuéntanos en qué podemos ayudarte..."
+                />
+              ) : (
+                <input
+                  type={field === "email" ? "email" : "text"}
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-pink-300 focus:ring-2 focus:ring-pink-400 outline-none bg-white transition-all"
+                  placeholder={
+                    field === "nombre" ? "Tu nombre" : "Tu correo electrónico"
+                  }
+                />
+              )}
+            </motion.div>
+          ))}
 
-          <div>
-            <label className="block text-pink-700 font-semibold mb-2">
-              Correo electrónico
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-pink-300 focus:ring-2 focus:ring-pink-400 outline-none bg-white"
-              placeholder="Tu correo"
-            />
-          </div>
-
-          <div>
-            <label className="block text-pink-700 font-semibold mb-2">
-              Mensaje
-            </label>
-            <textarea
-              name="mensaje"
-              value={formData.mensaje}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-pink-300 focus:ring-2 focus:ring-pink-400 outline-none bg-white h-32"
-              placeholder="Cuéntanos en qué podemos ayudarte..."
-            />
-          </div>
-
-          <button
+          <motion.button
+            whileHover={{
+              scale: 1.03,
+              backgroundColor: "#ec7a9d",
+              boxShadow: "0px 0px 12px rgba(224,107,139,0.5)",
+            }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+            className="w-full bg-pink-500 text-white font-semibold py-3 rounded-lg transition-all duration-300"
           >
             Enviar mensaje 💬
-          </button>
+          </motion.button>
         </form>
 
         {/* 🩷 Sección de información */}
-        <div
+        <motion.div
           data-aos="fade-up"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2 }}
           className="bg-white rounded-2xl border border-pink-200 p-5 mt-10 text-pink-700 shadow-sm"
         >
           <h3 className="text-center text-2xl font-bold mb-3">
@@ -193,14 +219,21 @@ export default function Contacto() {
             Encuéntranos fácilmente en Google Maps como{" "}
             <strong>NovaGlow</strong> 💅
           </p>
-        </div>
+        </motion.div>
 
-        {/* 📍 Mapa */}
-        <h3 className="text-center text-pink-700 font-semibold mt-10 mb-3 text-lg">
+        {/* Mapa */}
+        <motion.h3
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="text-center text-pink-700 font-semibold mt-10 mb-3 text-lg"
+        >
           📍 ¿Dónde nos encontramos?
-        </h3>
-        <div
+        </motion.h3>
+        <motion.div
           data-aos="fade-up"
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.6 }}
           className="rounded-2xl overflow-hidden border-4 border-pink-300 shadow-md"
         >
           <iframe
@@ -213,23 +246,29 @@ export default function Contacto() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
-        </div>
+        </motion.div>
 
         <p className="text-center text-pink-600 mt-6 font-semibold">
           💗 Visítanos en <span className="text-pink-700">NovaGlow</span> y
           brilla con estilo ✨
         </p>
-      </div>
+      </motion.div>
 
-      {/* 💬 Botón flotante de WhatsApp */}
-      <a
+      {/* 💬 Botón flotante elegante */}
+      <motion.a
         href="https://wa.me/51941433000"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 z-50"
+        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg z-50"
+        animate={{ y: [0, -4, 0] }}
+        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+        whileHover={{
+          scale: 1.15,
+          boxShadow: "0 0 12px rgba(72, 187, 120, 0.6)",
+        }}
       >
         💬
-      </a>
+      </motion.a>
     </section>
   );
 }
