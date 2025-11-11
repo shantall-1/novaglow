@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { db } from "../lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { db, auth } from "../lib/firebase";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import AnimatedModal from "../componentes/AnimatedModal";
 
 export default function Registro() {
   const navigate = useNavigate();
-  const auth = getAuth();
-  const googleProvider = new GoogleAuthProvider();
-
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -18,6 +16,7 @@ export default function Registro() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,6 +36,7 @@ export default function Registro() {
     }
   };
 
+  // 🩷 Registro normal (correo + contraseña)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -49,63 +49,87 @@ export default function Registro() {
       setError("⚠️ Todos los campos son obligatorios.");
       return;
     }
-
     if (password.length < 6) {
       setError("🔒 La contraseña debe tener al menos 6 caracteres.");
       return;
     }
-
     if (password !== confirmPassword) {
       setError("💔 Las contraseñas no coinciden.");
       return;
     }
 
     try {
-      // ✅ Crear usuario en Firebase Auth
+      // 🔥 Crear usuario en Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, emailLower, password);
       const user = userCredential.user;
 
-      // ✅ Guardar datos en Firestore
+      // ✨ Actualizar nombre visible
+      await updateProfile(user, { displayName: nombre });
+
+      // 💾 Guardar datos en Firestore
       await setDoc(doc(db, "usuarios", user.uid), {
+        uid: user.uid,
         nombre,
-        email: emailLower,
-        creadoEn: new Date(),
+        email: user.email,
+        creadoEn: serverTimestamp(),
+        ultimaConexion: serverTimestamp(),
       });
 
-      // ✅ Guardar sesión local (para Navbar)
-      const sessionData = { nombre, email: emailLower };
-      localStorage.setItem("novaglow_session", JSON.stringify(sessionData));
+      // 💖 Guardar sesión local (para Navbar)
+      localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email: user.email }));
       window.dispatchEvent(new Event("novaglow_session_change"));
 
       setSuccess("✨ ¡Registro exitoso! Redirigiendo...");
-      setTimeout(() => navigate("/productos"), 1500);
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/productos");
+      }, 2000);
     } catch (err) {
       console.log(err);
       setError(traducirError(err.code));
     }
   };
 
+  // 🌸 Registro / login con Google
   const handleGoogle = async () => {
     setError("");
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // ✅ Guardar usuario en Firestore si no existe
-      await setDoc(doc(db, "usuarios", user.uid), {
-        nombre: user.displayName || "Usuario NovaGlow",
-        email: user.email,
-        creadoEn: new Date(),
-      }, { merge: true });
+      // 📄 Guardar/actualizar usuario en Firestore
+      await setDoc(
+        doc(db, "usuarios", user.uid),
+        {
+          uid: user.uid,
+          nombre: user.displayName || user.email.split("@")[0],
+          email: user.email,
+          foto: user.photoURL || "",
+          ultimaConexion: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
-      // ✅ Guardar sesión local
-      const sessionData = { nombre: user.displayName, email: user.email };
-      localStorage.setItem("novaglow_session", JSON.stringify(sessionData));
+      localStorage.setItem(
+        "novaglow_session",
+        JSON.stringify({
+          nombre: user.displayName || user.email.split("@")[0],
+          email: user.email,
+        })
+      );
       window.dispatchEvent(new Event("novaglow_session_change"));
 
-      navigate("/productos");
+      setSuccess("💖 ¡Inicio de sesión con Google exitoso!");
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/productos");
+      }, 2000);
     } catch (err) {
-      console.log(err);
       setError(traducirError(err.code));
     }
   };
@@ -217,7 +241,17 @@ export default function Registro() {
           </Link>
         </div>
       </div>
+
+      {/* Modal de éxito o error */}
+      {showModal && (
+        <AnimatedModal
+          show={showModal}
+          message={success || error}
+          type={error ? "error" : "success"}
+          color="pink"
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }
-
