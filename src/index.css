@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap');
+
+
 @keyframes fade-in-down {
   0% {
     opacity: 0;
@@ -13,6 +16,16 @@
 
 .animate-fade-in-down {
   animation: fade-in-down 0.5s ease-out;
+}
+
+nav {
+  margin-bottom: 0 !important;
+  border: none !important;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
 }
 
 
