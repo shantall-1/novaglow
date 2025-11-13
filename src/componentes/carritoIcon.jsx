@@ -1,15 +1,26 @@
 import { ShoppingCart } from "lucide-react";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function CarritoIcon() {
+export default function CarritoIcon({ onLoginRequired }) {
   const { carrito } = useCarrito();
-  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+  const { usuario } = useAuth();
   const navigate = useNavigate();
+  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+
+  const handleClick = () => {
+    if (!usuario) {
+      if (onLoginRequired) onLoginRequired();
+      else navigate("/login");
+    } else {
+      navigate("/carrito");
+    }
+  };
 
   return (
     <button
-      onClick={() => navigate("/carrito")}
+      onClick={handleClick}
       className="relative p-2 rounded-full hover:bg-pink-100 transition"
     >
       <ShoppingCart className="text-pink-600 w-6 h-6" />
