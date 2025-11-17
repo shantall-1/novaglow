@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, googleProvider, db } from "../lib/firebase";
+import { auth, googleProvider, db, storage } from "../lib/firebase";
 import {
   onAuthStateChanged,
   signOut,
@@ -9,167 +9,180 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const AuthContext = createContext();
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  return context;
-}
+export const AuthProvider = ({ children }) => {
+  const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("novaglow_session")) || null
-  );
-  const [loading, setLoading] = useState(true);
+  // 🔹 LOGIN con email
+  const login = async (email, password) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  };
 
-  // 🔁 Mantiene sincronizado con Firebase Auth y Firestore
+  // 🔹 Alias para Login.jsx
+  const loginConEmail = login;
+
+  // 🔹 REGISTRO con email + foto opcional
+  const registrarUsuario = async (email, password, nombre, foto = null) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    const user = result.user;
+
+    let photoURL = "";
+    if (foto) {
+      const storageRef = ref(storage, `usuarios/${user.uid}/${foto.name}`);
+      await uploadBytes(storageRef, foto);
+      photoURL = await getDownloadURL(storageRef);
+    }
+
+    await updateProfile(user, { displayName: nombre, photoURL: photoURL || "" });
+
+    await setDoc(doc(db, "usuarios", user.uid), {
+      uid: user.uid,
+      nombre,
+      email: user.email,
+      foto: photoURL || null,
+      creadoEn: serverTimestamp(),
+    });
+
+    setUsuario({
+      uid: user.uid,
+      email: user.email,
+      displayName: nombre,
+      foto: photoURL || null,
+    });
+
+    return user;
+  };
+
+  // 🔹 LOGIN con Google
+  const loginGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    const refUser = doc(db, "usuarios", user.uid);
+    const snap = await getDoc(refUser);
+
+    if (!snap.exists()) {
+      await setDoc(refUser, {
+        uid: user.uid,
+        nombre: user.displayName || user.email.split("@")[0],
+        email: user.email,
+        foto: user.photoURL || null,
+        creadoEn: serverTimestamp(),
+      });
+    }
+
+    setUsuario({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || user.email.split("@")[0],
+      foto: user.photoURL || null,
+    });
+
+    return user;
+  };
+
+  // 🔹 SUBIR FOTO PERFIL
+  const subirFotoPerfil = async (file) => {
+    if (!auth.currentUser) return null;
+    const uid = auth.currentUser.uid;
+    const imgRef = ref(storage, `usuarios/${uid}/perfil.jpg`);
+
+    await uploadBytes(imgRef, file);
+    const url = await getDownloadURL(imgRef);
+
+    await updateProfile(auth.currentUser, { photoURL: url });
+    await updateDoc(doc(db, "usuarios", uid), { foto: url });
+
+    setUsuario(prev => ({ ...prev, foto: url }));
+
+    return url;
+  };
+
+  // 🔹 ACTUALIZAR NOMBRE/FOTO (permite foto=null)
+  const updateUserProfile = async ({ nombre, foto }) => {
+    if (!auth.currentUser) return;
+    const uid = auth.currentUser.uid;
+
+    await updateProfile(auth.currentUser, {
+      displayName: nombre ?? auth.currentUser.displayName,
+      photoURL: foto !== undefined ? foto : auth.currentUser.photoURL,
+    });
+
+    await updateDoc(doc(db, "usuarios", uid), {
+      nombre: nombre ?? auth.currentUser.displayName,
+      foto: foto !== undefined ? foto : auth.currentUser.photoURL,
+    });
+
+    const snap = await getDoc(doc(db, "usuarios", uid));
+    const data = snap.exists() ? snap.data() : {};
+
+    setUsuario({
+      uid,
+      email: auth.currentUser.email,
+      displayName: data?.nombre || auth.currentUser.displayName || "Usuario",
+      foto: data?.foto ?? null,
+    });
+  };
+
+  // 🔹 LOGOUT
+  const logout = async () => {
+    await signOut(auth);
+    setUsuario(null);
+  };
+
+  // 🔹 RESET PASSWORD
+  const resetPassword = (email) => sendPasswordResetEmail(auth, email);
+
+  // 🔹 ESCUCHAR CAMBIOS DE SESIÓN
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userRef = doc(db, "usuarios", firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
-
-        let userData;
-        if (userSnap.exists()) {
-          userData = userSnap.data();
-        } else {
-          // Crear registro si no existe
-          userData = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            nombre:
-              firebaseUser.displayName || firebaseUser.email.split("@")[0],
-            foto: firebaseUser.photoURL || "",
-            creadoEn: new Date(),
-          };
-          await setDoc(userRef, userData);
-        }
-
-        setUser(userData);
-        localStorage.setItem("novaglow_session", JSON.stringify(userData));
-      } else {
-        setUser(null);
-        localStorage.removeItem("novaglow_session");
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUsuario(null);
+        setCargando(false);
+        return;
       }
-      setLoading(false);
+
+      const refUser = doc(db, "usuarios", user.uid);
+      const snap = await getDoc(refUser);
+      const data = snap.exists() ? snap.data() : {};
+
+      setUsuario({
+        uid: user.uid,
+        email: user.email,
+        displayName: data?.nombre || user.displayName || "Usuario",
+        foto: data?.foto ?? user.photoURL ?? null,
+      });
+
+      setCargando(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // 📝 Actualizar datos del usuario en Firestore y en estado local
-  const updateUserProfile = async (uid, data) => {
-    const userRef = doc(db, "usuarios", uid);
-    await updateDoc(userRef, data);
-
-    const updatedUser = { ...user, ...data };
-    setUser(updatedUser);
-    localStorage.setItem("novaglow_session", JSON.stringify(updatedUser));
-  };
-
-  // 🧾 Registro
-  const register = async (nombre, email, password) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName: nombre });
-
-    const userData = {
-      uid: cred.user.uid,
-      nombre,
-      email,
-      foto: cred.user.photoURL || "",
-      creadoEn: new Date(),
-    };
-
-    await setDoc(doc(db, "usuarios", cred.user.uid), userData);
-    setUser(userData);
-    localStorage.setItem("novaglow_session", JSON.stringify(userData));
-    return cred.user;
-  };
-
-  // 🔐 Login
-  const login = async (email, password) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const userRef = doc(db, "usuarios", cred.user.uid);
-    const userSnap = await getDoc(userRef);
-
-    let userData;
-    if (userSnap.exists()) {
-      userData = userSnap.data();
-    } else {
-      userData = {
-        uid: cred.user.uid,
-        email: cred.user.email,
-        nombre: cred.user.displayName || cred.user.email.split("@")[0],
-        foto: cred.user.photoURL || "",
-        creadoEn: new Date(),
-      };
-      await setDoc(userRef, userData);
-    }
-
-    setUser(userData);
-    localStorage.setItem("novaglow_session", JSON.stringify(userData));
-    return cred.user;
-  };
-
-  // 🌈 Login con Google
-  const loginWithGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const u = result.user;
-
-    const userRef = doc(db, "usuarios", u.uid);
-    const snap = await getDoc(userRef);
-
-    const userData = {
-      uid: u.uid,
-      nombre: u.displayName || u.email.split("@")[0],
-      email: u.email,
-      foto: u.photoURL || "",
-      creadoEn: new Date(),
-    };
-
-    if (!snap.exists()) {
-      await setDoc(userRef, userData);
-    }
-
-    setUser(userData);
-    localStorage.setItem("novaglow_session", JSON.stringify(userData));
-    return u;
-  };
-
-  // 📩 Restablecer contraseña
-  const resetPassword = (email) => sendPasswordResetEmail(auth, email);
-
-  // 🚪 Cerrar sesión
-  const logout = async () => {
-    await signOut(auth);
-    setUser(null);
-    localStorage.removeItem("novaglow_session");
-  };
-
-  const value = {
-    user,
-    loading,
-    register,
-    login,
-    loginWithGoogle,
-    resetPassword,
-    logout,
-    updateUserProfile, // <-- 💾 Nuevo para actualizar nombre/foto sin recargar
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        usuario,
+        cargando,
+        login,
+        loginConEmail, // <-- mantiene compatibilidad con Login.jsx
+        registrarUsuario,
+        loginGoogle,
+        logout,
+        resetPassword,
+        updateUserProfile,
+        subirFotoPerfil,
+      }}
+    >
       {children}
-      {loading && (
-        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9999]">
-          <p className="text-pink-600 font-extrabold text-xl animate-pulse">
-            <span className="text-3xl mr-2">⏳</span> Cargando sesión...
-          </p>
-        </div>
-      )}
     </AuthContext.Provider>
   );
-}
+};
+
+export const useAuth = () => useContext(AuthContext);

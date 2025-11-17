@@ -1,198 +1,203 @@
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
-import { storage } from "../lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import confetti from "canvas-confetti";
 
 const PerfilModal = ({ isOpen, onClose }) => {
-  const { user, setUser, updateUserProfile } = useAuth(); // ✅ hook actualizado
-  const [nombre, setNombre] = useState(user?.nombre || "");
-  const [foto, setFoto] = useState(user?.foto || "");
+  const { usuario, subirFotoPerfil, updateUserProfile } = useAuth();
+
+  const [preview, setPreview] = useState(null);
+  const [nuevaFoto, setNuevaFoto] = useState(null);
+  const [nuevoNombre, setNuevoNombre] = useState(usuario?.displayName || "");
   const [subiendo, setSubiendo] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState(null);
-  const [tipoMensaje, setTipoMensaje] = useState("exito");
 
-  if (!user) return null;
+  if (!usuario) return null;
 
-  // 📸 Subir nueva foto a Firebase Storage
-  const handleFotoChange = async (e) => {
-    const file = e.target.files[0];
+  const handleFotoChange = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
+    setNuevaFoto(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
+  // -----------------------------------------------------
+  // 🎉 CONFETTI FIX — SIEMPRE ENCIMA DEL MODAL
+  // -----------------------------------------------------
+  const dispararConfeti = () => {
+    const canvas = document.createElement("canvas");
+    canvas.id = "perfil-confetti";
+    canvas.style.position = "fixed";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "999999"; // 🔥 MÁS ALTO QUE EL MODAL
+    document.body.appendChild(canvas);
+
+    const myConfetti = confetti.create(canvas, { resize: true });
+
+    myConfetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+
+    setTimeout(() => {
+      canvas.remove();
+    }, 1500);
+  };
+  // -----------------------------------------------------
+
+  const guardarNuevaFoto = async () => {
+    if (!nuevaFoto) return;
+    setSubiendo(true);
     try {
-      setSubiendo(true);
-      const fotoRef = ref(storage, `fotosPerfil/${user.uid}`);
-      await uploadBytes(fotoRef, file);
-      const url = await getDownloadURL(fotoRef);
-      setFoto(url);
-      setSubiendo(false);
-    } catch (error) {
-      console.error("Error al subir la foto:", error);
-      mostrarMensaje("Error al subir la foto 😞", "error");
-      setSubiendo(false);
+      const url = await subirFotoPerfil(nuevaFoto);
+      await updateUserProfile({ nombre: nuevoNombre, foto: url });
+      setPreview(null);
+      setNuevaFoto(null);
+      dispararConfeti();
+    } catch (err) {
+      console.error(err);
+      alert("Error al actualizar foto");
     }
+    setSubiendo(false);
   };
 
-  // 💾 Guardar cambios de nombre/foto en Firestore y contexto
-  const handleGuardar = async () => {
+  const guardarNombre = async () => {
+    setSubiendo(true);
     try {
-      setGuardando(true);
-
-      await updateUserProfile(user.uid, {
-        nombre: nombre.trim(),
-        foto,
-      });
-
-      // 🔄 Actualiza el usuario en contexto sin recargar
-      setUser((prev) => ({
-        ...prev,
-        nombre: nombre.trim(),
-        foto: foto,
-      }));
-
-      mostrarMensaje("Perfil actualizado correctamente 💖", "exito");
-      setGuardando(false);
-
-      // 🔒 Cierra el modal después de un pequeño delay
-      setTimeout(() => onClose(), 1500);
-    } catch (error) {
-      console.error("Error al guardar los datos:", error);
-      mostrarMensaje("Perfil actualizado correctamente 💖", "exito");
-      setGuardando(false);
+      await updateUserProfile({ nombre: nuevoNombre, foto: usuario.foto });
+      dispararConfeti();
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo actualizar el nombre");
     }
+    setSubiendo(false);
   };
 
-  // 💬 Mostrar mensaje flotante arriba
-  const mostrarMensaje = (texto, tipo = "exito") => {
-    setMensaje(texto);
-    setTipoMensaje(tipo);
-    setTimeout(() => setMensaje(null), 2500);
+  const eliminarFoto = async () => {
+    if (!confirm("¿Seguro que quieres eliminar tu foto?")) return;
+    setSubiendo(true);
+    try {
+      await updateUserProfile({ nombre: nuevoNombre, foto: null });
+      setPreview(null);
+      setNuevaFoto(null);
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo eliminar la foto");
+    }
+    setSubiendo(false);
   };
+
+  const fotoVisible = preview || usuario.foto || usuario.photoURL;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Fondo oscuro */}
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[999]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-
-          {/* Ventana modal */}
-          <motion.div
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl shadow-2xl p-8 w-[90%] max-w-md z-50 text-center border border-pink-200"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            className="bg-linear-to-br from-pink-50 via-pink-100 to-pink-200 rounded-3xl shadow-2xl p-6 w-96 relative border-4 border-pink-300"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
           >
-            {/* Botón cerrar */}
             <button
-              className="absolute top-4 right-4 text-pink-600 hover:text-pink-800"
+              className="absolute right-4 top-4 text-gray-500 hover:text-pink-600 transition-colors"
               onClick={onClose}
             >
-              <X size={24} />
+              <X size={22} />
             </button>
 
-            {/* Imagen de perfil */}
-            <div className="relative inline-block">
-              {foto ? (
-                <motion.img
-                  src={foto}
-                  alt="Foto de perfil"
-                  className="w-24 h-24 mx-auto rounded-full border-4 border-pink-300 shadow-md object-cover"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                />
+            <h2 className="text-3xl font-extrabold text-pink-600 mb-6 text-center drop-shadow-lg">
+              Mi Perfil
+            </h2>
+
+            <div className="flex flex-col items-center">
+              {fotoVisible ? (
+                <div className="relative">
+                  <img
+                    src={fotoVisible}
+                    alt="perfil"
+                    className="w-28 h-28 rounded-full border-4 border-pink-400 shadow-xl object-cover transition-transform hover:scale-105"
+                  />
+                  <div className="absolute bottom-0 right-0 bg-pink-500 rounded-full p-2 cursor-pointer hover:bg-pink-600 transition-colors">
+                    <Camera size={18} className="text-white" />
+                  </div>
+                </div>
               ) : (
-                <div className="w-24 h-24 mx-auto rounded-full bg-pink-300 flex items-center justify-center text-white text-4xl font-bold border-4 border-pink-200 shadow-md">
-                  {user.nombre?.charAt(0)?.toUpperCase() || "?"}
+                <div className="w-28 h-28 rounded-full bg-pink-300 flex items-center justify-center text-white text-4xl font-bold shadow-xl">
+                  {nuevoNombre?.charAt(0).toUpperCase() || "U"}
                 </div>
               )}
 
-              {/* Botón cámara */}
-              <label className="absolute bottom-1 right-2 bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-full cursor-pointer">
-                <Camera size={16} />
+              <div className="mt-4 w-full text-center">
+                <label className="text-gray-700 font-semibold mb-1 block">
+                  Nombre
+                </label>
                 <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFotoChange}
+                  type="text"
+                  value={nuevoNombre}
+                  onChange={(e) => setNuevoNombre(e.target.value)}
+                  className="block mx-auto border px-3 py-2 rounded-xl w-3/4 text-center shadow-md focus:outline-none focus:ring-2 focus:ring-pink-400"
                 />
-              </label>
-            </div>
+                <button
+                  onClick={guardarNombre}
+                  className="mt-3 bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 transition-transform hover:scale-105 disabled:opacity-50 shadow-md"
+                  disabled={subiendo}
+                >
+                  Guardar nombre
+                </button>
+              </div>
 
-            {subiendo && (
-              <p className="text-sm text-gray-500 mt-2">Subiendo foto...</p>
-            )}
+              <p className="text-gray-700 mt-3">
+                <strong>Email:</strong> {usuario.email}
+              </p>
 
-            {/* Campo editable */}
-            <div className="mt-4">
               <input
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="border border-pink-300 rounded-xl px-3 py-2 w-full text-center text-lg text-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                type="file"
+                accept="image/*"
+                onChange={handleFotoChange}
+                className="mt-3"
               />
-            </div>
 
-            <p className="text-gray-600 text-sm mt-2">{user.email}</p>
-
-            <div className="w-20 h-0.5 bg-pink-300 mx-auto my-4"></div>
-
-            <div className="text-sm text-gray-700 space-y-1">
-              {user.creadoEn && (
-                <p>
-                  🗓️ <b>Cuenta creada:</b>{" "}
-                  {new Date(
-                    user.creadoEn.seconds
-                      ? user.creadoEn.seconds * 1000
-                      : user.creadoEn
-                  ).toLocaleDateString()}
-                </p>
+              {preview && (
+                <div className="mt-4 flex flex-col items-center">
+                  <p className="text-pink-600 font-semibold mb-2">Vista previa</p>
+                  <img
+                    src={preview}
+                    className="w-28 h-28 rounded-full object-cover border-4 border-pink-400 shadow-lg transition-transform hover:scale-105"
+                    alt="preview"
+                  />
+                  <button
+                    onClick={guardarNuevaFoto}
+                    disabled={subiendo}
+                    className="mt-3 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-5 rounded-xl transition-transform hover:scale-105 disabled:opacity-50 shadow-md"
+                  >
+                    {subiendo ? "Guardando..." : "Guardar foto"}
+                  </button>
+                </div>
               )}
-              <p>✨ <b>ID:</b> {user.uid}</p>
+
+              {(usuario.foto || usuario.photoURL) && !preview && (
+                <button
+                  onClick={eliminarFoto}
+                  disabled={subiendo}
+                  className="mt-3 text-red-500 font-semibold hover:underline disabled:opacity-50"
+                >
+                  Eliminar foto
+                </button>
+              )}
             </div>
-
-            <button
-              onClick={handleGuardar}
-              disabled={guardando || subiendo}
-              className={`mt-6 py-2 px-6 rounded-xl font-semibold text-white transition-all ${
-                guardando || subiendo
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-pink-500 hover:bg-pink-600"
-              }`}
-            >
-              {guardando ? "Guardando..." : "Guardar cambios"}
-            </button>
           </motion.div>
-
-          {/* 🩷 Notificación flotante arriba */}
-          <AnimatePresence>
-            {mensaje && (
-              <motion.div
-                initial={{ y: -60, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -60, opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-lg font-semibold text-white z-[60] ${
-                  tipoMensaje === "exito"
-                    ? "bg-pink-500"
-                    : "bg-red-500"
-                }`}
-              >
-                {mensaje}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -6,9 +6,6 @@ import { motion } from "framer-motion";
 import AnimatedModal from "../componentes/AnimatedModal";
 import { db, auth } from "../lib/firebase";
 import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -17,8 +14,9 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/productos";
-  const [success, setSuccess] = useState("");
 
+  // 🔥 AJUSTE IMPORTANTE (para que siga funcionando loginConGoogle)
+  const { loginConEmail, loginGoogle: loginConGoogle } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -26,28 +24,32 @@ export default function Login() {
   const [showModal, setShowModal] = useState(false);
   const [shake, setShake] = useState(false);
 
+  // Animación de vibración
   const triggerShake = () => {
     setShake(true);
     setTimeout(() => setShake(false), 400);
   };
 
-  // Escucha el estado del usuario logueado
+  // Escucha de sesión local
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
         const { displayName, email, photoURL, uid } = user;
+
         localStorage.setItem(
           "novaglow_session",
           JSON.stringify({
+            uid,
             nombre: displayName || email.split("@")[0],
             email,
-            photoURL,
-            uid,
+            foto: photoURL || "",
           })
         );
+
         window.dispatchEvent(new Event("novaglow_session_change"));
       }
     });
+
     return () => unsub();
   }, []);
 
@@ -71,7 +73,7 @@ export default function Login() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🌷 Iniciar sesión con correo y contraseña
+  // ⭐ LOGIN con correo
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -87,8 +89,8 @@ export default function Login() {
     }
 
     try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
+      // Login desde AuthContext
+      const user = await loginConEmail(email, password);
 
       // 🎉 Confetti
       confetti({
@@ -98,7 +100,7 @@ export default function Login() {
         colors: ["#ffc8dd", "#ffafcc", "#ffe5ec"],
       });
 
-      // 📦 Obtener o actualizar datos en Firestore
+      // Guardar en Firestore
       const userRef = doc(db, "usuarios", user.uid);
       const snap = await getDoc(userRef);
 
@@ -107,7 +109,7 @@ export default function Login() {
           uid: user.uid,
           email: user.email,
           nombre: user.displayName || user.email.split("@")[0],
-          photoURL: user.photoURL || "",
+          foto: user.photoURL || "",
           creadoEn: serverTimestamp(),
           ultimaConexion: serverTimestamp(),
         });
@@ -118,18 +120,6 @@ export default function Login() {
           { merge: true }
         );
       }
-
-      // 🔄 Guardar sesión local
-      localStorage.setItem(
-        "novaglow_session",
-        JSON.stringify({
-          nombre: user.displayName || user.email.split("@")[0],
-          email: user.email,
-          photoURL: user.photoURL || snap.data()?.photoURL || "",
-          uid: user.uid,
-        })
-      );
-      window.dispatchEvent(new Event("novaglow_session_change"));
 
       setMensaje("💖 ¡Inicio de sesión exitoso!");
       setShowModal(true);
@@ -145,13 +135,12 @@ export default function Login() {
     }
   };
 
-  // 💫 Inicio de sesión con Google
+  // ⭐ LOGIN con Google
   const handleGoogleLogin = async () => {
     setError("");
+
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      const user = await loginConGoogle();
 
       await setDoc(
         doc(db, "usuarios", user.uid),
@@ -159,27 +148,21 @@ export default function Login() {
           uid: user.uid,
           nombre: user.displayName || user.email.split("@")[0],
           email: user.email,
-          photoURL: user.photoURL || "",
+          foto: user.photoURL || "",
           ultimaConexion: serverTimestamp(),
         },
         { merge: true }
       );
 
-      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-
-      localStorage.setItem(
-        "novaglow_session",
-        JSON.stringify({
-          nombre: user.displayName || user.email.split("@")[0],
-          email: user.email,
-          photoURL: user.photoURL || "",
-          uid: user.uid,
-        })
-      );
-      window.dispatchEvent(new Event("novaglow_session_change"));
+      confetti({
+        particleCount: 200,
+        spread: 80,
+        origin: { y: 0.6 },
+      });
 
       setMensaje("🌸 ¡Bienvenida de nuevo con Google!");
       setShowModal(true);
+
       setTimeout(() => {
         setShowModal(false);
         navigate("/productos");
@@ -187,7 +170,7 @@ export default function Login() {
     } catch (err) {
       console.error(err);
       setError(traducirError(err.code));
-      setShowModal(true);
+      triggerShake();
     }
   };
 
@@ -206,7 +189,6 @@ export default function Login() {
         {(error || mensaje) && (
           <motion.p
             key={error || mensaje}
-            initial={{ x: 0 }}
             animate={shake ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
             transition={{ duration: 0.5 }}
             className={`mb-3 text-sm p-3 rounded-xl border text-center ${
@@ -272,24 +254,8 @@ export default function Login() {
             Crear cuenta
           </Link>
         </p>
-        {success && (
-  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 p-8">
-    <h1 className="text-4xl font-bold text-pink-600 mb-4">
-      ¡Bienvenido {form.nombre}!
-    </h1>
-    {form.foto && (
-      <img
-        src={URL.createObjectURL(form.foto)}
-        alt="Foto de perfil"
-        className="w-40 h-40 rounded-full border-4 border-pink-300 shadow-md object-cover mb-4"
-      />
-    )}
-    <p className="text-pink-700 font-medium">{form.email}</p>
-  </div>
-)}
-
-        
       </motion.div>
     </div>
   );
 }
+

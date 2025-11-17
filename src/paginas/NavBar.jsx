@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
@@ -9,12 +10,12 @@ import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user, logout, loading } = useAuth(); // 🔥 Usamos el contexto
+  const { usuario, logout, cargando } = useAuth();
+
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [showPerfil, setShowPerfil] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
 
-  // Mostrar pantalla de carga temporal al redirigir
   const mostrarCargando = () => {
     setGlobalLoading(true);
     setTimeout(() => setGlobalLoading(false), 1500);
@@ -25,10 +26,14 @@ const Navbar = () => {
     navigate("/");
   };
 
+  // Foto visible en navbar (corregido)
+  const fotoNavbar = usuario?.foto || usuario?.photoURL || null;
+
   return (
     <>
       <nav className="bg-pink-100/90 backdrop-blur-md shadow-sm fixed top-0 left-0 w-full z-50">
         <div className="container mx-auto flex justify-between items-center px-6 py-3">
+
           {/* 🌸 Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <span className="text-3xl font-semibold text-pink-600 font-[Dancing Script] transition-all duration-500 group-hover:text-pink-700 group-hover:drop-shadow-[0_0_6px_rgba(236,72,153,0.6)]">
@@ -38,20 +43,12 @@ const Navbar = () => {
 
           {/* 🔗 Navegación Desktop */}
           <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
-            <Link to="/" className="hover:text-pink-500 transition">
-              Inicio
-            </Link>
-            <Link to="/productos" className="hover:text-pink-500 transition">
-              Productos
-            </Link>
-            <Link to="/nosotros" className="hover:text-pink-500 transition">
-              Nosotros
-            </Link>
-            <Link to="/contacto" className="hover:text-pink-500 transition">
-              Contacto
-            </Link>
+            <Link to="/" className="hover:text-pink-500 transition">Inicio</Link>
+            <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
+            <Link to="/nosotros" className="hover:text-pink-500 transition">Nosotros</Link>
+            <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
 
-            {user && (
+            {usuario && (
               <button
                 onClick={() => setShowPerfil(true)}
                 className="hover:text-pink-600 flex items-center gap-1 transition"
@@ -63,6 +60,7 @@ const Navbar = () => {
 
           {/* 🛒 Carrito + Sesión */}
           <div className="flex items-center space-x-4">
+
             <CarritoIcon
               onLoginRequired={() => {
                 mostrarCargando();
@@ -70,23 +68,31 @@ const Navbar = () => {
               }}
             />
 
-            {user ? (
+            {/* 👤 Usuario logueado */}
+            {usuario ? (
               <div className="flex items-center space-x-3">
-                {/* 👤 Foto de perfil si existe */}
-                {user.foto ? (
+
+                {/* Foto si existe */}
+                {fotoNavbar ? (
                   <img
-                    src={user.foto}
+                    src={fotoNavbar}
                     alt="Perfil"
-                    className="w-8 h-8 rounded-full border border-pink-400 shadow-sm"
+                    className="w-8 h-8 rounded-full border border-pink-400 shadow-sm object-cover cursor-pointer"
+                    onClick={() => setShowPerfil(true)}
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-pink-300 flex items-center justify-center text-white font-bold">
-                    {user.nombre?.charAt(0)?.toUpperCase() || "?"}
+                  <div
+                    onClick={() => setShowPerfil(true)}
+                    className="w-8 h-8 rounded-full bg-pink-300 flex items-center justify-center text-white font-bold cursor-pointer"
+                  >
+                    {usuario.displayName?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                 )}
+
                 <span className="text-pink-700 font-semibold">
-                  Hola, {user.nombre?.split(" ")[0]} ✨
+                  Hola, {usuario.displayName?.split(" ")[0]} ✨
                 </span>
+
                 <button
                   onClick={handleLogout}
                   className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
@@ -94,7 +100,9 @@ const Navbar = () => {
                   Cerrar Sesión
                 </button>
               </div>
+
             ) : (
+              /* 🔓 Invitado */
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
@@ -118,10 +126,11 @@ const Navbar = () => {
             >
               {menuAbierto ? <X size={26} /> : <Menu size={26} />}
             </button>
+
           </div>
         </div>
 
-        {/* 🚪 Menú lateral móvil */}
+        {/* 🚪 Menú móvil */}
         <AnimatePresence>
           {menuAbierto && (
             <motion.div
@@ -138,20 +147,12 @@ const Navbar = () => {
               </div>
 
               <ul className="flex flex-col gap-4 text-gray-700 font-medium">
-                <Link to="/" onClick={() => setMenuAbierto(false)}>
-                  Inicio
-                </Link>
-                <Link to="/productos" onClick={() => setMenuAbierto(false)}>
-                  Productos
-                </Link>
-                <Link to="/nosotros" onClick={() => setMenuAbierto(false)}>
-                  Nosotros
-                </Link>
-                <Link to="/contacto" onClick={() => setMenuAbierto(false)}>
-                  Contacto
-                </Link>
+                <Link to="/" onClick={() => setMenuAbierto(false)}>Inicio</Link>
+                <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
+                <Link to="/nosotros" onClick={() => setMenuAbierto(false)}>Nosotros</Link>
+                <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
 
-                {user && (
+                {usuario && (
                   <li
                     className="cursor-pointer hover:text-pink-600 transition"
                     onClick={() => {
@@ -163,7 +164,7 @@ const Navbar = () => {
                   </li>
                 )}
 
-                {user ? (
+                {usuario ? (
                   <li
                     onClick={handleLogout}
                     className="text-pink-600 cursor-pointer hover:underline"
@@ -186,14 +187,12 @@ const Navbar = () => {
         </AnimatePresence>
       </nav>
 
-      {/* 🧍 Modal Perfil */}
       <PerfilModal isOpen={showPerfil} onClose={() => setShowPerfil(false)} />
 
-      {/* 🌸 Pantalla de carga global */}
       <AnimatePresence>
-        {(loading || globalLoading) && (
+        {(cargando || globalLoading) && (
           <motion.div
-            className="fixed inset-0 bg-white/90 flex items-center justify-center z-[999]"
+            className="fixed inset-0 bg-white/90 flex items-center justify-center z-999"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -218,3 +217,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+

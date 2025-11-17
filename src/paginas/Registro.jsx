@@ -2,19 +2,12 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
-import { db, storage, auth } from "../lib/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 import AnimatedModal from "../componentes/AnimatedModal";
 
 export default function Registro() {
   const navigate = useNavigate();
+  const { registrarUsuario, loginGoogle } = useAuth();
 
   const [form, setForm] = useState({
     nombre: "",
@@ -23,7 +16,6 @@ export default function Registro() {
     confirmPassword: "",
     foto: null,
   });
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -52,6 +44,7 @@ export default function Registro() {
     }
   };
 
+  // 🔹 Registro con Email/Password
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -70,43 +63,15 @@ export default function Registro() {
     try {
       setLoading(true);
 
-      // 🔥 Crear usuario en Firebase Auth
-      const userCred = await createUserWithEmailAndPassword(
-        auth,
-        emailLower,
-        password
-      );
-      const user = userCred.user;
+      const user = await registrarUsuario(emailLower, password, nombre, foto);
 
-      // 📸 Subir foto (si existe)
-      let photoURL = "";
-      if (foto) {
-        const storageRef = ref(storage, `usuarios/${user.uid}/${foto.name}`);
-        await uploadBytes(storageRef, foto);
-        photoURL = await getDownloadURL(storageRef);
-      }
-
-      // ✨ Actualizar perfil de usuario en Auth (nombre + foto)
-      await updateProfile(user, { displayName: nombre, photoURL });
-
-      // 💾 Guardar datos en Firestore
-      await setDoc(doc(db, "usuarios", user.uid), {
-        uid: user.uid,
-        nombre,
-        email: user.email,
-        photoURL,
-        creadoEn: serverTimestamp(),
-        ultimaConexion: serverTimestamp(),
-      });
-
-      // 🎉 Éxito visual
       confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-      setSuccess("✨ ¡Registro exitoso! Redirigiendo...");
+      setSuccess("✨ ¡Registro exitoso! Redirigiendo a iniciar sesión...");
       setShowModal(true);
 
       setTimeout(() => {
         setShowModal(false);
-        navigate("/productos");
+        navigate("/login"); // registro normal → login
       }, 2000);
     } catch (err) {
       console.error(err);
@@ -117,33 +82,21 @@ export default function Registro() {
     }
   };
 
-  // 💫 Registro / inicio con Google
+  // 🔹 Registro/Inicio con Google
   const handleGoogle = async () => {
     setError("");
+    setSuccess("");
+
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      const user = await loginGoogle();
 
-      await setDoc(
-        doc(db, "usuarios", user.uid),
-        {
-          uid: user.uid,
-          nombre: user.displayName || user.email.split("@")[0],
-          email: user.email,
-          photoURL: user.photoURL || "",
-          creadoEn: serverTimestamp(),
-          ultimaConexion: serverTimestamp(),
-        },
-        { merge: true } // ✅ evita errores de permisos y conserva datos
-      );
-
+      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
       setSuccess("💖 ¡Inicio de sesión con Google exitoso!");
       setShowModal(true);
 
       setTimeout(() => {
         setShowModal(false);
-        navigate("/productos");
+        navigate("/productos"); // Google → /productos
       }, 2000);
     } catch (err) {
       console.error(err);
@@ -153,7 +106,7 @@ export default function Registro() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-pink-100 to-white p-6">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-200 via-pink-100 to-white p-6">
       {loading && (
         <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
           <div className="text-pink-600 text-lg font-semibold animate-pulse">
@@ -190,7 +143,6 @@ export default function Registro() {
             onChange={handleChange}
             className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
-
           <input
             name="email"
             type="email"
@@ -199,7 +151,6 @@ export default function Registro() {
             onChange={handleChange}
             className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
-
           <input
             name="password"
             type="password"
@@ -208,7 +159,6 @@ export default function Registro() {
             onChange={handleChange}
             className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
-
           <input
             name="confirmPassword"
             type="password"
@@ -217,7 +167,6 @@ export default function Registro() {
             onChange={handleChange}
             className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
-
           <input
             type="file"
             name="foto"
@@ -252,24 +201,15 @@ export default function Registro() {
             Inicia sesión aquí
           </Link>
         </p>
-
-        {success && (
-  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 p-8">
-    <h1 className="text-4xl font-bold text-pink-600 mb-4">
-      ¡Bienvenido {form.nombre}!
-    </h1>
-    {form.foto && (
-      <img
-        src={URL.createObjectURL(form.foto)}
-        alt="Foto de perfil"
-        className="w-40 h-40 rounded-full border-4 border-pink-300 shadow-md object-cover mb-4"
-      />
-    )}
-    <p className="text-pink-700 font-medium">{form.email}</p>
-  </div>
-)}
-
       </motion.div>
+
+      {showModal && (
+        <AnimatedModal
+          mensaje={error || success}
+          tipo={error ? "error" : "success"}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }
