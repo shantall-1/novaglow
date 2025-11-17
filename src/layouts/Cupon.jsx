@@ -12,25 +12,29 @@ export default function CouponNovaGlow({
   delay = 2500 
 }) {
 
-  const { user } = useAuth();        // ✅ Usuario Firebase
+  const { user } = useAuth(); 
   const navigate = useNavigate();
 
   const [showCinematic, setShowCinematic] = useState(true);
   const [showCoupon, setShowCoupon] = useState(false);
   const [yaReclamado, setYaReclamado] = useState(false);
-  const [mensaje, setMensaje] = useState(""); // ✅ Mensaje final al reclamar
   
-
+  // 🔑 NUEVOS ESTADOS para manejar el flujo de bloqueo y mensajes
+  const [verificacionInicialCompleta, setVerificacionInicialCompleta] = useState(false);
+  const [mensaje, setMensaje] = useState(""); 
+  const [tipoMensaje, setTipoMensaje] = useState(null); // 'success' o 'error'
+  
   const [selectedItem, setSelectedItem] = useState(null); 
-
   const [errorSeleccion, setErrorSeleccion] = useState("");
 
-  const CUPON_ID = "PRIMERA20";      // ✅ ID del cupón en la BD
+  const CUPON_ID = "PRIMERA20"; 
 
   useEffect(() => {
-    // ✅ Función: Verificar si el cupón ya fue reclamado
     const verificarCupon = async () => {
-      if (!user) return;
+      if (!user) {
+        setVerificacionInicialCompleta(true); 
+        return;
+      }
 
       const ref = doc(db, "cuponesReclamados", user.uid);
       const snap = await getDoc(ref);
@@ -40,11 +44,12 @@ export default function CouponNovaGlow({
         setShowCinematic(false);
         setShowCoupon(false);
       }
+      
+      setVerificacionInicialCompleta(true);
     };
 
     verificarCupon();
 
-    // ✅ Temporizador para mostrar cinemática
     const t = setTimeout(() => {
       if (!yaReclamado) {
         setShowCinematic(false);
@@ -56,12 +61,10 @@ export default function CouponNovaGlow({
   }, [user, delay, yaReclamado]);
 
 /**
- * ⚡ FUNCIÓN CORREGIDA: handleReclamar
- * Se eliminaron las asignaciones redundantes de showCinematic y showCoupon
- * y se agregó setYaReclamado(true) al éxito.
+ * ⚡ FUNCIÓN CORREGIDA: handleReclamar (Añadido tipoMensaje)
  */
 const handleReclamar = async () => {
-  // Validación del ítem seleccionado
+  // Validación
   if (!selectedItem) {
     setErrorSeleccion("Por favor, selecciona un producto para aplicar el descuento.");
     return;
@@ -84,40 +87,39 @@ const handleReclamar = async () => {
       estado: "reclamado"
     });
 
-    // ✅ 1. Mensaje que activa el Bloque Final (Contenedor 3)
+    // ÉXITO
     const successMessage =
       `💌 ¡Felicidades! Te enviamos el código ${CUPON_ID} a tu correo (${user.email}).\n` +
       `El descuento aplica para la prenda: **${selectedItem}**.`;
 
     setMensaje(successMessage);
-    
-    // ✅ 2. Bloquea futuros reclamos durante esta sesión (Contenedor 1)
+    setTipoMensaje('success'); // 🔑 Setear éxito
     setYaReclamado(true);
-
-    // ❌ Se eliminaron las líneas redundantes:
-    // setShowCinematic(false);
-    // setShowCoupon(true); 
-
     onClaim();
 
   } catch (error) {
     console.error("Error guardando cupón:", error);
-    setMensaje("Hubo un error al intentar reclamar el cupón. Inténtalo de nuevo.");
     
+    // ERROR
+    setMensaje("Hubo un error al intentar reclamar el cupón. Inténtalo de nuevo.");
+    setTipoMensaje('error'); // 🔑 Setear error
+    
+    // Mantiene el modal abierto en caso de error
     setShowCinematic(false);
-    setShowCoupon(true);
+    setShowCoupon(true); 
   }
 };
 
   
-  // 🆕 Función para manejar la selección del item
+  // Función para manejar la selección del item
   const handleSelect = (item) => {
       setSelectedItem(item);
       setErrorSeleccion("");
   };
 
   // ✅ 1. CONTENEDOR: El cupón YA FUE RECLAMADO (Bloqueo inicial)
-  if (yaReclamado && !mensaje) { // Añadimos !mensaje para evitar que se active inmediatamente después del éxito
+  // Solo se activa si la verificación inicial encontró el cupón y no hay un mensaje pendiente
+  if (yaReclamado && verificacionInicialCompleta && !mensaje) { 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur">
         <motion.div
@@ -126,7 +128,7 @@ const handleReclamar = async () => {
           className="bg-white/90 p-8 rounded-2xl shadow-xl max-w-md text-center border border-pink-200"
         >
           <h2 className="text-3xl font-bold text-pink-600 mb-3">
-           ¡Cupón ya reclamado!
+            ¡Cupón ya reclamado!
           </h2>
 
           <p className="text-gray-700 leading-relaxed">
@@ -240,7 +242,6 @@ const handleReclamar = async () => {
 
                     <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {items.map((it, i) => {
-                        // 🆕 Lógica para el estilo seleccionado
                         const isSelected = selectedItem === it;
                         const itemClass = isSelected 
                           ? "bg-pink-100/90 border-pink-500 ring-2 ring-pink-500 scale-[1.02]" 
@@ -261,7 +262,7 @@ const handleReclamar = async () => {
                       })}
                     </div>
                     
-                    {/* 🆕 Mensaje de error de selección */}
+                    {/* Mensaje de error de selección */}
                     {errorSeleccion && (
                         <p className="mt-3 text-sm font-medium text-red-600 animate-pulse">
                             {errorSeleccion}
@@ -299,47 +300,66 @@ const handleReclamar = async () => {
                     </div>
                   </>
                 ) :
-            
-                 // 3. CONTENEDOR: Muestra el mensaje final tras reclamar (El modal de éxito)
-                (
-                  <div key="success-message">
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="mx-auto mb-5 w-full bg-pink-100 border border-pink-300 text-pink-700 text-sm font-medium px-4 py-3 rounded-xl shadow-md"
-                    >
-                      <div className="flex items-center justify-center space-x-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span className="font-bold">¡Cupón reclamado con éxito!</span>
-                      </div>
-                    </motion.div>
+                
+                  // 3. CONTENEDOR: Muestra el mensaje final tras reclamar (Éxito o Error)
+                  (
+                    <div key="final-message">
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                        // 🔑 ESTILO CONDICIONAL (PINK para éxito, RED para error)
+                        className={`mx-auto mb-5 w-full border text-sm font-medium px-4 py-3 rounded-xl shadow-md ${
+                          tipoMensaje === 'success'
+                            ? 'bg-pink-100 border-pink-300 text-pink-700'
+                            : 'bg-red-100 border-red-300 text-red-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center space-x-2">
+                            {/* 🔑 ICONO CONDICIONAL */}
+                            {tipoMensaje === 'success' ? (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            )}
+                            
+                          {/* 🔑 TEXTO CONDICIONAL */}
+                          <span className="font-bold">
+                            {tipoMensaje === 'success' 
+                              ? '¡Cupón reclamado con éxito!' 
+                              : '¡Ocurrió un error!'}
+                          </span>
+                        </div>
+                      </motion.div>
 
-                    {/* Título */}
-                    <h2 className="text-3xl font-bold text-pink-600 mb-4">
-                      🎁 ¡Cupón Enviado!
-                    </h2>
+                      {/* Título principal condicional */}
+                      <h2 className={`text-3xl font-bold mb-4 ${tipoMensaje === 'success' ? 'text-pink-600' : 'text-red-600'}`}>
+                        {tipoMensaje === 'success' ? '🎁 ¡Cupón Enviado!' : '⚠️ Error al Reclamar'}
+                      </h2>
 
-                    {/* Mensaje final (usando dangerouslySetInnerHTML para el bold **text**) */}
-                    <p 
-                        className="text-gray-700 whitespace-pre-line leading-relaxed text-left max-w-md mx-auto"
-                        dangerouslySetInnerHTML={{
-                            __html: mensaje.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        }}
-                    >
-                    </p>
+                      {/* Mensaje final (usa el mensaje guardado) */}
+                      <p 
+                          className="text-gray-700 whitespace-pre-line leading-relaxed text-left max-w-md mx-auto"
+                          dangerouslySetInnerHTML={{
+                              __html: mensaje.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          }}
+                      >
+                      </p>
 
-                    {/* Botón cerrar */}
-                    <button
-                      onClick={onClose}
-                      className="mt-6 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-xl font-medium transition shadow-lg"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-                )}
+                      {/* Botón cerrar */}
+                      <button
+                        onClick={onClose}
+                        className="mt-6 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-xl font-medium transition shadow-lg"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  )
+                }
               </div>
             </div>
           </motion.div>
