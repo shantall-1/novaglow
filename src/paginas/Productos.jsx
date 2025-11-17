@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../componentes/Sidebar";
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../lib/firebase";
 import { FaSearch } from "react-icons/fa";
 
 export default function Productos() {

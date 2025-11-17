@@ -4,7 +4,7 @@ import { productosData } from "../assets/productosData";
 import { useCarrito } from "../context/CarritoContext"; // <-- 1. IMPORTAR EL CONTEXTO
 
 // Firebase
-import { db, auth, googleProvider } from "../firebase";
+import { db, auth, googleProvider } from "../lib/firebase";
 import {
   collection,
   doc,
