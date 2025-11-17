@@ -16,9 +16,12 @@ import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import Logout from "./paginas/Logout"; 
 
+
+
 //BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
-
+import AdminBlog from "./paginas/AdminBlog";
+import Suscripcion from "./paginas/Suscripcion";
 
 import ArticuloDetalle from './descubre/ArticuloDetalle';
 // 🔒 Protección de rutas
@@ -28,6 +31,7 @@ import "./App.css";
 
 function App() {
   return (
+    <>
     <CarritoProvider>
       <Router>
          <ScrollToTop /> {/* ✅ Aquí está bien ubicado */}
@@ -38,8 +42,11 @@ function App() {
           {/* 🧭 Contenido principal */}
           <main className="grow pt-[72px] bg-pink-100"> {/* pt-20 evita que el contenido quede bajo el navbar fijo */}
             <Routes>
+
+              
+
               {/* 🏠 Rutas públicas */}
-              <Route path="/" element={<Inicio />} />
+              <Route path="/inicio" element={<Inicio />} />
               <Route path="/productos" element={<Productos />} />
               <Route path="/producto/:id" element={<ProductoDetalle />} />
               <Route path="/nosotros" element={<Nosotros />} />
@@ -50,8 +57,10 @@ function App() {
 
               {/* Ruta dinámica para detalle de artículo según slug */}
               <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
-
               
+              {/* 🔐 Panel de administración */}
+              <Route path="/adminblog" element={<AdminBlog />} />
+              <Route path="/" element={<Suscripcion />} />
 
 
               {/* 👤 Autenticación */}
@@ -84,6 +93,7 @@ function App() {
         </div>
       </Router>
     </CarritoProvider>
+    </>
   );
 }
 

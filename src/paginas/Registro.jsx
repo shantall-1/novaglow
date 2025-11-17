@@ -1,215 +1,200 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import confetti from "canvas-confetti";
-import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import AnimatedModal from "../componentes/AnimatedModal";
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
 
 export default function Registro() {
   const navigate = useNavigate();
-  const { registrarUsuario, loginGoogle } = useAuth();
+  const { registrarUsuario } = useAuth();
 
   const [form, setForm] = useState({
     nombre: "",
     email: "",
     password: "",
-    confirmPassword: "",
     foto: null,
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
+
+  // Animación de vibración en caso de error
+  const [shake, setShake] = useState(false);
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 400);
+  };
 
   const handleChange = (e) => {
-    if (e.target.name === "foto") {
-      setForm({ ...form, foto: e.target.files[0] });
+    const { name, value, files } = e.target;
+    if (name === "foto") {
+      setForm((prev) => ({ ...prev, foto: files[0] || null }));
     } else {
-      setForm({ ...form, [e.target.name]: e.target.value });
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const traducirError = (code) => {
     switch (code) {
       case "auth/email-already-in-use":
-        return "Este correo ya está registrado.";
+        return "El correo ya está en uso.";
       case "auth/invalid-email":
-        return "El correo no es válido.";
+        return "Correo inválido.";
       case "auth/weak-password":
-        return "La contraseña es muy débil (mínimo 6 caracteres).";
-      case "auth/popup-closed-by-user":
-        return "Cerraste la ventana antes de completar el inicio de sesión.";
+        return "La contraseña es muy débil.";
       default:
         return "Ocurrió un error. Intenta nuevamente.";
     }
   };
 
-  // 🔹 Registro con Email/Password
+  const dispararConfeti = () => {
+    const canvas = document.createElement("canvas");
+    canvas.style.position = "fixed";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "999999";
+    document.body.appendChild(canvas);
+
+    const myConfetti = confetti.create(canvas, { resize: true });
+    myConfetti({
+      particleCount: 200,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ["#ffc8dd", "#ffafcc", "#ffe5ec"],
+    });
+
+    setTimeout(() => canvas.remove(), 1500);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setSubiendo(true);
 
-    const { nombre, email, password, confirmPassword, foto } = form;
-    const emailLower = email.trim().toLowerCase();
-
-    if (!nombre || !email || !password || !confirmPassword)
-      return setError("⚠️ Todos los campos son obligatorios.");
-    if (password.length < 6)
-      return setError("🔒 La contraseña debe tener al menos 6 caracteres.");
-    if (password !== confirmPassword)
-      return setError("💔 Las contraseñas no coinciden.");
+    const { nombre, email, password, foto } = form;
+    if (!nombre || !email || !password) {
+      setError("💔 Por favor completa todos los campos.");
+      triggerShake();
+      setSubiendo(false);
+      return;
+    }
 
     try {
-      setLoading(true);
+      // Registrar usuario en Firebase + Firestore
+      await registrarUsuario(email.trim().toLowerCase(), password, nombre, foto);
 
-      const user = await registrarUsuario(emailLower, password, nombre, foto);
+      dispararConfeti();
 
-      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-      setSuccess("✨ ¡Registro exitoso! Redirigiendo a iniciar sesión...");
-      setShowModal(true);
-
-      setTimeout(() => {
-        setShowModal(false);
-        navigate("/login"); // registro normal → login
-      }, 2000);
+      // Redirigir a login
+      navigate("/login");
     } catch (err) {
       console.error(err);
       setError(traducirError(err.code));
-      setShowModal(true);
-    } finally {
-      setLoading(false);
+      triggerShake();
     }
-  };
-
-  // 🔹 Registro/Inicio con Google
-  const handleGoogle = async () => {
-    setError("");
-    setSuccess("");
-
-    try {
-      const user = await loginGoogle();
-
-      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-      setSuccess("💖 ¡Inicio de sesión con Google exitoso!");
-      setShowModal(true);
-
-      setTimeout(() => {
-        setShowModal(false);
-        navigate("/productos"); // Google → /productos
-      }, 2000);
-    } catch (err) {
-      console.error(err);
-      setError(traducirError(err.code));
-      setShowModal(true);
-    }
+    setSubiendo(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-200 via-pink-100 to-white p-6">
-      {loading && (
-        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
-          <div className="text-pink-600 text-lg font-semibold animate-pulse">
-            Cargando...
-          </div>
-        </div>
-      )}
-
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 border border-pink-200 relative"
+        className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 border border-pink-200"
       >
-        <h2 className="text-3xl font-bold text-center text-pink-600 mb-6">
+        <h1 className="text-3xl font-bold mb-6 text-center text-pink-600">
           🌷 Crear Cuenta 🌷
-        </h2>
+        </h1>
 
-        {(error || success) && (
-          <p
-            className={`text-sm text-center p-2 rounded-xl mb-4 ${
-              error ? "text-red-500 bg-red-100" : "text-green-700 bg-green-100"
-            }`}
+        {error && (
+          <motion.p
+            key={error}
+            animate={shake ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-3 text-sm p-3 rounded-xl border text-center text-red-600 bg-red-50 border-red-200"
           >
-            {error || success}
-          </p>
+            {error}
+          </motion.p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="nombre"
-            placeholder="Nombre completo"
-            value={form.nombre}
-            onChange={handleChange}
-            className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Correo electrónico"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Contraseña"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirmar contraseña"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-          <input
-            type="file"
-            name="foto"
-            accept="image/*"
-            onChange={handleChange}
-            className="w-full text-sm text-pink-700 border border-pink-300 rounded-xl p-2 cursor-pointer"
-          />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-pink-700 mb-1">
+              Nombre
+            </label>
+            <input
+              type="text"
+              name="nombre"
+              value={form.nombre}
+              onChange={handleChange}
+              placeholder="Tu nombre"
+              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
 
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.03 }}
+          <div>
+            <label className="block text-sm font-medium text-pink-700 mb-1">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="tucorreo@ejemplo.com"
+              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-pink-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Tu contraseña"
+              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-pink-700 mb-1">
+              Foto de perfil (opcional)
+            </label>
+            <input
+              type="file"
+              name="foto"
+              accept="image/*"
+              onChange={handleChange}
+              className="w-full text-sm"
+            />
+          </div>
+
+          <button
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl shadow-lg"
+            disabled={subiendo}
+            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 rounded-xl transition-all shadow-lg"
           >
-            Registrarme 💖
-          </motion.button>
+            {subiendo ? "Creando cuenta..." : "Crear Cuenta 💖"}
+          </button>
         </form>
 
-        <button
-          onClick={handleGoogle}
-          className="w-full mt-4 bg-white border border-pink-300 text-pink-700 font-medium py-3 rounded-xl shadow hover:bg-pink-50"
-        >
-          Continuar con Google 🌸
-        </button>
-
-        <p className="text-center mt-4 text-sm">
+        <p className="text-center mt-6 text-sm">
           ¿Ya tienes cuenta?{" "}
           <Link
             to="/login"
-            className="text-pink-600 hover:underline font-semibold"
+            className="text-pink-600 font-semibold hover:underline"
           >
-            Inicia sesión aquí
+            Iniciar Sesión
           </Link>
         </p>
       </motion.div>
-
-      {showModal && (
-        <AnimatedModal
-          mensaje={error || success}
-          tipo={error ? "error" : "success"}
-          onClose={() => setShowModal(false)}
-        />
-      )}
     </div>
   );
 }

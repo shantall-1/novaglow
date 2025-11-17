@@ -1,7 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { productosData } from "../assets/productosData";
 import { useCarrito } from "../context/CarritoContext"; // <-- 1. IMPORTAR EL CONTEXTO
+
+// Firebase
+import { db, auth, googleProvider } from "../lib/firebase";
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  getDocs,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
+import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
 
 // --- Datos recomendados, frases y canciones ---
 const maquillaje = [
@@ -58,6 +74,16 @@ export default function ProductoDetalles() {
   const [colorSeleccionado, setColorSeleccionado] = useState(producto.colors?.[0] || "");
   const [sizeSeleccionado, setSizeSeleccionado] = useState(producto.sizes?.[0] || "");
   const [cantidad, setCantidad] = useState(1);
+
+  // AUTH / USUARIO
+  const [usuario, setUsuario] = useState(null);
+
+  // Favoritos
+  const [favoritosModal, setFavoritosModal] = useState(false);
+  const [favoritos, setFavoritos] = useState([]);
+  const [esFavoritoActual, setEsFavoritoActual] = useState(false);
+
+  // Reviews (comentarios)
   const [review, setReview] = useState("");
   const [reviews, setReviews] = useState([]);
 
@@ -90,11 +116,176 @@ export default function ProductoDetalles() {
     agregarAlCarrito(itemParaCarrito, cantidad);
   };
 
-  const handleReviewSubmit = (e) => {
+  // -----------------------
+  // AUTH: detectar usuario
+  // -----------------------
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user || null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // -----------------------
+  // CARGAR FAVORITOS DEL USUARIO
+  // -----------------------
+  const cargarFavoritos = async (u) => {
+    if (!u) {
+      setFavoritos([]);
+      setEsFavoritoActual(false);
+      return;
+    }
+    try {
+      const itemsSnapshot = await getDocs(collection(db, "favoritos", u.uid, "items"));
+      const lista = itemsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setFavoritos(lista);
+      setEsFavoritoActual(lista.some((f) => String(f.id) === String(producto.id)));
+    } catch (error) {
+      console.error("Error cargando favoritos:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (usuario) cargarFavoritos(usuario);
+    else {
+      // si no hay usuario, limpiar
+      setFavoritos([]);
+      setEsFavoritoActual(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario, id]);
+
+  // -----------------------
+  // AGREGAR / QUITAR FAVORITO (subcolección: favoritos/{uid}/items/{productId})
+  // -----------------------
+  const agregarFavoritoActual = async () => {
+    if (!usuario) {
+      // pedir login con Google
+      try {
+        const res = await signInWithPopup(auth, googleProvider);
+        setUsuario(res.user);
+        // luego la carga de favoritos queda en el listener onAuthStateChanged
+      } catch (err) {
+        console.error("Login cancelado o falló:", err);
+        return;
+      }
+    }
+
+    // crear doc del producto dentro de favoritos/{uid}/items/{productId}
+    try {
+      const docRef = doc(db, "favoritos", auth.currentUser.uid, "items", String(producto.id));
+      await setDoc(docRef, {
+        name: producto.name,
+        price: producto.price,
+        image: producto.image,
+        addedAt: serverTimestamp(),
+      });
+      await cargarFavoritos(auth.currentUser);
+      setEsFavoritoActual(true);
+    } catch (error) {
+      console.error("Error guardando favorito:", error);
+    }
+  };
+
+  const quitarFavoritoActual = async () => {
+    if (!usuario) {
+      alert("Inicia sesión para administrar favoritos.");
+      return;
+    }
+    try {
+      const docRef = doc(db, "favoritos", usuario.uid, "items", String(producto.id));
+      await deleteDoc(docRef);
+      await cargarFavoritos(usuario);
+      setEsFavoritoActual(false);
+    } catch (error) {
+      console.error("Error eliminando favorito:", error);
+    }
+  };
+
+  // función que alterna (toggle) favorito para producto actual
+  const toggleFavoritoYAbrirModal = async () => {
+    // Si ya es favorito, lo quita; si no, lo agrega. Luego abre modal de favoritos.
+    if (esFavoritoActual) {
+      await quitarFavoritoActual();
+    } else {
+      await agregarFavoritoActual();
+    }
+    // recargar favoritos y abrir modal
+    if (auth.currentUser) await cargarFavoritos(auth.currentUser);
+    setFavoritosModal(true);
+  };
+
+  // -----------------------
+  // CARGAR FAVORITOS (cuando el modal se abre por si cambiaron en otra parte)
+  // -----------------------
+  useEffect(() => {
+    if (favoritosModal && usuario) {
+      cargarFavoritos(usuario);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favoritosModal]);
+
+  // -----------------------
+  // COMENTARIOS: cargar desde Firestore para ESTE producto
+  // -----------------------
+  const cargarComentarios = async () => {
+    try {
+      const q = query(
+        collection(db, "comentarios"),
+        where("productId", "==", String(producto.id)),
+        orderBy("createdAt", "desc")
+      );
+      const snap = await getDocs(q);
+      const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setReviews(lista);
+    } catch (error) {
+      console.error("Error cargando comentarios:", error);
+    }
+  };
+
+  useEffect(() => {
+    cargarComentarios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // -----------------------
+  // ENVIAR NUEVO COMENTARIO A FIRESTORE
+  // -----------------------
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!review.trim()) return;
-    setReviews([{ id: Date.now(), texto: review.trim(), fecha: new Date().toLocaleDateString("es-ES") }, ...reviews]);
-    setReview("");
+
+    try {
+      const nombreUsuario = usuario?.displayName || null;
+      await addDoc(collection(db, "comentarios"), {
+        productId: String(producto.id),
+        texto: review.trim(),
+        fecha: new Date().toLocaleDateString("es-ES"),
+        userName: nombreUsuario,
+        createdAt: serverTimestamp(),
+      });
+
+      setReview("");
+      await cargarComentarios();
+    } catch (error) {
+      console.error("Error guardando comentario:", error);
+    }
+  };
+
+  // -----------------------
+  // QUITAR FAVORITO desde modal (eliminar item)
+  // -----------------------
+  const eliminarFavorito = async (favId) => {
+    if (!usuario) {
+      alert("Inicia sesión para eliminar favoritos.");
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, "favoritos", usuario.uid, "items", String(favId)));
+      await cargarFavoritos(usuario);
+    } catch (error) {
+      console.error("Error eliminando favorito:", error);
+    }
   };
 
   return (
@@ -154,7 +345,16 @@ export default function ProductoDetalles() {
                 <button onClick={()=>setCantidad(cantidad+1)} className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100 rounded-lg transition">+</button>
               </div>
               <button onClick={handleAgregar} className="flex-1 bg-pink-500 text-white font-extrabold text-lg py-3 rounded-xl hover:bg-pink-600 transition-all shadow-lg">🛒 Agregar al carrito</button>
-              <button className="ml-3 px-3 py-2 bg-white border border-pink-300 text-pink-600 rounded-xl hover:bg-pink-50 transition">❤️</button>
+              {/* Corazón: ahora alterna favorito del producto y abre modal de favoritos */}
+              <button
+                onClick={toggleFavoritoYAbrirModal}
+                className="ml-3 px-3 py-2 bg-white border border-pink-300 text-pink-600 rounded-xl hover:bg-pink-50 transition flex items-center gap-2"
+              >
+                <span className={`text-xl ${esFavoritoActual ? "text-red-500" : "text-pink-600"}`}>
+                  {esFavoritoActual ? "❤️" : "🤍"}
+                </span>
+                <span className="hidden sm:inline">Favoritos</span>
+              </button>
             </div>
             <p className="text-sm text-gray-500 italic">Solo quedan {producto.stock} unidades disponibles.</p>
           </div>
@@ -195,6 +395,7 @@ export default function ProductoDetalles() {
             <h2 className="text-3xl font-extrabold text-pink-700 mb-8"> Inspírate y siéntete poderosa </h2>
             <div className="flex flex-wrap justify-center gap-6 px-4">
               {frasesPositivas.map((fr, i)=>(
+
                 <div key={i} className="bg-white text-gray-700 px-6 py-3 rounded-xl shadow-md hover:shadow-lg max-w-sm transition-all duration-300 hover:scale-[1.05] font-medium italic">{fr}</div>
               ))}
             </div>
@@ -220,12 +421,47 @@ export default function ProductoDetalles() {
             {reviews.length>0?reviews.map(r=>(
               <div key={r.id} className="bg-gray-50 p-4 rounded-xl shadow-sm border-l-4 border-pink-400">
                 <p className="text-gray-800 italic mb-2">"{r.texto}"</p>
-                <p className="text-xs text-gray-500 font-semibold mt-2 text-right">Compradora anónima - {r.fecha}</p>
+                <p className="text-xs text-gray-500 font-semibold mt-2">{r.userName ? `${r.userName} - ` : "Compradora anónima - "}{r.fecha}</p>
               </div>
             )):<p className="text-gray-500 italic text-center py-5">Sé la primera en dejar una reseña.</p>}
           </div>
         </div>
       </div>
+
+      {/* -----------------
+           MODAL: FAVORITOS
+         ----------------- */}
+      {favoritosModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-3xl relative shadow-xl">
+            <button onClick={()=>setFavoritosModal(false)} className="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-3xl">✖</button>
+            <h2 className="text-2xl font-bold mb-4">❤ Mis favoritos</h2>
+
+            {favoritos.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">Aún no tienes favoritos. Haz click en el corazón para guardar un producto.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {favoritos.map(f => (
+                  <div key={f.id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl shadow-sm">
+                    <img src={f.image} alt={f.name} className="w-24 h-24 object-cover rounded-lg"/>
+                    <div className="flex-1">
+                      <Link to={`/producto/${f.id}`} onClick={()=>setFavoritosModal(false)} className="font-semibold text-gray-800">{f.name}</Link>
+                      <p className="text-pink-600 font-bold mt-2">S/{f.price?.toFixed ? f.price.toFixed(2) : f.price}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button onClick={()=>eliminarFavorito(f.id)} className="px-4 py-2 bg-white border border-pink-300 rounded-xl hover:bg-pink-50">Eliminar</button>
+                      <Link to={`/producto/${f.id}`} onClick={()=>setFavoritosModal(false)} className="px-4 py-2 bg-pink-500 text-white rounded-xl text-center">Ver</Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
