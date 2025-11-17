@@ -1,5 +1,5 @@
 import React from "react";
-import {Zap,Heart,Sparkles,Feather,Sun,Eye,Star,Aperture,} from "lucide-react";
+import { Zap, Heart, Sparkles, Feather, Sun, Eye, Star, Aperture, } from "lucide-react";
 import { Link } from "react-router-dom";
 import BlogInspiracion from "./Blog-Inspiracion";
 
@@ -64,8 +64,8 @@ const CategoryPromoCard = ({
           alt={title}
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           onError={(e) =>
-            (e.target.src =
-              "https://placehold.co/600x400/feeae9/f06c9b?text=GLOW")
+          (e.target.src =
+            "https://placehold.co/600x400/feeae9/f06c9b?text=GLOW")
           }
         />
       </div>
@@ -131,7 +131,7 @@ const TeamMember = ({ name, role, tagline, imageUrl }) => (
 export default function Nosotros() {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8">
-     <header
+      <header
         className="text-center py-24 rounded-3xl shadow-2xl mb-16 relative overflow-hidden 
                     border-b-8 border-pink-400" // Eliminados bg-fuchsia-900
       >
@@ -350,6 +350,7 @@ export default function Nosotros() {
           Ir a la Galería de Inspiración
         </Link>
       </section>
+      
     </div>
   );
 }

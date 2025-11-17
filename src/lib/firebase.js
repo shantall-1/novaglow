@@ -25,3 +25,9 @@ export const storage = getStorage(app)
 export const auth = getAuth(app)
 // Provider para login con Google (opcional)
 export const googleProvider = new GoogleAuthProvider();
+
+export const ADMIN_EMAILS = [
+  "fundadora@novaglow.com",
+  "hylromeroduran@crackthecode.la",
+  "editor@novaglow.com"
+];

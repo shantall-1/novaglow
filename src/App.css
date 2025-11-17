@@ -25,3 +25,12 @@
   background-size: 200% 200%;
   animation: gradient-x 10s ease infinite;
 }
+
+@keyframes subtituloAnim {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+.animate-subtitulo::after {
+  animation: subtituloAnim 0.7s ease forwards;
+}
