@@ -65,18 +65,17 @@ export default function Productos() {
     if (
       !nuevoProducto.name ||
       !nuevoProducto.description ||
-      !nuevoProducto.price ||
       !nuevoProducto.category ||
       !nuevoProducto.image
     ) {
-      alert("Completa todos los campos");
+      alert("Completa todos los campos (el precio es opcional 😊)");
       return;
     }
 
     try {
       await addDoc(collection(db, "productos"), {
         ...nuevoProducto,
-        price: parseFloat(nuevoProducto.price),
+        price: nuevoProducto.price ? parseFloat(nuevoProducto.price) : null,
         discount: 0,
       });
 
@@ -135,7 +134,7 @@ export default function Productos() {
             </p>
 
             <p className="text-pink-600 font-semibold mt-3">
-              S/{p.price ? p.price.toFixed(2) : "0.00"}
+              {p.price ? `S/${p.price.toFixed(2)}` : "Precio no disponible"}
             </p>
 
             <div className="flex gap-2 mt-4">
@@ -185,7 +184,9 @@ export default function Productos() {
 
                 <div>
                   <p className="text-pink-600 font-semibold text-xl mb-4">
-                    S/{productoSeleccionado.price?.toFixed(2)}
+                    {productoSeleccionado.price
+                      ? `S/${productoSeleccionado.price.toFixed(2)}`
+                      : "Precio no disponible"}
                   </p>
                   <Link
                     to={`/producto/${productoSeleccionado.id}`}
@@ -201,7 +202,7 @@ export default function Productos() {
         </div>
       )}
 
-      {/* BOTÓN PARA ABRIR MODAL AGREGAR */}
+      {/* Botón para abrir modal agregar */}
       <button
         onClick={() => setModalAgregar(true)}
         className="fixed bottom-6 right-6 bg-pink-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-pink-700 transition font-bold z-50"
@@ -209,7 +210,7 @@ export default function Productos() {
         + Agregar producto
       </button>
 
-      {/* MODAL AGREGAR PRODUCTO */}
+      {/* Modal agregar producto */}
       {modalAgregar && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-3xl w-full max-w-lg relative shadow-xl">
@@ -247,7 +248,7 @@ export default function Productos() {
 
               <input
                 type="number"
-                placeholder="Precio"
+                placeholder="Precio (opcional)"
                 className="border p-2 rounded-xl"
                 value={nuevoProducto.price}
                 onChange={(e) =>
