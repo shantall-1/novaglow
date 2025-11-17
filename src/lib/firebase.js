@@ -1,9 +1,9 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,15 +17,18 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-//Inicializar servicio de FireStore
-export const db = getFirestore(app)
-//Inicializar Storage
-export const storage = getStorage(app)
-//Inicializar Auth
-export const auth = getAuth(app)
-// Provider para login con Google (opcional)
+
+// Firestore
+export const db = getFirestore(app);
+
+// Storage
+export const storage = getStorage(app);
+
+// Auth
+export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Correos administradores
 export const ADMIN_EMAILS = [
   "fundadora@novaglow.com",
   "hylromeroduran@crackthecode.la",
