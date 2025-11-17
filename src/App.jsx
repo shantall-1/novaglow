@@ -40,7 +40,7 @@ function App() {
           <Navbar />
 
           {/* 🧭 Contenido principal */}
-          <main className="grow pt-20"> {/* pt-20 evita que el contenido quede bajo el navbar fijo */}
+          <main className="grow pt-[72px] bg-pink-100"> {/* pt-20 evita que el contenido quede bajo el navbar fijo */}
             <Routes>
 
               

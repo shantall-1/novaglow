@@ -1,40 +1,55 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import confetti from "canvas-confetti";
+import { motion } from "framer-motion";
 import AnimatedModal from "../componentes/AnimatedModal";
-
-// 🔥 Firebase
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import {
-  getAuth,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const auth = getAuth();
-
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-
   const from = location.state?.from?.pathname || "/productos";
+  const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    if (location.state?.message) {
-      setModalMessage(location.state.message);
-      setShowModal(true);
-      setTimeout(() => setShowModal(false), 3500);
-    }
-  }, [location.state]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 400);
   };
+
+  // Escucha el estado del usuario logueado
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const { displayName, email, photoURL, uid } = user;
+        localStorage.setItem(
+          "novaglow_session",
+          JSON.stringify({
+            nombre: displayName || email.split("@")[0],
+            email,
+            photoURL,
+            uid,
+          })
+        );
+        window.dispatchEvent(new Event("novaglow_session_change"));
+      }
+    });
+    return () => unsub();
+  }, []);
 
   const traducirError = (code) => {
     switch (code) {
@@ -51,36 +66,52 @@ const Login = () => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 🌷 Iniciar sesión con correo y contraseña
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const email = formData.email.trim().toLowerCase();
-    const password = formData.password;
+    setError("");
+    setMensaje("");
+
+    const email = form.email.trim().toLowerCase();
+    const password = form.password;
 
     if (!email || !password) {
       setError("💔 Por favor, completa todos los campos.");
+      triggerShake();
       return;
     }
 
     try {
-      // 🔑 Iniciar sesión con Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
 
-      // 📄 Buscar datos del usuario en Firestore
+      // 🎉 Confetti
+      confetti({
+        particleCount: 180,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#ffc8dd", "#ffafcc", "#ffe5ec"],
+      });
+
+      // 📦 Obtener o actualizar datos en Firestore
       const userRef = doc(db, "usuarios", user.uid);
-      const userSnap = await getDoc(userRef);
+      const snap = await getDoc(userRef);
 
-      // 🩷 Si no existe, lo creamos automáticamente
-      if (!userSnap.exists()) {
+      if (!snap.exists()) {
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email,
-          nombre: user.email.split("@")[0],
+          nombre: user.displayName || user.email.split("@")[0],
+          photoURL: user.photoURL || "",
           creadoEn: serverTimestamp(),
           ultimaConexion: serverTimestamp(),
         });
       } else {
-        // Actualiza la fecha de última conexión
         await setDoc(
           userRef,
           { ultimaConexion: serverTimestamp() },
@@ -88,119 +119,177 @@ const Login = () => {
         );
       }
 
-      const nombre = userSnap.exists()
-        ? userSnap.data().nombre
-        : user.email.split("@")[0];
-
-      // 💾 Guardar sesión local (para Navbar)
-      localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
+      // 🔄 Guardar sesión local
+      localStorage.setItem(
+        "novaglow_session",
+        JSON.stringify({
+          nombre: user.displayName || user.email.split("@")[0],
+          email: user.email,
+          photoURL: user.photoURL || snap.data()?.photoURL || "",
+          uid: user.uid,
+        })
+      );
       window.dispatchEvent(new Event("novaglow_session_change"));
 
-      setModalMessage("💖 ¡Inicio de sesión exitoso!");
+      setMensaje("💖 ¡Inicio de sesión exitoso!");
       setShowModal(true);
 
       setTimeout(() => {
         setShowModal(false);
         navigate(from, { replace: true });
       }, 2000);
-    } catch (error) {
-      console.error(error);
-      setError(traducirError(error.code));
+    } catch (err) {
+      console.error(err);
+      setError(traducirError(err.code));
+      triggerShake();
     }
   };
 
-  // 👀 Si hay sesión activa, mantenerla sincronizada
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const email = user.email;
-        const nombre = email.split("@")[0];
-        localStorage.setItem("novaglow_session", JSON.stringify({ nombre, email }));
-        window.dispatchEvent(new Event("novaglow_session_change"));
-      }
-    });
-    return () => unsubscribe();
-  }, [auth]);
+  // 💫 Inicio de sesión con Google
+  const handleGoogleLogin = async () => {
+    setError("");
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await setDoc(
+        doc(db, "usuarios", user.uid),
+        {
+          uid: user.uid,
+          nombre: user.displayName || user.email.split("@")[0],
+          email: user.email,
+          photoURL: user.photoURL || "",
+          ultimaConexion: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+
+      localStorage.setItem(
+        "novaglow_session",
+        JSON.stringify({
+          nombre: user.displayName || user.email.split("@")[0],
+          email: user.email,
+          photoURL: user.photoURL || "",
+          uid: user.uid,
+        })
+      );
+      window.dispatchEvent(new Event("novaglow_session_change"));
+
+      setMensaje("🌸 ¡Bienvenida de nuevo con Google!");
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/productos");
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setError(traducirError(err.code));
+      setShowModal(true);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
-      <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-10 w-full max-w-md transform transition-all hover:scale-[1.02]">
-        <h1 className="text-4xl font-extrabold text-center text-pink-600 mb-4 font-[Poppins]">
-          💖 Bienvenida a NovaGlow 💖
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-200 via-pink-100 to-white p-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 border border-pink-200"
+      >
+        <h1 className="text-3xl font-bold mb-6 text-center text-pink-600">
+          🌷 Iniciar Sesión 🌷
         </h1>
-        <p className="text-gray-500 text-center mb-8">
-          Inicia sesión y sigue brillando con estilo ✨
-        </p>
 
-        {error && (
-          <p className="bg-pink-100 border border-pink-300 text-pink-700 p-3 rounded-md mb-4 text-center">
-            {error}
-          </p>
+        {(error || mensaje) && (
+          <motion.p
+            key={error || mensaje}
+            initial={{ x: 0 }}
+            animate={shake ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
+            transition={{ duration: 0.5 }}
+            className={`mb-3 text-sm p-3 rounded-xl border text-center ${
+              error
+                ? "text-red-600 bg-red-50 border-red-200"
+                : "text-green-700 bg-green-50 border-green-200"
+            }`}
+          >
+            {error || mensaje}
+          </motion.p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-sm font-medium text-pink-700 mb-1">
               Correo electrónico
             </label>
             <input
               type="email"
               name="email"
-              placeholder="ejemplo@correo.com"
-              value={formData.email}
+              value={form.email}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              placeholder="tucorreo@ejemplo.com"
+              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
           </div>
 
           <div>
-            <label className="block text-pink-700 font-medium mb-1">
+            <label className="block text-sm font-medium text-pink-700 mb-1">
               Contraseña
             </label>
             <input
               type="password"
               name="password"
-              placeholder="••••••••"
-              value={formData.password}
+              value={form.password}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+              placeholder="Tu contraseña"
+              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]"
+            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 rounded-xl transition-all shadow-lg"
           >
-            Iniciar Sesión 💅
+            Iniciar Sesión 💖
           </button>
         </form>
 
-        <div className="mt-6 text-center text-gray-600 text-sm">
-          ¿No tienes una cuenta?{" "}
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full mt-4 bg-white border border-pink-300 text-pink-700 font-medium py-2 rounded-xl shadow hover:bg-pink-50"
+        >
+          Continuar con Google 🌸
+        </button>
+
+        <p className="text-center mt-6 text-sm">
+          ¿No tienes cuenta?{" "}
           <Link
             to="/registro"
             className="text-pink-600 font-semibold hover:underline"
           >
-            Regístrate aquí
+            Crear cuenta
           </Link>
-        </div>
-      </div>
+        </p>
+        {success && (
+  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 p-8">
+    <h1 className="text-4xl font-bold text-pink-600 mb-4">
+      ¡Bienvenido {form.nombre}!
+    </h1>
+    {form.foto && (
+      <img
+        src={URL.createObjectURL(form.foto)}
+        alt="Foto de perfil"
+        className="w-40 h-40 rounded-full border-4 border-pink-300 shadow-md object-cover mb-4"
+      />
+    )}
+    <p className="text-pink-700 font-medium">{form.email}</p>
+  </div>
+)}
 
-      {showModal && (
-        <AnimatedModal
-          show={showModal}
-          message={modalMessage}
-          type="success"
-          color="pink"
-          onClose={() => setShowModal(false)}
-        />
-      )}
+        
+      </motion.div>
     </div>
   );
-};
-
-export default Login;
-
-
-
-
+}
