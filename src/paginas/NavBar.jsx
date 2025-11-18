@@ -1,4 +1,5 @@
 
+import BlogDropdown from "../componen/BlogDropdown";
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,7 +36,7 @@ const Navbar = () => {
         <div className="container mx-auto flex justify-between items-center px-6 py-3">
 
           {/* 🌸 Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
+          <Link to="/inicio" className="flex items-center space-x-2 group">
             <span className="text-3xl font-semibold text-pink-600 font-[Dancing Script] transition-all duration-500 group-hover:text-pink-700 group-hover:drop-shadow-[0_0_6px_rgba(236,72,153,0.6)]">
               🌸 NovaGlow 🌸
             </span>
@@ -45,7 +46,9 @@ const Navbar = () => {
           <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
             <Link to="/inicio" className="hover:text-pink-500 transition">Inicio</Link>
             <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
-            <Link to="/nosotros" className="hover:text-pink-500 transition">Nosotros</Link>
+            {/* 🔽 Aquí colocamos el nuevo dropdown */}
+            <BlogDropdown />
+
             <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
 
             {usuario && (

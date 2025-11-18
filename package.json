@@ -14,7 +14,7 @@
     "aos": "^2.3.4",
     "canvas-confetti": "^1.9.4",
 
-    "firebase": "^12.5.0",
+   
 
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
