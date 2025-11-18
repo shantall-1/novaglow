@@ -140,7 +140,6 @@ export default function Login() {
     setError("");
     console.log("Google login ejecutado");
 
-
     try {
       const user = await loginConGoogle();
 
