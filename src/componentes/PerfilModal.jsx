@@ -98,13 +98,13 @@ const PerfilModal = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[999]"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-999"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-linear-to-br from-pink-50 via-pink-100 to-pink-200 rounded-3xl shadow-2xl p-6 w-96 relative border-4 border-pink-300"
+            className="bg-linear-to-br from-[#fdf2f8] via-[#fce7f3] to-[#fbcfe8] rounded-3xl shadow-2xl p-6 w-96 relative border-4 border-[#f9a8d4]"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.8 }}

@@ -43,7 +43,7 @@ const Navbar = () => {
 
           {/* 🔗 Navegación Desktop */}
           <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
-            <Link to="/" className="hover:text-pink-500 transition">Inicio</Link>
+            <Link to="/inicio" className="hover:text-pink-500 transition">Inicio</Link>
             <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
             <Link to="/nosotros" className="hover:text-pink-500 transition">Nosotros</Link>
             <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion"; // 💫 animaciones elegantes
+import { motion } from "framer-motion";
 import AOS from "aos";
 import Swal from "sweetalert2";
 
-// ✅ Importaciones nuevas para Firebase
+// Firebase
 import { db } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
@@ -31,7 +31,6 @@ export default function Contacto() {
     setFormData({ ...formData, [name]: value });
   };
 
-  // 🔥 Funcionalidad para guardar los datos en Firestore
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -46,7 +45,6 @@ export default function Contacto() {
     }
 
     try {
-      // 💾 Guardar datos en Firebase Firestore
       await addDoc(collection(db, "mensajesContacto"), {
         nombre: formData.nombre,
         email: formData.email,
@@ -67,7 +65,7 @@ export default function Contacto() {
       Swal.fire({
         icon: "error",
         title: "Error al enviar",
-        text: "Hubo un problema al guardar tu mensaje 😢 Intenta nuevamente.",
+        text: "Hubo un problema 😢 Intenta nuevamente.",
         confirmButtonColor: "#e06b8b",
       });
     }
@@ -79,27 +77,35 @@ export default function Contacto() {
       className="min-h-screen flex flex-col items-center bg-pink-50 relative overflow-hidden"
       id="contacto"
     >
-      {/* 🌸 Header con entrada elegante */}
+      {/* ✔ Header FIX - usando HEX, no okLCH */}
       <motion.header
         data-aos="fade-down"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.2, ease: "easeOut" }}
-        className="w-full bg-linear-gradient-to-r from-pink-300 via-pink-400 to-pink-500 text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
+        style={{
+          background:
+            "linear-gradient(to right, #f9a8d4, #f472b6, #ec4899)", // pink-300 → pink-400 → pink-500
+        }}
+        className="w-full text-white shadow-md py-4 px-6 flex items-center justify-center space-x-3 rounded-b-3xl"
       >
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdLs5Kjrl497ZOGYAMibYSX4tY-8HF8uM33Q&s"
           alt="Logo NovaGlow"
           className="w-12 h-12 rounded-full object-cover border-2 border-pink-400 shadow-md"
         />
-        <h1 className="text-2xl text-pink-600 font-bold tracking-wide">
+        <h1 className="text-2xl text-white font-bold tracking-wide">
           NovaGlow ✨
         </h1>
       </motion.header>
 
-      {/* Fondo con movimiento sutil */}
+      {/* ✔ Fondo animado FIX */}
       <motion.div
-        className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,192,203,0.25),transparent),radial-gradient(circle_at_80%_70%,rgba(255,182,193,0.25),transparent)]"
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 20% 30%, rgba(255,192,203,0.25), transparent), radial-gradient(circle at 80% 70%, rgba(255,182,193,0.25), transparent)",
+        }}
         animate={{
           backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
         }}
@@ -110,7 +116,7 @@ export default function Contacto() {
         }}
       />
 
-      {/* Contenedor principal */}
+      {/* Contenido */}
       <motion.div
         data-aos="fade-up"
         initial={{ opacity: 0, y: 40 }}
@@ -132,7 +138,7 @@ export default function Contacto() {
           En <strong>NovaGlow</strong> queremos ayudarte a brillar con estilo ✨
         </p>
 
-        {/* Formulario con interacción sutil */}
+        {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {["nombre", "email", "mensaje"].map((field, idx) => (
             <motion.div
@@ -145,6 +151,7 @@ export default function Contacto() {
               <label className="block text-pink-700 font-semibold mb-2 capitalize">
                 {field === "email" ? "Correo electrónico" : field}
               </label>
+
               {field === "mensaje" ? (
                 <textarea
                   name="mensaje"
@@ -168,6 +175,7 @@ export default function Contacto() {
             </motion.div>
           ))}
 
+          {/* Botón enviar */}
           <motion.button
             whileHover={{
               scale: 1.03,
@@ -183,7 +191,7 @@ export default function Contacto() {
           </motion.button>
         </form>
 
-        {/* 🩷 Sección de información */}
+        {/* Info */}
         <motion.div
           data-aos="fade-up"
           initial={{ opacity: 0, y: 30 }}
@@ -230,6 +238,7 @@ export default function Contacto() {
         >
           📍 ¿Dónde nos encontramos?
         </motion.h3>
+
         <motion.div
           data-aos="fade-up"
           whileHover={{ scale: 1.01 }}
@@ -244,7 +253,6 @@ export default function Contacto() {
             style={{ border: 0 }}
             allowFullScreen=""
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
         </motion.div>
 
@@ -254,7 +262,7 @@ export default function Contacto() {
         </p>
       </motion.div>
 
-      {/* 💬 Botón flotante elegante */}
+      {/* Botón flotante */}
       <motion.a
         href="https://wa.me/51941433000"
         target="_blank"

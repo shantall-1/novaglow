@@ -16,7 +16,7 @@ export default function Login() {
   const from = location.state?.from?.pathname || "/productos";
 
   // 🔥 AJUSTE IMPORTANTE (para que siga funcionando loginConGoogle)
-  const { loginConEmail, loginGoogle: loginConGoogle } = useAuth();
+  const { loginConEmail, loginConGoogle } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -138,6 +138,8 @@ export default function Login() {
   // ⭐ LOGIN con Google
   const handleGoogleLogin = async () => {
     setError("");
+    console.log("Google login ejecutado");
+
 
     try {
       const user = await loginConGoogle();
