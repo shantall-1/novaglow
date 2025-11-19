@@ -5,10 +5,11 @@ import { useAuth } from "../context/AuthContext";
 
 export default function BlogDropdown() {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { usuario: user } = useAuth();
+
 
   // ✉️ Correos con permisos de edición
-  const allowedEmails = ["fundadora@novaglow.com", "hylromeroduran@crackthecode.la"];
+  const allowedEmails = ["fundadora@novaglow.com", "hylromeroduran@crackthecode.la","editor@novaglow.com"];
 
   return (
     <div className="relative">
