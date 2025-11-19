@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import "./index.css";
 
@@ -11,15 +12,16 @@ import { ComentariosProvider } from "./context/ComentariosContext"; // 🔥 TAMB
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <AuthProvider>
-      <CarritoProvider>
-        <FavoriteProvider>
-          <ComentariosProvider>
-            <App />
-          </ComentariosProvider>
-        </FavoriteProvider>
-      </CarritoProvider>
-    </AuthProvider>
+    <BrowserRouter basename="/novaglow">
+      <AuthProvider>
+        <CarritoProvider>
+          <FavoriteProvider>
+            <ComentariosProvider>
+              <App />
+            </ComentariosProvider>
+          </FavoriteProvider>
+        </CarritoProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>
 );
-
