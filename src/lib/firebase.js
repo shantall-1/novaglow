@@ -33,6 +33,7 @@ export const ADMIN_EMAILS = [
   "fundadora@novaglow.com",
   "hylromeroduran@crackthecode.la",
   "editor@novaglow.com"
+  "s@gmail.com"
 ];
 
 console.log("Firebase inicializado correctamente");
