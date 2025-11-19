@@ -1,4 +1,4 @@
-
+// src/componentes/ModalFavoritos.jsx
 import { useFavoritos } from "../context/FavoriteContext";
 import { Link } from "react-router-dom";
 
@@ -20,7 +20,7 @@ export default function ModalFavoritos({ abierto, cerrar }) {
         <h2 className="text-2xl font-bold mb-4">❤️ Tus favoritos</h2>
 
         {favoritos.length === 0 ? (
-          <p className="text-center text-gray-600">No hay favoritos aún 😢</p>
+          <p className="text-center text-gray-500">No hay favoritos aún 😢</p>
         ) : (
           <div className="flex flex-col gap-4">
             {favoritos.map((f) => (
@@ -28,16 +28,30 @@ export default function ModalFavoritos({ abierto, cerrar }) {
                 <img
                   src={f.image}
                   className="w-16 h-16 object-cover rounded-xl"
+                  alt={f.name || ""}
                 />
                 <div className="flex-1">
                   <h3 className="font-bold">{f.name}</h3>
+                  <p className="text-pink-600 font-semibold">
+                    {f.price ? `S/${Number(f.price).toFixed(2)}` : ""}
+                  </p>
                 </div>
-                <button
-                  onClick={() => quitarFavorito(f.id)}
-                  className="text-red-500 text-xl"
-                >
-                  ♥
-                </button>
+                <div className="flex flex-col gap-2">
+                  {/* Aquí pasamos f.id (el id del documento en Firestore) */}
+                  <button
+                    onClick={() => quitarFavorito(f.id)}
+                    className="px-3 py-2 bg-white border rounded-xl hover:bg-pink-50"
+                  >
+                    Eliminar
+                  </button>
+                  <Link
+                    to={`/producto/${f.idProducto}`}
+                    onClick={cerrar}
+                    className="px-3 py-2 bg-pink-500 text-white rounded-xl text-center"
+                  >
+                    Ver
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
@@ -46,3 +60,4 @@ export default function ModalFavoritos({ abierto, cerrar }) {
     </div>
   );
 }
+
