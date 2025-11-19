@@ -6,12 +6,12 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyBqkQYQiIzCYFOZkqrNFJWiSDABHS_Y6O4",
+  authDomain: "novaglow-498e9.firebaseapp.com",
+  projectId: "novaglow-498e9",
+  storageBucket: "novaglow-498e9.firebasestorage.app",
+  messagingSenderId: "167294777917",
+  appId: "1:167294777917:web:1b27387755e68e0349c854",
 };
 
 // Initialize Firebase
