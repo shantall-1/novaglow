@@ -155,7 +155,6 @@ const Navbar = () => {
                 <Link to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</Link>
                 <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
                 <BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} />
-
                 <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
 
                 {usuario && (
