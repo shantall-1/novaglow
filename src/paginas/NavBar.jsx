@@ -1,5 +1,4 @@
 
-import BlogDropdown from "../componen/BlogDropdown";
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,6 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import CarritoIcon from "../componentes/CarritoIcon";
 import PerfilModal from "../componentes/PerfilModal";
 import { useAuth } from "../context/AuthContext";
+import BlogDropdown from "../componen/BlogDropdown";
+import BlogDropdownMobile from "../componen/BlogDropdownMobile";
+
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -46,7 +48,7 @@ const Navbar = () => {
           <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
             <Link to="/inicio" className="hover:text-pink-500 transition">Inicio</Link>
             <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
-            {/* 🔽 Aquí colocamos el nuevo dropdown */}
+          {/* 🔽 Aquí colocamos el nuevo dropdown */}
             <BlogDropdown />
 
             <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
@@ -150,9 +152,10 @@ const Navbar = () => {
               </div>
 
               <ul className="flex flex-col gap-4 text-gray-700 font-medium">
-                <Link to="/" onClick={() => setMenuAbierto(false)}>Inicio</Link>
+                <Link to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</Link>
                 <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
-                <Link to="/nosotros" onClick={() => setMenuAbierto(false)}>Nosotros</Link>
+                <BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} />
+
                 <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
 
                 {usuario && (
