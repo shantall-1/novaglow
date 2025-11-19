@@ -22,7 +22,7 @@ import RelatedCarousel from "../componen/RelatedCarousel";
 export default function ArticuloDetalle() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+const { usuario } = useAuth();
 
   const [article, setArticle] = useState(null);
   const [related, setRelated] = useState([]);
@@ -90,21 +90,22 @@ export default function ArticuloDetalle() {
   // LIKE SEGURO
   // -------------------------
   const toggleLike = async () => {
-    if (!user) return alert("Debes iniciar sesión para dar like");
+    if (!usuario) return alert("Debes iniciar sesión para dar like");
 
     const articleRef = doc(db, "articulos", article.id);
     const likesArray = Array.isArray(article.likes) ? article.likes : [];
-    const hasLiked = likesArray.includes(user.uid);
+    const hasLiked = (article.likes || []).includes(usuario.uid);
+
 
     await updateDoc(articleRef, {
-      likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+      likes: hasLiked ? arrayRemove(usuario.uid) : arrayUnion(usuario.uid),
     });
 
     setArticle((prev) => ({
       ...prev,
       likes: hasLiked
-        ? likesArray.filter((id) => id !== user.uid)
-        : [...likesArray, user.uid],
+        ? likesArray.filter((id) => id !== usuario.uid)
+        : [...likesArray, usuario.uid],
     }));
   };
 
@@ -112,7 +113,7 @@ export default function ArticuloDetalle() {
   // COMENTARIOS SEGUROS
   // -------------------------
   const enviarComentario = async () => {
-    if (!user) return alert("Inicia sesión para comentar");
+    if (!usuario) return alert("Inicia sesión para comentar");
     if (!newComment.trim()) return;
 
     const articleRef = doc(db, "articulos", article.id);
@@ -120,7 +121,7 @@ export default function ArticuloDetalle() {
     const comentario = {
       id: Date.now(),
       texto: newComment,
-      autor: user.email,
+      autor: usuario.email,
       fecha: new Date().toISOString(),
     };
 
@@ -225,7 +226,7 @@ export default function ArticuloDetalle() {
       <button
         onClick={toggleLike}
         className={`px-4 py-2 rounded-lg text-lg ${
-          (Array.isArray(article.likes) ? article.likes : []).includes(user?.uid)
+          (Array.isArray(article.likes) ? article.likes : []).includes(usuario?.uid)
             ? "bg-fuchsia-500 text-white"
             : "bg-gray-200 text-gray-700"
         }`}
