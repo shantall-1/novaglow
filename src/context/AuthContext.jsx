@@ -88,6 +88,7 @@ export const AuthProvider = ({ children }) => {
       email: user.email,
       displayName: nombre,
       foto: photoURL || "",
+      role: data.role || "user",
     });
 
     return user;
@@ -153,7 +154,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await deleteObject(imgRef);
     } catch (err) {
-      console.warn("No había foto en storage");
+      console.warn("No había foto en storage", err);
     }
     await updateUserProfile({ foto: "" });
   };

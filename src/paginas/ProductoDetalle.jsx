@@ -1,25 +1,17 @@
+// src/paginas/ProductoDetalle.jsx
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { productosData } from "../assets/productosData";
-import { useCarrito } from "../context/CarritoContext"; // <-- 1. IMPORTAR EL CONTEXTO
+import { useCarrito } from "../context/CarritoContext"; // contexto carrito
 
-// Firebase
-import { db, auth, googleProvider } from "../lib/firebase";
-import {
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  orderBy,
-  serverTimestamp,
-} from "firebase/firestore";
-import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
+// Contexts y componentes
+import { useFavoritos } from "../context/FavoriteContext";
+import { useComentarios } from "../context/ComentariosContext";
+import ModalFavoritos from "../componentes/ModalFavoritos";
+import { auth, googleProvider } from "../lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 
-// --- Datos recomendados, frases y canciones ---
+// --- Datos recomendados, frases y canciones (sin cambios) ---
 const maquillaje = [
   { id: 16, nombre: "Labial rosa nude", link: "https://i.pinimg.com/736x/ca/b8/29/cab8294334fe8a3d1bdcd72b3b57b25d.jpg" },
   { id: 17, nombre: "Sombras tonos cálidos", link: "https://i.pinimg.com/736x/7b/ca/82/7bca82b43809c4cb08e19748c7a64a92.jpg" },
@@ -47,7 +39,7 @@ const canciones = [
   { id: 3, nombre: "5SOS - Easier", url: "https://youtu.be/b1dFSWLJ9wY?si=nZHzHIM9lNsOM_oG" },
 ];
 
-// --- SVG Star Icons ---
+// --- SVG Star Icons (sin cambios) ---
 const Star = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -75,17 +67,18 @@ export default function ProductoDetalles() {
   const [sizeSeleccionado, setSizeSeleccionado] = useState(producto.sizes?.[0] || "");
   const [cantidad, setCantidad] = useState(1);
 
-  // AUTH / USUARIO
-  const [usuario, setUsuario] = useState(null);
-
-  // Favoritos
+  // Favoritos (vía context)
+  const { favoritos, agregarFavorito, quitarFavorito, estaEnFavoritos, user, loginConPopup } = useFavoritos();
   const [favoritosModal, setFavoritosModal] = useState(false);
-  const [favoritos, setFavoritos] = useState([]);
-  const [esFavoritoActual, setEsFavoritoActual] = useState(false);
 
-  // Reviews (comentarios)
+  // Comentarios (vía context)
+  const { suscribirseAComentarios, comentariosPorProducto, agregarComentario } = useComentarios();
+
+  // Local UI state para enviar review
   const [review, setReview] = useState("");
-  const [reviews, setReviews] = useState([]);
+
+  // Reviews vienen del context (suscripción en tiempo real)
+  const reviews = comentariosPorProducto[id] || [];
 
   const precioDescuento = (producto.price - producto.price * (producto.discount / 100)).toFixed(2);
 
@@ -116,182 +109,73 @@ export default function ProductoDetalles() {
     agregarAlCarrito(itemParaCarrito, cantidad);
   };
 
-  // -----------------------
-  // AUTH: detectar usuario
-  // -----------------------
+  // Suscribirse a comentarios en tiempo real para este producto
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUsuario(user || null);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // -----------------------
-  // CARGAR FAVORITOS DEL USUARIO
-  // -----------------------
-  const cargarFavoritos = async (u) => {
-    if (!u) {
-      setFavoritos([]);
-      setEsFavoritoActual(false);
-      return;
-    }
-    try {
-      const itemsSnapshot = await getDocs(collection(db, "favoritos", u.uid, "items"));
-      const lista = itemsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setFavoritos(lista);
-      setEsFavoritoActual(lista.some((f) => String(f.id) === String(producto.id)));
-    } catch (error) {
-      console.error("Error cargando favoritos:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (usuario) cargarFavoritos(usuario);
-    else {
-      // si no hay usuario, limpiar
-      setFavoritos([]);
-      setEsFavoritoActual(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario, id]);
-
-  // -----------------------
-  // AGREGAR / QUITAR FAVORITO (subcolección: favoritos/{uid}/items/{productId})
-  // -----------------------
-  const agregarFavoritoActual = async () => {
-    if (!usuario) {
-      // pedir login con Google
-      try {
-        const res = await signInWithPopup(auth, googleProvider);
-        setUsuario(res.user);
-        // luego la carga de favoritos queda en el listener onAuthStateChanged
-      } catch (err) {
-        console.error("Login cancelado o falló:", err);
-        return;
-      }
-    }
-
-    // crear doc del producto dentro de favoritos/{uid}/items/{productId}
-    try {
-      const docRef = doc(db, "favoritos", auth.currentUser.uid, "items", String(producto.id));
-      await setDoc(docRef, {
-        name: producto.name,
-        price: producto.price,
-        image: producto.image,
-        addedAt: serverTimestamp(),
-      });
-      await cargarFavoritos(auth.currentUser);
-      setEsFavoritoActual(true);
-    } catch (error) {
-      console.error("Error guardando favorito:", error);
-    }
-  };
-
-  const quitarFavoritoActual = async () => {
-    if (!usuario) {
-      alert("Inicia sesión para administrar favoritos.");
-      return;
-    }
-    try {
-      const docRef = doc(db, "favoritos", usuario.uid, "items", String(producto.id));
-      await deleteDoc(docRef);
-      await cargarFavoritos(usuario);
-      setEsFavoritoActual(false);
-    } catch (error) {
-      console.error("Error eliminando favorito:", error);
-    }
-  };
-
-  // función que alterna (toggle) favorito para producto actual
-  const toggleFavoritoYAbrirModal = async () => {
-    // Si ya es favorito, lo quita; si no, lo agrega. Luego abre modal de favoritos.
-    if (esFavoritoActual) {
-      await quitarFavoritoActual();
-    } else {
-      await agregarFavoritoActual();
-    }
-    // recargar favoritos y abrir modal
-    if (auth.currentUser) await cargarFavoritos(auth.currentUser);
-    setFavoritosModal(true);
-  };
-
-  // -----------------------
-  // CARGAR FAVORITOS (cuando el modal se abre por si cambiaron en otra parte)
-  // -----------------------
-  useEffect(() => {
-    if (favoritosModal && usuario) {
-      cargarFavoritos(usuario);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [favoritosModal]);
-
-  // -----------------------
-  // COMENTARIOS: cargar desde Firestore para ESTE producto
-  // -----------------------
-  const cargarComentarios = async () => {
-    try {
-      const q = query(
-        collection(db, "comentarios"),
-        where("productId", "==", String(producto.id)),
-        orderBy("createdAt", "desc")
-      );
-      const snap = await getDocs(q);
-      const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setReviews(lista);
-    } catch (error) {
-      console.error("Error cargando comentarios:", error);
-    }
-  };
-
-  useEffect(() => {
-    cargarComentarios();
+    const unsub = suscribirseAComentarios(id);
+    return () => unsub && unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // -----------------------
-  // ENVIAR NUEVO COMENTARIO A FIRESTORE
-  // -----------------------
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!review.trim()) return;
-
+  // Toggle favorito usando el context (agrega/borra y abre modal)
+  const toggleFavoritoYAbrirModal = async () => {
     try {
-      const nombreUsuario = usuario?.displayName || null;
-      await addDoc(collection(db, "comentarios"), {
-        productId: String(producto.id),
-        texto: review.trim(),
-        fecha: new Date().toLocaleDateString("es-ES"),
-        userName: nombreUsuario,
-        createdAt: serverTimestamp(),
-      });
+      // Si no hay usuario, hacemos login explícito aquí para mantener control
+      let currentUser = user;
+      if (!currentUser) {
+        // usar loginConPopup del context si existe, sino fallback a signInWithPopup
+        if (typeof loginConPopup === "function") {
+          currentUser = await loginConPopup();
+        } else {
+          const res = await signInWithPopup(auth, googleProvider); // fallback
+          currentUser = res.user;
+        }
+      }
 
-      setReview("");
-      await cargarComentarios();
-    } catch (error) {
-      console.error("Error guardando comentario:", error);
+      if (estaEnFavoritos(producto.id)) {
+        // eliminar usando el id del producto (document id establecido al agregar)
+        await quitarFavorito(producto.id);
+      } else {
+        await agregarFavorito(producto);
+      }
+
+      // abrimos modal para que la usuaria vea sus favoritos
+      setFavoritosModal(true);
+    } catch (err) {
+      console.error("Error toggle favorito:", err);
     }
   };
 
-  // -----------------------
-  // QUITAR FAVORITO desde modal (eliminar item)
-  // -----------------------
-  const eliminarFavorito = async (favId) => {
-    if (!usuario) {
-      alert("Inicia sesión para eliminar favoritos.");
-      return;
-    }
+  // Enviar comentario (usa context; el context pedirá auth si hace falta)
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!review.trim()) return;
     try {
-      await deleteDoc(doc(db, "favoritos", usuario.uid, "items", String(favId)));
-      await cargarFavoritos(usuario);
-    } catch (error) {
-      console.error("Error eliminando favorito:", error);
+      await agregarComentario(id, review.trim());
+      setReview("");
+      // onSnapshot en el context actualizará reviews automáticamente
+    } catch (err) {
+      console.error("Error guardando comentario:", err);
+    }
+  };
+
+  // formatear fecha de createdAt (Timestamp -> string)
+  const formatDate = (item) => {
+    const ts = item.createdAt || item.fecha;
+    try {
+      // si es Timestamp de Firestore
+      if (ts && typeof ts.toDate === "function") {
+        return ts.toDate().toLocaleString();
+      }
+      if (typeof ts === "string") return new Date(ts).toLocaleString();
+      return "";
+    } catch {
+      return "";
     }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Producto */}
         <div className="bg-white rounded-3xl shadow-xl p-6 grid md:grid-cols-2 gap-10">
           {/* Galería */}
@@ -299,8 +183,13 @@ export default function ProductoDetalles() {
             <img src={imagenPrincipal} alt={producto.name} className="w-full rounded-2xl shadow-lg object-cover h-[450px] transition-transform duration-500 hover:scale-[1.02]" />
             <div className="flex space-x-3 overflow-x-auto pb-2 w-full justify-center">
               {producto.gallery?.map((img, i) => (
-                <img key={i} src={img} alt={i} onClick={() => setImagenPrincipal(img)}
-                  className={`w-20 h-24 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 ${imagenPrincipal === img ? "border-pink-500 scale-110 shadow-lg" : "border-transparent opacity-70 hover:opacity-100"}`} />
+                <img
+                  key={i}
+                  src={img}
+                  alt={i}
+                  onClick={() => setImagenPrincipal(img)}
+                  className={`w-20 h-24 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 ${imagenPrincipal === img ? "border-pink-500 scale-110 shadow-lg" : "border-transparent opacity-70 hover:opacity-100"}`}
+                />
               ))}
             </div>
           </div>
@@ -322,16 +211,20 @@ export default function ProductoDetalles() {
             {/* Colores */}
             <div className="flex space-x-3 mb-3">
               {producto.colors?.map(c => (
-                <div key={c} onClick={() => setColorSeleccionado(c)}
-                  className={`w-8 h-8 rounded-full border-4 cursor-pointer transition-all duration-200 ${colorSeleccionado===c?"border-pink-500 scale-110 shadow-md":"border-gray-200 hover:border-pink-300"}`}
-                  style={{ backgroundColor: c==="Rosa"?"#F472B6":c==="Negro"?"#111827":"#EAB308" }} title={c}></div>))}
+                <div
+                  key={c}
+                  onClick={() => setColorSeleccionado(c)}
+                  className={`w-8 h-8 rounded-full border-4 cursor-pointer transition-all duration-200 ${colorSeleccionado === c ? "border-pink-500 scale-110 shadow-md" : "border-gray-200 hover:border-pink-300"}`}
+                  style={{ backgroundColor: c === "Rosa" ? "#F472B6" : c === "Negro" ? "#111827" : "#EAB308" }}
+                  title={c}
+                />
+              ))}
             </div>
 
             {/* Tallas */}
             <div className="flex space-x-3 mb-3">
               {producto.sizes?.map(s => (
-                <button key={s} onClick={() => setSizeSeleccionado(s)}
-                  className={`px-4 py-2 border rounded-xl font-medium ${sizeSeleccionado===s?"bg-pink-500 text-white shadow-md border-pink-500":"bg-white text-gray-700 hover:bg-pink-50 border-gray-300"}`}>
+                <button key={s} onClick={() => setSizeSeleccionado(s)} className={`px-4 py-2 border rounded-xl font-medium ${sizeSeleccionado === s ? "bg-pink-500 text-white shadow-md border-pink-500" : "bg-white text-gray-700 hover:bg-pink-50 border-gray-300"}`}>
                   {s}
                 </button>
               ))}
@@ -340,18 +233,16 @@ export default function ProductoDetalles() {
             {/* Cantidad y carrito */}
             <div className="flex items-center space-x-4 pt-4">
               <div className="flex items-center space-x-2 border border-gray-300 rounded-lg p-1">
-                <button onClick={()=>setCantidad(Math.max(1,cantidad-1))} className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100 rounded-lg transition">−</button>
+                <button onClick={() => setCantidad(Math.max(1, cantidad - 1))} className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100 rounded-lg transition">−</button>
                 <span className="text-lg font-medium w-6 text-center">{cantidad}</span>
-                <button onClick={()=>setCantidad(cantidad+1)} className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100 rounded-lg transition">+</button>
+                <button onClick={() => setCantidad(cantidad + 1)} className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100 rounded-lg transition">+</button>
               </div>
               <button onClick={handleAgregar} className="flex-1 bg-pink-500 text-white font-extrabold text-lg py-3 rounded-xl hover:bg-pink-600 transition-all shadow-lg">🛒 Agregar al carrito</button>
-              {/* Corazón: ahora alterna favorito del producto y abre modal de favoritos */}
-              <button
-                onClick={toggleFavoritoYAbrirModal}
-                className="ml-3 px-3 py-2 bg-white border border-pink-300 text-pink-600 rounded-xl hover:bg-pink-50 transition flex items-center gap-2"
-              >
-                <span className={`text-xl ${esFavoritoActual ? "text-red-500" : "text-pink-600"}`}>
-                  {esFavoritoActual ? "❤️" : "🤍"}
+
+              {/* Corazón: alterna favorito y abre modal */}
+              <button onClick={toggleFavoritoYAbrirModal} className="ml-3 px-3 py-2 bg-white border border-pink-300 text-pink-600 rounded-xl hover:bg-pink-50 transition flex items-center gap-2">
+                <span className={`text-xl ${estaEnFavoritos(producto.id) ? "text-red-500" : "text-pink-600"}`}>
+                  {estaEnFavoritos(producto.id) ? "❤️" : "🤍"}
                 </span>
                 <span className="hidden sm:inline">Favoritos</span>
               </button>
@@ -370,7 +261,7 @@ export default function ProductoDetalles() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {maquillaje.map(item => (
                 <Link key={item.id} to={`/producto/${item.id}`} className="bg-gray-50 shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-[1.03] cursor-pointer block">
-                  <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover"/>
+                  <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover" />
                   <div className="p-3 text-center"><p className="text-gray-700 font-medium">{item.nombre}</p></div>
                 </Link>
               ))}
@@ -383,7 +274,7 @@ export default function ProductoDetalles() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {accesorios.map(item => (
                 <Link key={item.id} to={`/producto/${item.id}`} className="bg-gray-50 shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-[1.03] cursor-pointer block">
-                  <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover"/>
+                  <img src={item.link} alt={item.nombre} className="w-full h-44 object-cover" />
                   <div className="p-3 text-center"><p className="text-gray-700 font-medium">{item.nombre}</p></div>
                 </Link>
               ))}
@@ -394,7 +285,7 @@ export default function ProductoDetalles() {
           <section className="bg-pink-100 py-10 rounded-3xl text-center shadow-inner mb-12">
             <h2 className="text-3xl font-extrabold text-pink-700 mb-8"> Inspírate y siéntete poderosa </h2>
             <div className="flex flex-wrap justify-center gap-6 px-4">
-              {frasesPositivas.map((fr, i)=>(
+              {frasesPositivas.map((fr, i) => (
 
                 <div key={i} className="bg-white text-gray-700 px-6 py-3 rounded-xl shadow-md hover:shadow-lg max-w-sm transition-all duration-300 hover:scale-[1.05] font-medium italic">{fr}</div>
               ))}
@@ -402,7 +293,7 @@ export default function ProductoDetalles() {
             <div className="mt-10">
               <h3 className="text-xl font-medium text-gray-800 mb-4">🎧 Canciones para acompañarte</h3>
               <div className="flex flex-wrap justify-center gap-4 px-4">
-                {canciones.map(c=>(
+                {canciones.map(c => (
                   <a key={c.id} href={c.url} target="_blank" rel="noopener noreferrer" className="bg-white px-5 py-2 rounded-full text-pink-600 shadow-lg hover:bg-pink-200 transition-all font-bold hover:scale-[1.05]">{c.nombre}</a>
                 ))}
               </div>
@@ -414,16 +305,16 @@ export default function ProductoDetalles() {
         <div className="p-8 bg-white rounded-3xl shadow-xl">
           <h2 className="text-3xl font-extrabold text-pink-700 mb-6 border-b pb-3">💬 Opiniones de Clientes ({reviews.length})</h2>
           <form onSubmit={handleReviewSubmit} className="mb-8 p-6 bg-pink-50 rounded-xl border border-pink-100 flex flex-col space-y-3">
-            <textarea value={review} onChange={e=>setReview(e.target.value)} placeholder="Comparte tu experiencia..." className="border-2 border-pink-300 rounded-lg p-3 focus:ring-4 focus:ring-pink-400 resize-none outline-none" rows="3"/>
+            <textarea value={review} onChange={e => setReview(e.target.value)} placeholder="Comparte tu experiencia..." className="border-2 border-pink-300 rounded-lg p-3 focus:ring-4 focus:ring-pink-400 resize-none outline-none" rows="3" />
             <button type="submit" className="self-start px-6 py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-md">Enviar</button>
           </form>
           <div className="space-y-4">
-            {reviews.length>0?reviews.map(r=>(
+            {reviews.length > 0 ? reviews.map(r => (
               <div key={r.id} className="bg-gray-50 p-4 rounded-xl shadow-sm border-l-4 border-pink-400">
                 <p className="text-gray-800 italic mb-2">"{r.texto}"</p>
-                <p className="text-xs text-gray-500 font-semibold mt-2">{r.userName ? `${r.userName} - ` : "Compradora anónima - "}{r.fecha}</p>
+                <p className="text-xs text-gray-500 font-semibold mt-2">{r.userName ? `${r.userName} - ` : "Compradora anónima - "}{formatDate(r)}</p>
               </div>
-            )):<p className="text-gray-500 italic text-center py-5">Sé la primera en dejar una reseña.</p>}
+            )) : <p className="text-gray-500 italic text-center py-5">Sé la primera en dejar una reseña.</p>}
           </div>
         </div>
       </div>
@@ -431,37 +322,9 @@ export default function ProductoDetalles() {
       {/* -----------------
            MODAL: FAVORITOS
          ----------------- */}
-      {favoritosModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-3xl relative shadow-xl">
-            <button onClick={()=>setFavoritosModal(false)} className="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-3xl">✖</button>
-            <h2 className="text-2xl font-bold mb-4">❤ Mis favoritos</h2>
-
-            {favoritos.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">Aún no tienes favoritos. Haz click en el corazón para guardar un producto.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {favoritos.map(f => (
-                  <div key={f.id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl shadow-sm">
-                    <img src={f.image} alt={f.name} className="w-24 h-24 object-cover rounded-lg"/>
-                    <div className="flex-1">
-                      <Link to={`/producto/${f.id}`} onClick={()=>setFavoritosModal(false)} className="font-semibold text-gray-800">{f.name}</Link>
-                      <p className="text-pink-600 font-bold mt-2">S/{f.price?.toFixed ? f.price.toFixed(2) : f.price}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button onClick={()=>eliminarFavorito(f.id)} className="px-4 py-2 bg-white border border-pink-300 rounded-xl hover:bg-pink-50">Eliminar</button>
-                      <Link to={`/producto/${f.id}`} onClick={()=>setFavoritosModal(false)} className="px-4 py-2 bg-pink-500 text-white rounded-xl text-center">Ver</Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-          </div>
-        </div>
-      )}
+      <ModalFavoritos abierto={favoritosModal} cerrar={() => setFavoritosModal(false)} />
     </div>
+
   );
 }
+

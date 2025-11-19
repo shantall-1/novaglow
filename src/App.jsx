@@ -1,20 +1,21 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { FavoriteProvider } from "./context/FavoriteContext";
+import { ComentariosProvider } from "./context/ComentariosContext";
 import { CarritoProvider } from "./context/CarritoContext";
 
-// 🛍️ Páginas
+// Páginas
+import Inicio from "./paginas/Inicio";
 import Productos from "./paginas/Productos";
 import ProductoDetalle from "./paginas/ProductoDetalle";
 import Carrito from "./componentes/Carrito";
-import ScrollToTop from "./componentes/ScrollToTop";
 import Confirmacion from "./paginas/Confirmacion";
-import Inicio from "./paginas/Inicio";
 import Nosotros from "./paginas/Nosotros";
 import Contacto from "./paginas/Contacto";
 import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
-import Logout from "./paginas/Logout"; 
+import Logout from "./paginas/Logout";
 
 
 
@@ -22,12 +23,13 @@ import Logout from "./paginas/Logout";
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
 import Suscripcion from "./paginas/Suscripcion";
+import ArticuloDetalle from "./descubre/ArticuloDetalle";
 
 import ArticuloDetalle from './descubre/ArticuloDetalle';
 // 🔒 Protección de rutas
 import ProtectedRoute from "./componentes/ProtectedRoute";
-import "./App.css";
 
+import "./App.css";
 
 function App() {
   return (
@@ -98,3 +100,4 @@ function App() {
 }
 
 export default App;
+
