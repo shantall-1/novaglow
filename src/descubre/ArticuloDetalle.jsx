@@ -38,7 +38,14 @@ export default function ArticuloDetalle() {
 
       if (!snap.empty) {
         const docu = snap.docs[0];
-        setArticle({ id: docu.id, ...docu.data() });
+        const data = docu.data();
+        setArticle({
+          id: docu.id,
+          ...data,
+          likes: Array.isArray(data.likes) ? data.likes : [],
+          comments: Array.isArray(data.comments) ? data.comments : [],
+          imagenes: Array.isArray(data.imagenes) ? data.imagenes : [],
+        });
       } else {
         setArticle(null);
       }
@@ -74,17 +81,20 @@ export default function ArticuloDetalle() {
 
   if (!article)
     return (
-      <p className="text-center mt-10 text-gray-600">Artículo no encontrado ❌</p>
+      <p className="text-center mt-10 text-gray-600">
+        Artículo no encontrado ❌
+      </p>
     );
 
   // -------------------------
-  // LIKE
+  // LIKE SEGURO
   // -------------------------
   const toggleLike = async () => {
     if (!user) return alert("Debes iniciar sesión para dar like");
 
     const articleRef = doc(db, "articulos", article.id);
-    const hasLiked = (article.likes || []).includes(user.uid);
+    const likesArray = Array.isArray(article.likes) ? article.likes : [];
+    const hasLiked = likesArray.includes(user.uid);
 
     await updateDoc(articleRef, {
       likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
@@ -93,13 +103,13 @@ export default function ArticuloDetalle() {
     setArticle((prev) => ({
       ...prev,
       likes: hasLiked
-        ? prev.likes.filter((id) => id !== user.uid)
-        : [...(prev.likes || []), user.uid],
+        ? likesArray.filter((id) => id !== user.uid)
+        : [...likesArray, user.uid],
     }));
   };
 
   // -------------------------
-  // COMENTARIOS
+  // COMENTARIOS SEGUROS
   // -------------------------
   const enviarComentario = async () => {
     if (!user) return alert("Inicia sesión para comentar");
@@ -120,7 +130,7 @@ export default function ArticuloDetalle() {
 
     setArticle((prev) => ({
       ...prev,
-      comments: [...(prev.comments || []), comentario],
+      comments: [...(Array.isArray(prev.comments) ? prev.comments : []), comentario],
     }));
 
     setNewComment("");
@@ -129,8 +139,8 @@ export default function ArticuloDetalle() {
   // -------------------------
   // INTERCALAR IMÁGENES
   // -------------------------
-  const paragraphs = article.contenido.split("\n\n");
-  const extraImages = article.imagenes || [];
+  const paragraphs = article.contenido ? article.contenido.split("\n\n") : [];
+  const extraImages = Array.isArray(article.imagenes) ? article.imagenes : [];
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-10">
@@ -156,8 +166,7 @@ export default function ArticuloDetalle() {
 
       {/* FECHA + CATEGORÍA */}
       <p className="text-gray-500 text-sm mt-1">
-        {article.categoria} •{" "}
-        {new Date(article.fecha).toLocaleDateString()}
+        {article.categoria} • {new Date(article.fecha).toLocaleDateString()}
       </p>
 
       {/* IMAGEN PRINCIPAL */}
@@ -177,10 +186,7 @@ export default function ArticuloDetalle() {
               rehypePlugins={[rehypeRaw]}
               components={{
                 h1: (props) => (
-                  <h1
-                    {...props}
-                    className="text-4xl font-bold mt-8 mb-4 text-gray-900"
-                  />
+                  <h1 {...props} className="text-4xl font-bold mt-8 mb-4 text-gray-900" />
                 ),
                 h2: (props) => (
                   <h2
@@ -189,16 +195,10 @@ export default function ArticuloDetalle() {
                   />
                 ),
                 h3: (props) => (
-                  <h3
-                    {...props}
-                    className="text-xl font-semibold mt-4 mb-2 text-pink-700"
-                  />
+                  <h3 {...props} className="text-xl font-semibold mt-4 mb-2 text-pink-700" />
                 ),
                 p: (props) => (
-                  <p
-                    {...props}
-                    className="text-gray-700 leading-relaxed mt-3"
-                  />
+                  <p {...props} className="text-gray-700 leading-relaxed mt-3" />
                 ),
                 img: (props) => (
                   <img
@@ -225,12 +225,12 @@ export default function ArticuloDetalle() {
       <button
         onClick={toggleLike}
         className={`px-4 py-2 rounded-lg text-lg ${
-          article.likes?.includes(user?.uid)
+          (Array.isArray(article.likes) ? article.likes : []).includes(user?.uid)
             ? "bg-fuchsia-500 text-white"
             : "bg-gray-200 text-gray-700"
         }`}
       >
-        ❤️ {article.likes?.length || 0}
+        ❤️ {(Array.isArray(article.likes) ? article.likes : []).length || 0}
       </button>
 
       {/* COMENTARIOS */}
@@ -252,7 +252,7 @@ export default function ArticuloDetalle() {
         </button>
 
         <div className="mt-6 space-y-4">
-          {(article.comments || []).map((c) => (
+          {(Array.isArray(article.comments) ? article.comments : []).map((c) => (
             <div key={c.id} className="bg-gray-100 p-4 rounded-lg">
               <p className="font-semibold">{c.autor}</p>
               <p>{c.texto}</p>
