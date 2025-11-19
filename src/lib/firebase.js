@@ -1,4 +1,3 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
@@ -28,9 +27,12 @@ export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Correos administradores
+// Lista de correos con permisos de administrador
 export const ADMIN_EMAILS = [
+  "valchinininmayhuasca@crackthecode.la",   // (admin principal)
   "fundadora@novaglow.com",
   "hylromeroduran@crackthecode.la",
   "editor@novaglow.com"
 ];
+
+console.log("Firebase inicializado correctamente");
