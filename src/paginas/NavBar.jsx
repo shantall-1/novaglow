@@ -38,7 +38,7 @@ const Navbar = () => {
         <div className="container mx-auto flex justify-between items-center px-6 py-3">
 
           {/* 🌸 Logo */}
-          <Link to="/inicio" className="flex items-center space-x-2 group">
+          <Link to="/" className="flex items-center space-x-2 group">
             <span className="text-3xl font-semibold text-pink-600 font-[Dancing Script] transition-all duration-500 group-hover:text-pink-700 group-hover:drop-shadow-[0_0_6px_rgba(236,72,153,0.6)]">
               🌸 NovaGlow 🌸
             </span>
