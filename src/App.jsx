@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { FavoriteProvider } from "./context/FavoriteContext";
-import { ComentariosProvider } from "./context/ComentariosContext";
 import { CarritoProvider } from "./context/CarritoContext";
+import ScrollToTop from "./componentes/ScrollToTop";
 
 // Páginas
 import Inicio from "./paginas/Inicio";
@@ -24,8 +23,6 @@ import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
 import Suscripcion from "./paginas/Suscripcion";
 import ArticuloDetalle from "./descubre/ArticuloDetalle";
-
-import ArticuloDetalle from './descubre/ArticuloDetalle';
 // 🔒 Protección de rutas
 import ProtectedRoute from "./componentes/ProtectedRoute";
 
