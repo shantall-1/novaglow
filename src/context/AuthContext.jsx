@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       email: user.email,
       displayName: nombre,
       foto: photoURL || "",
-      role: data.role || "user",
+    
     });
 
     return user;
