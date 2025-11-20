@@ -96,12 +96,12 @@ const Inicio = () => {
 
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-6">
     {[
-      'public/img/conjunto1.jpg',
-      'public/img/conjunto2.jpg',
-      'public/img/conjunto3.jpg',
-      'public/img/conjunto4.jpg',
-      'public/img/conjunto5.jpg',
-      'public/img/conjunto6.jpg',
+      'public/conjunto1.jpg',
+      'public/conjunto2.jpg',
+      'public/conjunto3.jpg',
+      'public/conjunto4.jpg',
+      'public/conjunto5.jpg',
+      'public/conjunto6.jpg',
     ].map((img, i) => (
       <div
         key={i}
