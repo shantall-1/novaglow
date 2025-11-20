@@ -12,7 +12,6 @@ import { ComentariosProvider } from "./context/ComentariosContext"; // 🔥 TAMB
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter basename="/novaglow">
       <AuthProvider>
         <CarritoProvider>
           <FavoriteProvider>
@@ -22,6 +21,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           </FavoriteProvider>
         </CarritoProvider>
       </AuthProvider>
-    </BrowserRouter>
   </StrictMode>
 );
