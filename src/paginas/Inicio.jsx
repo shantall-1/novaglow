@@ -96,13 +96,13 @@ const Inicio = () => {
 
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-6">
     {[
-  `${import.meta.env.BASE_URL}img/conjunto1.jpg`,
-  `${import.meta.env.BASE_URL}img/conjunto2.jpg`,
-  `${import.meta.env.BASE_URL}img/conjunto3.jpg`,
-  `${import.meta.env.BASE_URL}img/conjunto4.jpg`,
-  `${import.meta.env.BASE_URL}img/conjunto5.jpg`,
-  `${import.meta.env.BASE_URL}img/conjunto6.jpg`,
-].map((img, i) => (
+      'img/conjunto1.jpg',
+      'img/conjunto2.jpg',
+      'img/conjunto3.jpg',
+      'img/conjunto4.jpg',
+      'img/conjunto5.jpg',
+      'img/conjunto6.jpg',
+    ].map((img, i) => (
       <div
         key={i}
         className="group relative rounded-2xl overflow-hidden shadow-md hover:shadow-rose-200 transition-all duration-500"
