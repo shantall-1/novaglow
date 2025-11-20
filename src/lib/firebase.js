@@ -32,7 +32,7 @@ export const ADMIN_EMAILS = [
   "valchinininmayhuasca@crackthecode.la",   // (admin principal)
   "fundadora@novaglow.com",
   "hylromeroduran@crackthecode.la",
-  "editor@novaglow.com"
+  "editor@novaglow.com",
   "s@gmail.com"
 ];
 

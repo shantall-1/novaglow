@@ -7,11 +7,12 @@ import "./index.css";
 // Contextos
 import { AuthProvider } from "./context/AuthContext";
 import { CarritoProvider } from "./context/CarritoContext";
-import { FavoriteProvider } from "./context/FavoriteContext";  // 🔥 FALTABA ESTA IMPORTACIÓN
-import { ComentariosProvider } from "./context/ComentariosContext"; // 🔥 TAMBIÉN FALTABA ESTA
+import { FavoriteProvider } from "./context/FavoriteContext";
+import { ComentariosProvider } from "./context/ComentariosContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <BrowserRouter basename="/novaglow">   {/* 👈 ESTA LINEA ES LA CLAVE */}
       <AuthProvider>
         <CarritoProvider>
           <FavoriteProvider>
@@ -21,5 +22,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           </FavoriteProvider>
         </CarritoProvider>
       </AuthProvider>
+    </BrowserRouter>
   </StrictMode>
 );

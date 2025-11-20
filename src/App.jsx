@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { CarritoProvider } from "./context/CarritoContext";
 import ScrollToTop from "./componentes/ScrollToTop";
 
@@ -16,14 +16,13 @@ import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import Logout from "./paginas/Logout";
 
-
-
-//BLOG
+// BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
 import Suscripcion from "./paginas/Suscripcion";
 import ArticuloDetalle from "./descubre/ArticuloDetalle";
-// 🔒 Protección de rutas
+
+// 🔒 Rutas protegidas
 import ProtectedRoute from "./componentes/ProtectedRoute";
 
 import "./App.css";
@@ -32,71 +31,57 @@ function App() {
   return (
     <>
       <CarritoProvider>
-        <Router>
-          <ScrollToTop /> {/* ✅ Aquí está bien ubicado */}
-          <div className="flex flex-col min-h-screen bg-gray-50">
-            {/* 🌸 Barra superior */}
-            <Navbar />
+        <ScrollToTop />
 
-            {/* 🧭 Contenido principal */}
-            <main className="grow pt-[72px] bg-pink-100"> {/* pt-20 evita que el contenido quede bajo el navbar fijo */}
-              <Routes>
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          {/* 🌸 Navbar */}
+          <Navbar />
 
-                <Route path="/" element={<Inicio />} />
+          {/* 🧭 Contenido principal */}
+          <main className="grow pt-[72px] bg-pink-100">
+            <Routes>
+              <Route path="/" element={<Inicio />} />
+              <Route path="/inicio" element={<Inicio />} />
+              <Route path="/productos" element={<Productos />} />
+              <Route path="/producto/:id" element={<ProductoDetalle />} />
+              <Route path="/nosotros" element={<Nosotros />} />
+              <Route path="/contacto" element={<Contacto />} />
 
+              <Route path="/inspiracion" element={<BlogInspiracion />} />
+              <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
 
-                {/* 🏠 Rutas públicas */}
-                <Route path="/inicio" element={<Inicio />} />
-                <Route path="/productos" element={<Productos />} />
-                <Route path="/producto/:id" element={<ProductoDetalle />} />
-                <Route path="/nosotros" element={<Nosotros />} />
-                <Route path="/contacto" element={<Contacto />} />
+              <Route path="/adminblog" element={<AdminBlog />} />
+              <Route path="/suscripcion" element={<Suscripcion />} />
 
-                {/* Ruta para la galería / blog de inspiración */}
-                <Route path="/inspiracion" element={<BlogInspiracion />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/registro" element={<Registro />} />
+              <Route path="/logout" element={<Logout />} />
 
-                {/* Ruta dinámica para detalle de artículo según slug */}
-                <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
+              <Route
+                path="/carrito"
+                element={
+                  <ProtectedRoute>
+                    <Carrito />
+                  </ProtectedRoute>
+                }
+              />
 
-                {/* 🔐 Panel de administración */}
-                <Route path="/adminblog" element={<AdminBlog />} />
-                <Route path="/suscripcion" element={<Suscripcion />} />
+              <Route
+                path="/confirmacion"
+                element={
+                  <ProtectedRoute>
+                    <Confirmacion />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
 
-
-
-                {/* 👤 Autenticación */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/registro" element={<Registro />} />
-                <Route path="/logout" element={<Logout />} /> {/* ✅ mensaje tipo modal */}
-
-                {/* 🔒 Rutas protegidas */}
-                <Route
-                  path="/carrito"
-                  element={
-                    <ProtectedRoute>
-                      <Carrito />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/confirmacion"
-                  element={
-                    <ProtectedRoute>
-                      <Confirmacion />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </main>
-
-            {/* 👣 Footer */}
-            <Footer />
-          </div>
-        </Router>
+          <Footer />
+        </div>
       </CarritoProvider>
     </>
   );
 }
 
 export default App;
-
