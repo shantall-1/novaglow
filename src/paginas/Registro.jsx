@@ -12,39 +12,73 @@ export default function Registro() {
     nombre: "",
     email: "",
     password: "",
-    foto: null,
+    foto: null, // archivo
+    fotoBase64: "", // base64 final
   });
+
   const [error, setError] = useState("");
   const [subiendo, setSubiendo] = useState(false);
 
-  // Animación de vibración en caso de error
+  // Animación de vibración
   const [shake, setShake] = useState(false);
   const triggerShake = () => {
     setShake(true);
     setTimeout(() => setShake(false), 400);
   };
 
-  const handleChange = (e) => {
+  // Convertir archivo a Base64
+  const convertirABase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleChange = async (e) => {
     const { name, value, files } = e.target;
+
+    // Selección de imagen
     if (name === "foto") {
-      setForm((prev) => ({ ...prev, foto: files[0] || null }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      const archivo = files?.[0];
+
+      if (!archivo) {
+        setForm((prev) => ({ ...prev, foto: null, fotoBase64: "" }));
+        return;
+      }
+
+      // Convertimos a base64 automáticamente
+      const base64 = await convertirABase64(archivo);
+
+      setForm((prev) => ({
+        ...prev,
+        foto: archivo,
+        fotoBase64: base64,
+      }));
+
+      return;
     }
+
+    // Inputs normales
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const traducirError = (code) => {
-    switch (code) {
-      case "auth/email-already-in-use":
-        return "El correo ya está en uso.";
-      case "auth/invalid-email":
-        return "Correo inválido.";
-      case "auth/weak-password":
-        return "La contraseña es muy débil.";
-      default:
-        return "Ocurrió un error. Intenta nuevamente.";
-    }
-  };
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "Este correo ya está registrado. Intenta iniciar sesión 🤍";
+    case "auth/invalid-email":
+      return "El formato del correo no es válido.";
+    case "auth/weak-password":
+      return "La contraseña debe contener al menos 6 caracteres.";
+    case "auth/missing-password":
+      return "Debes escribir una contraseña.";
+    default:
+      return "Ocurrió un error inesperado. Intenta nuevamente.";
+  }
+};
 
   const dispararConfeti = () => {
     const canvas = document.createElement("canvas");
@@ -73,7 +107,8 @@ export default function Registro() {
     setError("");
     setSubiendo(true);
 
-    const { nombre, email, password, foto } = form;
+    const { nombre, email, password, fotoBase64 } = form;
+
     if (!nombre || !email || !password) {
       setError("💔 Por favor completa todos los campos.");
       triggerShake();
@@ -82,12 +117,16 @@ export default function Registro() {
     }
 
     try {
-      // Registrar usuario en Firebase + Firestore
-      await registrarUsuario(email.trim().toLowerCase(), password, nombre, foto);
+      // ENVIAMOS LA FOTO BASE64 (o vacía si no hay)
+      await registrarUsuario(
+        email.trim().toLowerCase(),
+        password,
+        nombre,
+        fotoBase64 || "" // <-- YA NO ENVIAMOS FILE
+      );
 
       dispararConfeti();
 
-      // Redirigir a login
       navigate("/login");
     } catch (err) {
       console.error(err);
@@ -136,18 +175,25 @@ export default function Registro() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-pink-700 mb-1">
-              Correo electrónico
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="tucorreo@ejemplo.com"
-              className="w-full border border-pink-300 rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
-            />
-          </div>
+  <label className="block text-sm font-medium text-pink-700 mb-1">
+    Correo electrónico
+  </label>
+
+  <input
+    type="email"
+    name="email"
+    value={form.email}
+    onChange={handleChange}
+    placeholder="tucorreo@ejemplo.com"
+    className={`w-full border rounded-xl px-4 py-2 text-sm shadow-sm focus:outline-none
+      ${error === "Este correo ya está registrado. Intenta iniciar sesión 🤍"
+        ? "border-red-400 focus:ring-red-400 bg-red-50" // 🔥 SE PONE ROJO
+        : "border-pink-300 focus:ring-2 focus:ring-pink-400"
+      }
+    `}
+  />
+</div>
+
 
           <div>
             <label className="block text-sm font-medium text-pink-700 mb-1">

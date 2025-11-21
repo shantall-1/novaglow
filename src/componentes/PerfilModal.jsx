@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera } from "lucide-react";
@@ -5,59 +6,58 @@ import { useAuth } from "../context/AuthContext";
 import confetti from "canvas-confetti";
 
 const PerfilModal = ({ isOpen, onClose }) => {
-  const { usuario, subirFotoPerfil, updateUserProfile } = useAuth();
+  const { usuario, updateUserProfile } = useAuth();
 
   const [preview, setPreview] = useState(null);
-  const [nuevaFoto, setNuevaFoto] = useState(null);
+  const [nuevaFotoURL, setNuevaFotoURL] = useState("");
   const [nuevoNombre, setNuevoNombre] = useState(usuario?.displayName || "");
   const [subiendo, setSubiendo] = useState(false);
 
   if (!usuario) return null;
 
-  const handleFotoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setNuevaFoto(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  // -----------------------------------------------------
-  // 🎉 CONFETTI FIX — SIEMPRE ENCIMA DEL MODAL
-  // -----------------------------------------------------
+  // ------------------------------
+  // 🎉 ANIMACIÓN CONFETTI
+  // ------------------------------
   const dispararConfeti = () => {
     const canvas = document.createElement("canvas");
-    canvas.id = "perfil-confetti";
     canvas.style.position = "fixed";
     canvas.style.top = "0";
     canvas.style.left = "0";
     canvas.style.width = "100vw";
     canvas.style.height = "100vh";
     canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "999999"; // 🔥 MÁS ALTO QUE EL MODAL
+    canvas.style.zIndex = "999999";
+
     document.body.appendChild(canvas);
 
     const myConfetti = confetti.create(canvas, { resize: true });
-
     myConfetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
     });
 
-    setTimeout(() => {
-      canvas.remove();
-    }, 1500);
+    setTimeout(() => canvas.remove(), 1500);
   };
-  // -----------------------------------------------------
 
+  // ------------------------------
+  // 📸 GUARDAR FOTO CON URL
+  // ------------------------------
   const guardarNuevaFoto = async () => {
-    if (!nuevaFoto) return;
+    if (!nuevaFotoURL.trim()) {
+      alert("Pega una URL de imagen válida");
+      return;
+    }
+
     setSubiendo(true);
     try {
-      const url = await subirFotoPerfil(nuevaFoto);
-      await updateUserProfile({ nombre: nuevoNombre, foto: url });
+      await updateUserProfile({
+        nombre: nuevoNombre,
+        foto: nuevaFotoURL,
+      });
+
       setPreview(null);
-      setNuevaFoto(null);
+      setNuevaFotoURL("");
       dispararConfeti();
     } catch (err) {
       console.error(err);
@@ -66,10 +66,16 @@ const PerfilModal = ({ isOpen, onClose }) => {
     setSubiendo(false);
   };
 
+  // ------------------------------
+  // 📝 GUARDAR NOMBRE
+  // ------------------------------
   const guardarNombre = async () => {
     setSubiendo(true);
     try {
-      await updateUserProfile({ nombre: nuevoNombre, foto: usuario.foto });
+      await updateUserProfile({
+        nombre: nuevoNombre,
+        foto: usuario.foto,
+      });
       dispararConfeti();
     } catch (err) {
       console.error(err);
@@ -78,13 +84,18 @@ const PerfilModal = ({ isOpen, onClose }) => {
     setSubiendo(false);
   };
 
+  // ------------------------------
+  // ❌ ELIMINAR FOTO
+  // ------------------------------
   const eliminarFoto = async () => {
     if (!confirm("¿Seguro que quieres eliminar tu foto?")) return;
+
     setSubiendo(true);
     try {
-      await updateUserProfile({ nombre: nuevoNombre, foto: null });
-      setPreview(null);
-      setNuevaFoto(null);
+      await updateUserProfile({
+        nombre: nuevoNombre,
+        foto: null,
+      });
     } catch (err) {
       console.error(err);
       alert("No se pudo eliminar la foto");
@@ -92,7 +103,8 @@ const PerfilModal = ({ isOpen, onClose }) => {
     setSubiendo(false);
   };
 
-  const fotoVisible = preview || usuario.foto || usuario.photoURL;
+  const fotoVisible =
+    preview || usuario.foto || usuario.photoURL;
 
   return (
     <AnimatePresence>
@@ -110,13 +122,13 @@ const PerfilModal = ({ isOpen, onClose }) => {
             exit={{ scale: 0.8 }}
           >
             <button
-              className="absolute right-4 top-4 text-gray-500 hover:text-pink-600 transition-colors"
+              className="absolute right-4 top-4 text-gray-500 hover:text-pink-600"
               onClick={onClose}
             >
               <X size={22} />
             </button>
 
-            <h2 className="text-3xl font-extrabold text-pink-600 mb-6 text-center drop-shadow-lg">
+            <h2 className="text-3xl font-extrabold text-pink-600 mb-6 text-center">
               Mi Perfil
             </h2>
 
@@ -125,19 +137,19 @@ const PerfilModal = ({ isOpen, onClose }) => {
                 <div className="relative">
                   <img
                     src={fotoVisible}
-                    alt="perfil"
-                    className="w-28 h-28 rounded-full border-4 border-pink-400 shadow-xl object-cover transition-transform hover:scale-105"
+                    className="w-28 h-28 rounded-full border-4 border-pink-400 shadow-xl object-cover"
                   />
-                  <div className="absolute bottom-0 right-0 bg-pink-500 rounded-full p-2 cursor-pointer hover:bg-pink-600 transition-colors">
-                    <Camera size={18} className="text-white" />
+                  <div className="absolute bottom-0 right-0 bg-pink-500 rounded-full p-2">
+                    <Camera className="text-white" size={18} />
                   </div>
                 </div>
               ) : (
                 <div className="w-28 h-28 rounded-full bg-pink-300 flex items-center justify-center text-white text-4xl font-bold shadow-xl">
-                  {nuevoNombre?.charAt(0).toUpperCase() || "U"}
+                  {nuevoNombre.charAt(0).toUpperCase()}
                 </div>
               )}
 
+              {/* -------- Nombre ---------- */}
               <div className="mt-4 w-full text-center">
                 <label className="text-gray-700 font-semibold mb-1 block">
                   Nombre
@@ -146,11 +158,11 @@ const PerfilModal = ({ isOpen, onClose }) => {
                   type="text"
                   value={nuevoNombre}
                   onChange={(e) => setNuevoNombre(e.target.value)}
-                  className="block mx-auto border px-3 py-2 rounded-xl w-3/4 text-center shadow-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  className="block mx-auto border px-3 py-2 rounded-xl w-3/4 text-center shadow-md"
                 />
                 <button
                   onClick={guardarNombre}
-                  className="mt-3 bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 transition-transform hover:scale-105 disabled:opacity-50 shadow-md"
+                  className="mt-3 bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 shadow-md"
                   disabled={subiendo}
                 >
                   Guardar nombre
@@ -161,36 +173,44 @@ const PerfilModal = ({ isOpen, onClose }) => {
                 <strong>Email:</strong> {usuario.email}
               </p>
 
+              {/* ------------------------------ */}
+              {/*   🔗 INPUT DE URL DE IMAGEN     */}
+              {/* ------------------------------ */}
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleFotoChange}
-                className="mt-3"
+                type="text"
+                placeholder="Pega aquí una URL de imagen"
+                value={nuevaFotoURL}
+                onChange={(e) => {
+                  setNuevaFotoURL(e.target.value);
+                  setPreview(e.target.value || null);
+                }}
+                className="mt-4 border p-2 rounded-xl w-3/4 text-center shadow-md"
               />
 
+              {/* Vista previa */}
               {preview && (
                 <div className="mt-4 flex flex-col items-center">
                   <p className="text-pink-600 font-semibold mb-2">Vista previa</p>
                   <img
                     src={preview}
-                    className="w-28 h-28 rounded-full object-cover border-4 border-pink-400 shadow-lg transition-transform hover:scale-105"
-                    alt="preview"
+                    className="w-28 h-28 rounded-full border-4 border-pink-400 object-cover"
                   />
+
                   <button
                     onClick={guardarNuevaFoto}
                     disabled={subiendo}
-                    className="mt-3 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-5 rounded-xl transition-transform hover:scale-105 disabled:opacity-50 shadow-md"
+                    className="mt-3 bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 shadow-md"
                   >
-                    {subiendo ? "Guardando..." : "Guardar foto"}
+                    Guardar foto
                   </button>
                 </div>
               )}
 
+              {/* Eliminar foto */}
               {(usuario.foto || usuario.photoURL) && !preview && (
                 <button
                   onClick={eliminarFoto}
-                  disabled={subiendo}
-                  className="mt-3 text-red-500 font-semibold hover:underline disabled:opacity-50"
+                  className="mt-3 text-red-500 hover:underline"
                 >
                   Eliminar foto
                 </button>

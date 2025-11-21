@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, googleProvider, db, storage } from "../lib/firebase";
+import { auth, googleProvider, db } from "../lib/firebase";
 import {
   onAuthStateChanged,
   signOut,
@@ -10,7 +10,6 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 const AuthContext = createContext();
 
@@ -30,8 +29,8 @@ export const AuthProvider = ({ children }) => {
   // 🔹 LOGIN con Google
   // ----------------------------
   const loginConGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    const result = signInWithPopup(auth, googleProvider);
+    const user = (await result).user;
 
     const refUser = doc(db, "usuarios", user.uid);
     const snap = await getDoc(refUser);
@@ -57,29 +56,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // 🔹 REGISTRAR USUARIO
+  // 🔹 REGISTRAR USUARIO (sin storage)
   // ----------------------------
-  const registrarUsuario = async (email, password, nombre, foto = null) => {
+  const registrarUsuario = async (email, password, nombre, fotoURL = "") => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
 
-    let photoURL = "";
-    if (foto) {
-      const storageRef = ref(storage, `usuarios/${user.uid}/${foto.name}`);
-      await uploadBytes(storageRef, foto);
-      photoURL = await getDownloadURL(storageRef);
-    }
-
+    // ⛔ YA NO ENVIAMOS fotoURL → Firebase Auth no acepta Base64 grande
     await updateProfile(user, {
       displayName: nombre,
-      photoURL: photoURL || "",
     });
 
+    // 🔥 Guardamos fotoBase64 SOLO en Firestore
     await setDoc(doc(db, "usuarios", user.uid), {
       uid: user.uid,
       nombre,
       email: user.email,
-      foto: photoURL || "",
+      foto: fotoURL, // Base64 completa
       creadoEn: serverTimestamp(),
     });
 
@@ -87,29 +80,22 @@ export const AuthProvider = ({ children }) => {
       uid: user.uid,
       email: user.email,
       displayName: nombre,
-      foto: photoURL || "",
-    
+      foto: fotoURL,
     });
 
     return user;
   };
 
   // ----------------------------
-  // 🔹 SUBIR FOTO PERFIL
+  // 🔹 SUBIR FOTO PERFIL (solo firestore)
   // ----------------------------
-  const subirFotoPerfil = async (file) => {
+  const subirFotoPerfil = async (url) => {
     if (!auth.currentUser) return null;
     const uid = auth.currentUser.uid;
-    const imgRef = ref(storage, `usuarios/${uid}/perfil.jpg`);
 
-    await uploadBytes(imgRef, file);
-    const url = await getDownloadURL(imgRef);
-
-    await updateProfile(auth.currentUser, { photoURL: url });
     await updateDoc(doc(db, "usuarios", uid), { foto: url });
 
     setUsuario((prev) => ({ ...prev, foto: url }));
-
     return url;
   };
 
@@ -120,12 +106,12 @@ export const AuthProvider = ({ children }) => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
 
-    // Si se quiere eliminar la foto, poner "" en lugar de null
-    const newPhotoURL = foto !== undefined ? foto : auth.currentUser.photoURL;
+    // Foto manejada solo en Firestore
+    const newPhotoURL = foto !== undefined ? foto : usuario?.foto;
 
+    // Firebase Auth solo nombre
     await updateProfile(auth.currentUser, {
       displayName: nombre ?? auth.currentUser.displayName,
-      photoURL: newPhotoURL,
     });
 
     await updateDoc(doc(db, "usuarios", uid), {
@@ -145,17 +131,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // 🔹 ELIMINAR FOTO PERFIL (opcional)
+  // ❌ ELIMINAR FOTO PERFIL
   // ----------------------------
   const eliminarFotoPerfil = async () => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
-    const imgRef = ref(storage, `usuarios/${uid}/perfil.jpg`);
-    try {
-      await deleteObject(imgRef);
-    } catch (err) {
-      console.warn("No había foto en storage", err);
-    }
+
     await updateUserProfile({ foto: "" });
   };
 
@@ -173,7 +154,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
   // ----------------------------
-  // 🔹 ESCUCHAR CAMBIOS DE SESIÓN
+  // 🔹 ESCUCHAR SESIÓN
   // ----------------------------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -191,7 +172,7 @@ export const AuthProvider = ({ children }) => {
         uid: user.uid,
         email: user.email,
         displayName: data.nombre || user.displayName,
-        foto: data.foto || user.photoURL,
+        foto: data.foto || "",
       });
 
       setCargando(false);
@@ -221,4 +202,6 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
 
