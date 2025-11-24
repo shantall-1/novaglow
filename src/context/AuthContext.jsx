@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, googleProvider, db, storage } from "../lib/firebase";
+import { auth, googleProvider, db } from "../lib/firebase";
 import {
   onAuthStateChanged,
   signOut,
@@ -10,7 +10,6 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const AuthContext = createContext();
 
@@ -18,38 +17,62 @@ export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
 
+  // ----------------------------
   // 🔹 LOGIN con email
-  const login = async (email, password) => {
+  // ----------------------------
+  const loginConEmail = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     return result.user;
   };
 
-  // 🔹 Alias para Login.jsx
-  const loginConEmail = login;
+  // ----------------------------
+  // 🔹 LOGIN con Google
+  // ----------------------------
+  const loginConGoogle = async () => {
+    const result = signInWithPopup(auth, googleProvider);
+    const user = (await result).user;
 
-  // 🔹 REGISTRO con email + foto opcional + ROL
-  // Modificado para recibir el rol (default: "usuario")
-  const registrarUsuario = async (email, password, nombre, foto = null, rol = "usuario") => {
+    const refUser = doc(db, "usuarios", user.uid);
+    const snap = await getDoc(refUser);
+
+    if (!snap.exists()) {
+      await setDoc(refUser, {
+        uid: user.uid,
+        nombre: user.displayName || user.email.split("@")[0],
+        email: user.email,
+        foto: user.photoURL || "",
+        creadoEn: serverTimestamp(),
+      });
+    }
+
+    setUsuario({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || user.email.split("@")[0],
+      foto: user.photoURL || "",
+    });
+
+    return user;
+  };
+
+  // ----------------------------
+  // 🔹 REGISTRAR USUARIO (sin storage)
+  // ----------------------------
+  const registrarUsuario = async (email, password, nombre, fotoURL = "") => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
 
-    let photoURL = "";
-    if (foto) {
-      const storageRef = ref(storage, `usuarios/${user.uid}/${foto.name}`);
-      await uploadBytes(storageRef, foto);
-      photoURL = await getDownloadURL(storageRef);
-    }
+    // ⛔ YA NO ENVIAMOS fotoURL → Firebase Auth no acepta Base64 grande
+    await updateProfile(user, {
+      displayName: nombre,
+    });
 
-    await updateProfile(user, { displayName: nombre, photoURL: photoURL || "" });
-
-    // 👇 AQUÍ GUARDAMOS EL ROL EN LA BASE DE DATOS
+    // 🔥 Guardamos fotoBase64 SOLO en Firestore
     await setDoc(doc(db, "usuarios", user.uid), {
       uid: user.uid,
       nombre,
       email: user.email,
-      foto: photoURL || null,
-      role: rol, // Guardamos en inglés
-      rol: rol,  // Guardamos en español (por seguridad)
+      foto: fotoURL, // Base64 completa
       creadoEn: serverTimestamp(),
     });
 
@@ -57,106 +80,82 @@ export const AuthProvider = ({ children }) => {
       uid: user.uid,
       email: user.email,
       displayName: nombre,
-      foto: photoURL || null,
-      role: rol, // Actualizamos estado local
-      rol: rol,
+      foto: fotoURL,
     });
 
     return user;
   };
 
-  // 🔹 LOGIN con Google
-  const loginGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-
-    const refUser = doc(db, "usuarios", user.uid);
-    const snap = await getDoc(refUser);
-
-    let userData = {};
-
-    if (!snap.exists()) {
-      // Si es la primera vez que entra con Google, lo registramos como USUARIO
-      userData = {
-        uid: user.uid,
-        nombre: user.displayName || user.email.split("@")[0],
-        email: user.email,
-        foto: user.photoURL || null,
-        role: "usuario", // 👇 Rol por defecto para Google
-        rol: "usuario",
-        creadoEn: serverTimestamp(),
-      };
-      await setDoc(refUser, userData);
-    } else {
-      userData = snap.data();
-    }
-
-    setUsuario({
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || user.email.split("@")[0],
-      foto: user.photoURL || null,
-      role: userData.role || userData.rol || "usuario", // Leemos el rol
-      rol: userData.role || userData.rol || "usuario",
-    });
-
-    return user;
-  };
-
-  // 🔹 SUBIR FOTO PERFIL
-  const subirFotoPerfil = async (file) => {
+  // ----------------------------
+  // 🔹 SUBIR FOTO PERFIL (solo firestore)
+  // ----------------------------
+  const subirFotoPerfil = async (url) => {
     if (!auth.currentUser) return null;
     const uid = auth.currentUser.uid;
-    const imgRef = ref(storage, `usuarios/${uid}/perfil.jpg`);
 
-    await uploadBytes(imgRef, file);
-    const url = await getDownloadURL(imgRef);
-
-    await updateProfile(auth.currentUser, { photoURL: url });
     await updateDoc(doc(db, "usuarios", uid), { foto: url });
 
     setUsuario((prev) => ({ ...prev, foto: url }));
-
     return url;
   };
 
+  // ----------------------------
   // 🔹 ACTUALIZAR NOMBRE/FOTO
+  // ----------------------------
   const updateUserProfile = async ({ nombre, foto }) => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
 
+    // Foto manejada solo en Firestore
+    const newPhotoURL = foto !== undefined ? foto : usuario?.foto;
+
+    // Firebase Auth solo nombre
     await updateProfile(auth.currentUser, {
       displayName: nombre ?? auth.currentUser.displayName,
-      photoURL: foto !== undefined ? foto : auth.currentUser.photoURL,
     });
 
     await updateDoc(doc(db, "usuarios", uid), {
       nombre: nombre ?? auth.currentUser.displayName,
-      foto: foto !== undefined ? foto : auth.currentUser.photoURL,
+      foto: newPhotoURL,
     });
 
     const snap = await getDoc(doc(db, "usuarios", uid));
-    const data = snap.exists() ? snap.data() : {};
+    const data = snap.data();
 
     setUsuario({
       uid,
       email: auth.currentUser.email,
-      displayName: data?.nombre || auth.currentUser.displayName || "Usuario",
-      foto: data?.foto ?? null,
-      role: data?.role || data?.rol || "usuario", // Mantenemos el rol al actualizar
+      displayName: data.nombre,
+      foto: data.foto,
     });
   };
 
+  // ----------------------------
+  // ❌ ELIMINAR FOTO PERFIL
+  // ----------------------------
+  const eliminarFotoPerfil = async () => {
+    if (!auth.currentUser) return;
+    const uid = auth.currentUser.uid;
+
+    await updateUserProfile({ foto: "" });
+  };
+
+  // ----------------------------
   // 🔹 LOGOUT
+  // ----------------------------
   const logout = async () => {
     await signOut(auth);
     setUsuario(null);
   };
 
+  // ----------------------------
   // 🔹 RESET PASSWORD
+  // ----------------------------
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
-  // 🔹 ESCUCHAR CAMBIOS DE SESIÓN
+  // ----------------------------
+  // 🔹 ESCUCHAR SESIÓN
+  // ----------------------------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -165,7 +164,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Al recargar la página, leemos la ficha completa de Firestore
       const refUser = doc(db, "usuarios", user.uid);
       const snap = await getDoc(refUser);
       const data = snap.exists() ? snap.data() : {};
@@ -173,10 +171,8 @@ export const AuthProvider = ({ children }) => {
       setUsuario({
         uid: user.uid,
         email: user.email,
-        displayName: data?.nombre || user.displayName || "Usuario",
-        foto: data?.foto ?? user.photoURL ?? null,
-        role: data?.role || data?.rol || "usuario", // 👇 IMPORTANTE: Cargamos el rol
-        rol: data?.role || data?.rol || "usuario",
+        displayName: data.nombre || user.displayName,
+        foto: data.foto || "",
       });
 
       setCargando(false);
@@ -190,14 +186,14 @@ export const AuthProvider = ({ children }) => {
       value={{
         usuario,
         cargando,
-        login,
         loginConEmail,
+        loginConGoogle,
         registrarUsuario,
-        loginGoogle,
         logout,
         resetPassword,
         updateUserProfile,
         subirFotoPerfil,
+        eliminarFotoPerfil,
       }}
     >
       {children}
@@ -206,3 +202,6 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
+
