@@ -15,7 +15,7 @@ import Navbar from "./paginas/NavBar";
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import Logout from "./paginas/Logout";
-
+import Intranet from "./paginas/Intranet";
 // BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
@@ -52,6 +52,7 @@ function App() {
 
               <Route path="/adminblog" element={<AdminBlog />} />
               <Route path="/suscripcion" element={<Suscripcion />} />
+              <Route path="/intranet" element={<Intranet />} />
 
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />

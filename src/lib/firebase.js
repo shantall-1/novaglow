@@ -11,9 +11,8 @@ const firebaseConfig = {
   projectId: "novaglow-498e9",
   storageBucket: "novaglow-498e9.firebasestorage.app",
   messagingSenderId: "167294777917",
-  appId: "1:167294777917:web:1b27387755e68e0349c854",
+  appId: "1:167294777917:web:1b27387755e68e0349c854"
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

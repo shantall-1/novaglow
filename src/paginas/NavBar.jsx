@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
@@ -52,7 +50,7 @@ const Navbar = () => {
             <BlogDropdown />
 
             <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
-
+        
             {usuario && (
               <button
                 onClick={() => setShowPerfil(true)}
@@ -62,6 +60,14 @@ const Navbar = () => {
               </button>
             )}
           </div>
+          {/*intranet*/}
+          {usuario?.email &&
+  ["fundadora@novaglow.com", "hylromeroduran@crackthecode.la", "editor@novaglow.com", "s@gmail.com"]
+    .includes(usuario.email) && (
+      <Link to="/intranet" className="hover:text-pink-500 transition">
+        Intranet
+      </Link>
+)}
 
           {/* 🛒 Carrito + Sesión */}
           <div className="flex items-center space-x-4">

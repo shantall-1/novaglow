@@ -12,7 +12,7 @@ import { ComentariosProvider } from "./context/ComentariosContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter basename="/novaglow">   {/* 👈 ESTA LINEA ES LA CLAVE */}
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <CarritoProvider>
           <FavoriteProvider>
