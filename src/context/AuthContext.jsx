@@ -26,11 +26,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // 🔹 LOGIN con Google
+  // 🔹 LOGIN con Google (CORREGIDO)
   // ----------------------------
   const loginConGoogle = async () => {
-    const result = signInWithPopup(auth, googleProvider);
-    const user = (await result).user;
+    // ✅ Agregado AWAIT aquí para evitar errores de sincronía
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
 
     const refUser = doc(db, "usuarios", user.uid);
     const snap = await getDoc(refUser);
@@ -56,23 +57,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // 🔹 REGISTRAR USUARIO (sin storage)
+  // 🔹 REGISTRAR USUARIO
   // ----------------------------
   const registrarUsuario = async (email, password, nombre, fotoURL = "") => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
 
-    // ⛔ YA NO ENVIAMOS fotoURL → Firebase Auth no acepta Base64 grande
-    await updateProfile(user, {
-      displayName: nombre,
-    });
+    await updateProfile(user, { displayName: nombre });
 
-    // 🔥 Guardamos fotoBase64 SOLO en Firestore
     await setDoc(doc(db, "usuarios", user.uid), {
       uid: user.uid,
       nombre,
       email: user.email,
-      foto: fotoURL, // Base64 completa
+      foto: fotoURL,
       creadoEn: serverTimestamp(),
     });
 
@@ -87,29 +84,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // 🔹 SUBIR FOTO PERFIL (solo firestore)
+  // 🔹 SUBIR FOTO PERFIL
   // ----------------------------
   const subirFotoPerfil = async (url) => {
     if (!auth.currentUser) return null;
     const uid = auth.currentUser.uid;
-
     await updateDoc(doc(db, "usuarios", uid), { foto: url });
-
     setUsuario((prev) => ({ ...prev, foto: url }));
     return url;
   };
 
   // ----------------------------
-  // 🔹 ACTUALIZAR NOMBRE/FOTO
+  // 🔹 ACTUALIZAR PERFIL
   // ----------------------------
   const updateUserProfile = async ({ nombre, foto }) => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
-
-    // Foto manejada solo en Firestore
     const newPhotoURL = foto !== undefined ? foto : usuario?.foto;
 
-    // Firebase Auth solo nombre
     await updateProfile(auth.currentUser, {
       displayName: nombre ?? auth.currentUser.displayName,
     });
@@ -131,26 +123,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // ❌ ELIMINAR FOTO PERFIL
+  // ❌ ELIMINAR FOTO
   // ----------------------------
   const eliminarFotoPerfil = async () => {
     if (!auth.currentUser) return;
-    const uid = auth.currentUser.uid;
-
     await updateUserProfile({ foto: "" });
   };
 
-  // ----------------------------
-  // 🔹 LOGOUT
-  // ----------------------------
   const logout = async () => {
     await signOut(auth);
     setUsuario(null);
   };
 
-  // ----------------------------
-  // 🔹 RESET PASSWORD
-  // ----------------------------
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
   // ----------------------------
@@ -164,6 +148,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      // Sincronizar con Firestore para tener la foto más reciente
       const refUser = doc(db, "usuarios", user.uid);
       const snap = await getDoc(refUser);
       const data = snap.exists() ? snap.data() : {};
@@ -172,7 +157,7 @@ export const AuthProvider = ({ children }) => {
         uid: user.uid,
         email: user.email,
         displayName: data.nombre || user.displayName,
-        foto: data.foto || "",
+        foto: data.foto || user.photoURL || "",
       });
 
       setCargando(false);
@@ -202,6 +187,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
-
-
