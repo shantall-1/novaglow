@@ -331,7 +331,7 @@ category: "Ropa",
     gallery: [],
     colors: [],
     sizes: [],
-    rating: 4.4,
+    rating: 4.5,
     stock: 30
   },
 ];
