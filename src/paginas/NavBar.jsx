@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Shield } from "lucide-react"; // Agregué Shield para el icono de intranet
 import { motion, AnimatePresence } from "framer-motion";
 import CarritoIcon from "../componentes/CarritoIcon";
 import PerfilModal from "../componentes/PerfilModal";
@@ -8,10 +8,16 @@ import { useAuth } from "../context/AuthContext";
 import BlogDropdown from "../componen/BlogDropdown";
 import BlogDropdownMobile from "../componen/BlogDropdownMobile";
 
+// IMPORTANTE: Importamos el hook que verifica el ROL en tiempo real
+import { useUserData } from "../componentes/useUserData";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  // Mantenemos tu useAuth original para login/logout y datos básicos
   const { usuario, logout, cargando } = useAuth();
+  
+  // Usamos el hook nuevo SOLO para verificar permisos (Rol)
+  const { userData } = useUserData();
 
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [showPerfil, setShowPerfil] = useState(false);
@@ -27,7 +33,11 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // Foto visible en navbar (corregido)
+  // LÓGICA DE PERMISOS:
+  // Ya no usamos emails hardcodeados. Ahora leemos el rol de Firebase.
+  const puedeVerIntranet = userData?.rol === 'admin' || userData?.rol === 'editor';
+
+  // Foto visible en navbar
   const fotoNavbar = usuario?.foto || usuario?.photoURL || null;
 
   return (
@@ -38,7 +48,7 @@ const Navbar = () => {
           {/* 🌸 Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <span className="text-3xl font-semibold text-pink-600 font-[Dancing Script] transition-all duration-500 group-hover:text-pink-700 group-hover:drop-shadow-[0_0_6px_rgba(236,72,153,0.6)]">
-              🌸 NovaGlow 🌸
+            NovaGlow
             </span>
           </Link>
 
@@ -46,11 +56,22 @@ const Navbar = () => {
           <div className="hidden md:flex space-x-6 items-center text-gray-700 font-medium">
             <Link to="/inicio" className="hover:text-pink-500 transition">Inicio</Link>
             <Link to="/productos" className="hover:text-pink-500 transition">Productos</Link>
-          {/* 🔽 Aquí colocamos el nuevo dropdown */}
+            
             <BlogDropdown />
 
             <Link to="/contacto" className="hover:text-pink-500 transition">Contacto</Link>
         
+            {/* 🛡️ LINK A INTRANET (DINÁMICO) */}
+            {puedeVerIntranet && (
+                <Link 
+                    to="/intranet" 
+                    className="flex items-center gap-1 text-pink-600 font-bold hover:text-pink-800 transition bg-pink-200/50 px-3 py-1 rounded-full border border-pink-300"
+                >
+                    <Shield size={14} />
+                    Intranet
+                </Link>
+            )}
+
             {usuario && (
               <button
                 onClick={() => setShowPerfil(true)}
@@ -60,14 +81,6 @@ const Navbar = () => {
               </button>
             )}
           </div>
-          {/*intranet*/}
-          {usuario?.email &&
-  ["fundadora@novaglow.com", "hylromeroduran@crackthecode.la", "editor@novaglow.com", "s@gmail.com"]
-    .includes(usuario.email) && (
-      <Link to="/intranet" className="hover:text-pink-500 transition">
-        Intranet
-      </Link>
-)}
 
           {/* 🛒 Carrito + Sesión */}
           <div className="flex items-center space-x-4">
@@ -100,13 +113,13 @@ const Navbar = () => {
                   </div>
                 )}
 
-                <span className="text-pink-700 font-semibold">
+                <span className="hidden lg:block text-pink-700 font-semibold">
                   Hola, {usuario.displayName?.split(" ")[0]} ✨
                 </span>
 
                 <button
                   onClick={handleLogout}
-                  className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
+                  className="hidden md:block bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
                 >
                   Cerrar Sesión
                 </button>
@@ -114,7 +127,7 @@ const Navbar = () => {
 
             ) : (
               /* 🔓 Invitado */
-              <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-3">
                 <Link
                   to="/login"
                   className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105"
@@ -160,8 +173,21 @@ const Navbar = () => {
               <ul className="flex flex-col gap-4 text-gray-700 font-medium">
                 <Link to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</Link>
                 <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
+                
                 <BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} />
+                
                 <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
+
+                {/* INTRANET EN MÓVIL TAMBIÉN */}
+                {puedeVerIntranet && (
+                    <Link 
+                        to="/intranet" 
+                        onClick={() => setMenuAbierto(false)}
+                        className="text-pink-600 font-bold flex items-center gap-2"
+                    >
+                        <Shield size={16}/> Intranet
+                    </Link>
+                )}
 
                 {usuario && (
                   <li
@@ -178,19 +204,19 @@ const Navbar = () => {
                 {usuario ? (
                   <li
                     onClick={handleLogout}
-                    className="text-pink-600 cursor-pointer hover:underline"
+                    className="text-pink-600 cursor-pointer hover:underline mt-4 border-t pt-4 border-gray-100"
                   >
                     Cerrar sesión
                   </li>
                 ) : (
-                  <>
-                    <Link to="/login" onClick={() => setMenuAbierto(false)}>
+                  <div className="flex flex-col gap-3 mt-4 border-t pt-4 border-gray-100">
+                    <Link to="/login" onClick={() => setMenuAbierto(false)} className="text-pink-600 font-bold">
                       Iniciar Sesión
                     </Link>
-                    <Link to="/registro" onClick={() => setMenuAbierto(false)}>
+                    <Link to="/registro" onClick={() => setMenuAbierto(false)} className="text-gray-600">
                       Registrarme
                     </Link>
-                  </>
+                  </div>
                 )}
               </ul>
             </motion.div>
@@ -203,7 +229,7 @@ const Navbar = () => {
       <AnimatePresence>
         {(cargando || globalLoading) && (
           <motion.div
-            className="fixed inset-0 bg-white/90 flex items-center justify-center z-999"
+            className="fixed inset-0 bg-white/90 flex items-center justify-center z-60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -228,6 +254,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-
-
