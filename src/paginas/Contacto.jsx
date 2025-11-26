@@ -225,7 +225,7 @@ export default function Contacto() {
           <p>
             Si vienes en auto, puedes ingresar por la Av. Perú.  
             Encuéntranos fácilmente en Google Maps como{" "}
-            <strong>NovaGlow</strong> 💅
+            <strong>NovaGlow</strong> 
           </p>
         </motion.div>
 
@@ -257,14 +257,14 @@ export default function Contacto() {
         </motion.div>
 
         <p className="text-center text-pink-600 mt-6 font-semibold">
-          💗 Visítanos en <span className="text-pink-700">NovaGlow</span> y
+           Visítanos en <span className="text-pink-700">NovaGlow</span> y
           brilla con estilo ✨
         </p>
       </motion.div>
 
       {/* Botón flotante */}
       <motion.a
-        href="https://wa.me/51941433000"
+        href="https://wa.me/51943461700"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg z-50"

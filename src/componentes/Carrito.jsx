@@ -1,34 +1,79 @@
-import { useState } from "react"; 
+import { useState, useEffect } from "react";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Carrito() {
-
-  const { carrito, eliminarDelCarrito, actualizarCantidad, total, vaciarCarrito } =
-    useCarrito();
+  const {
+    carrito,
+    eliminarDelCarrito,
+    actualizarCantidad,
+    total,
+    vaciarCarrito,
+    restaurarProductos
+  } = useCarrito();
+  const { usuario, guardarDatosPedido } = useAuth();
   const navigate = useNavigate();
 
-  // Estados para el formulario
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
-    tarjeta: "",
     direccion: "",
+    metodoPago: "",
+    numeroTarjeta: "",
+    numeroTelefono: "",
   });
 
-  // Manejadores para el formulario
+  // Cargar datos del usuario si ya tiene info guardada
+  useEffect(() => {
+    if (usuario) {
+      setFormData((prev) => ({
+        ...prev,
+        nombre: usuario.displayName || "",
+        email: usuario.email || "",
+        direccion: usuario.direccion || "",
+      }));
+    }
+  }, [usuario]);
+
   const manejarCambio = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Manejador para cuando se envía el formulario de pago
-  const manejarPago = (e) => {
+  const manejarPago = async (e) => {
     e.preventDefault();
-    // Vaciamos el carrito y navegamos a confirmación
-    vaciarCarrito();
-    navigate("/confirmacion");
+    if (!usuario) {
+      alert("Debes iniciar sesión para completar el pago");
+      return;
+    }
+
+    try {
+      const pedidoFinal = {
+        nombre: formData.nombre,
+        email: formData.email,
+        direccion: formData.direccion,
+        metodoPago: formData.metodoPago,
+        numeroTarjeta: formData.metodoPago === "Tarjeta" ? formData.numeroTarjeta : null,
+        numeroTelefono: formData.metodoPago === "Yape" ? formData.numeroTelefono : null,
+        productos: carrito,
+        total,
+      };
+
+      console.log("🔥 Guardando pedido:", pedidoFinal);
+
+      // Guardar en Firestore
+      await guardarDatosPedido(pedidoFinal);
+
+      // Vaciar carrito después del pago
+      vaciarCarrito();
+
+      navigate("/confirmacion");
+    } catch (err) {
+      console.error("❌ Error al guardar pedido:", err);
+      alert("Error al guardar el pedido: " + err.message);
+    }
   };
 
   if (carrito.length === 0) {
@@ -46,20 +91,12 @@ export default function Carrito() {
     <div className="p-6 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Tu carrito de compras</h2>
 
-      {/* PRODUCTOS DEL CARRITO */}
+      {/* LISTA DE PRODUCTOS */}
       <div className="space-y-4">
         {carrito.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between bg-white p-4 rounded-xl shadow"
-          >
-
+          <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-xl shadow">
             <div className="flex items-center gap-4">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-20 h-24 rounded-lg object-cover"
-              />
+              <img src={item.image} alt={item.name} className="w-20 h-24 rounded-lg object-cover" />
               <div>
                 <h3 className="font-semibold">{item.name}</h3>
                 <p className="text-sm text-gray-600">${item.price.toFixed(2)}</p>
@@ -84,9 +121,7 @@ export default function Carrito() {
             </div>
 
             <div className="flex items-center gap-4">
-              <p className="font-semibold text-pink-600">
-                ${(item.price * item.cantidad).toFixed(2)}
-              </p>
+              <p className="font-semibold text-pink-600">${(item.price * item.cantidad).toFixed(2)}</p>
               <button
                 onClick={() => eliminarDelCarrito(item.id)}
                 className="text-red-500 hover:underline"
@@ -98,29 +133,72 @@ export default function Carrito() {
         ))}
       </div>
 
-      {/* TOTAL Y BOTÓN DE PAGO */}
+      {/* TOTAL */}
       <div className="mt-6 text-right">
         <p className="text-xl font-semibold">Total: ${total.toFixed(2)}</p>
-
-        {/* Mostrar botón de pagar */}
-        {!mostrarFormulario ? (
+        {!mostrarFormulario && (
           <button
-            onClick={() => setMostrarFormulario(true)} // <-- Cambia el estado, no navega
+            onClick={() => setMostrarFormulario(true)}
             className="mt-4 bg-pink-500 text-white px-6 py-2 rounded-xl hover:bg-pink-600"
           >
             Pagar
           </button>
-        ) : null}
+        )}
       </div>
 
-      {/* Muestra el formulario SÓLO SI 'mostrarFormulario' es true */}
+      {/* FORMULARIO */}
       {mostrarFormulario && (
-        <form
-          onSubmit={manejarPago}
-          className="mt-6 bg-white p-6 rounded-xl shadow space-y-4 max-w-md mx-auto"
-        >
-          <h3 className="text-xl font-bold text-pink-600 mb-2">Datos de pago 💳</h3>
+        <form onSubmit={manejarPago} className="mt-6 bg-white p-6 rounded-xl shadow space-y-4 max-w-md mx-auto">
+          <h3 className="text-xl font-bold text-pink-600 mb-2">Método de pago 💳</h3>
 
+          <select
+            name="metodoPago"
+            value={formData.metodoPago}
+            onChange={manejarCambio}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white appearance-none"
+            required
+          >
+            <option value="">Seleccionar método</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Yape">Yape</option>
+          </select>
+
+          {formData.metodoPago === "Tarjeta" && (
+            <input
+              type="text"
+              name="numeroTarjeta"
+              placeholder="Número de tarjeta"
+              value={formData.numeroTarjeta}
+              onChange={manejarCambio}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            />
+          )}
+
+          {formData.metodoPago === "Yape" && (
+            <div className="space-y-3">
+              <input
+                type="text"
+                name="numeroTelefono"
+                placeholder="Número de teléfono asociado a Yape"
+                value={formData.numeroTelefono}
+                onChange={manejarCambio}
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              />
+              <div className="text-center">
+                <p className="font-semibold text-gray-700 mb-2">Escanea el QR para pagar:</p>
+                <img src="/qr-yape.jpeg" alt="QR Yape" className="w-40 h-40 mx-auto rounded-lg shadow" />
+              </div>
+            </div>
+          )}
+
+          {formData.metodoPago === "Efectivo" && (
+            <p className="text-center text-gray-700 font-medium">Pagarás al recibir tu pedido 💵</p>
+          )}
+
+          {/* Campos generales */}
           <input
             type="text"
             name="nombre"
@@ -130,7 +208,6 @@ export default function Carrito() {
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2"
           />
-
           <input
             type="email"
             name="email"
@@ -140,17 +217,6 @@ export default function Carrito() {
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2"
           />
-
-          <input
-            type="text"
-            name="tarjeta"
-            placeholder="Número de tarjeta"
-            value={formData.tarjeta}
-            onChange={manejarCambio}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          />
-
           <input
             type="text"
             name="direccion"

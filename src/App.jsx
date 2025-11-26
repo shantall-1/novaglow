@@ -16,6 +16,7 @@ import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import Logout from "./paginas/Logout";
 import Intranet from "./paginas/Intranet";
+import Perfil from "./paginas/Perfil";
 // BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
@@ -57,7 +58,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
               <Route path="/logout" element={<Logout />} />
-
+              <Route path="/perfil" element={<Perfil />} />
+              
               <Route
                 path="/carrito"
                 element={
