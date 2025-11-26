@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import BlogDropdown from "../componen/BlogDropdown";
 import BlogDropdownMobile from "../componen/BlogDropdownMobile";
 import confetti from "canvas-confetti";
-
+import { LogOut } from "lucide-react";
 // Modales
 import MiCuenta from "../paginas/MiCuentaModal";
 import EditarDatosModal from "../componentes/EditarDatosModal";
@@ -92,6 +92,14 @@ const Navbar = () => {
             <span className="text-3xl font-semibold text-pink-600 font-[Dancing Script] transition-all duration-500 group-hover:text-pink-700">
               🌸 NovaGlow 🌸
             </span>
+            {/* Pequeña chispa decorativa */}
+            <motion.span 
+              className="absolute -top-1 -right-2 text-yellow-400"
+              animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              ✨
+            </motion.span>
           </Link>
 
           {/* Navegación Desktop */}
@@ -133,6 +141,13 @@ const Navbar = () => {
                   Hola, {usuario.displayName?.split(" ")[0]} ✨
                 </span>
 
+                <button
+                    onClick={async () => { await logout(); setMenuUsuario(false); }}
+                    title="Cerrar Sesión"
+                    className="hidden md:flex items-center justify-center w-9 h-9 rounded-full text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                >
+                    <LogOut size={18} />
+                </button>
                 {/* Menú Desplegable */}
                 <AnimatePresence>
                   {menuUsuario && (
@@ -249,12 +264,13 @@ const Navbar = () => {
               </button>
             )}
 
+
             {/* Botón menú móvil */}
             <button
-              className="md:hidden text-pink-600"
+              className="md:hidden p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-colors"
               onClick={() => setMenuAbierto(!menuAbierto)}
             >
-              {menuAbierto ? <X size={26} /> : <Menu size={26} />}
+              {menuAbierto ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -262,35 +278,46 @@ const Navbar = () => {
         {/* Menú móvil */}
         <AnimatePresence>
           {menuAbierto && (
-            <motion.div
-              className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 p-5 border-r border-pink-200"
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-pink-600">Menú</h2>
-                <button onClick={() => setMenuAbierto(false)}>
-                  <X size={22} className="text-pink-600" />
-                </button>
-              </div>
-
-              <ul className="flex flex-col gap-4 text-gray-700 font-medium">
-                <Link to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</Link>
-                <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
-                <BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} />
-                <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
-
-                {usuario && (
-                  <li
-                    className="cursor-pointer hover:text-pink-600 transition"
-                    onClick={() => setMenuUsuario(true)}
-                  >
-                    Ver Perfil
-                  </li>
-                )}
-              </ul>
-            </motion.div>
+            <>
+              {/* Backdrop oscuro */}
+              <motion.div 
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMenuAbierto(false)}
+              />
+              
+              {/* Drawer */}
+              <motion.div
+                className="fixed top-0 right-0 h-full w-[80%] max-w-sm bg-white shadow-2xl z-50 p-6 flex flex-col"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              >
+                <div className="flex justify-between items-center mb-8">
+                  <span className="text-2xl font-bold font-[Dancing Script] text-pink-600">NovaGlow</span>
+                  <button onClick={() => setMenuAbierto(false)} className="p-2 bg-gray-100 rounded-full hover:bg-pink-100 transition">
+                    <X size={20} className="text-gray-600" />
+                  </button>
+                </div>
+                <ul className="flex flex-col gap-4 text-gray-700 font-medium">
+                  <Link to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</Link>
+                  <Link to="/productos" onClick={() => setMenuAbierto(false)}>Productos</Link>
+                  <BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} />
+                  <Link to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</Link>
+                  {usuario && (
+                    <li
+                      className="cursor-pointer hover:text-pink-600 transition"
+                      onClick={() => setMenuUsuario(true)}
+                    >
+                      Ver Perfil
+                    </li>
+                  )}
+                </ul>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </nav>
@@ -304,7 +331,7 @@ const Navbar = () => {
       <AnimatePresence>
         {(cargando || globalLoading) && (
           <motion.div
-            className="fixed inset-0 bg-white/90 flex items-center justify-center z-[999]"
+            className="fixed inset-0 bg-white/90 flex items-center justify-center z-999"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
