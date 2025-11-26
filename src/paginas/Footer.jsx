@@ -7,7 +7,7 @@ import Suscripcion from "./Suscripcion";
 const Footer = () => {
     return (
 
-        <footer className="bg-pink-100 text-gray-900 rounded-3xl p-10 mt-12 justify-center">
+        <footer className="bg-pink-100 text-gray-900 p-10 justify-center">
 
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-8 border-b border-pink-200 pb-8 mb-8">
