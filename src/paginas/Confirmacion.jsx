@@ -85,7 +85,7 @@ export default function Confirmacion() {
           <p className="text-gray-600 text-lg font-medium mb-2">
             ¡Gracias por tu compra,{' '}
             {/* AQUÍ ESTÁ EL CAMBIO: Nombre con efecto Glow */}
-            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600 drop-shadow-sm">
+            <span className="font-bold text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 drop-shadow-sm">
                 {nombreUsuario}
             </span>! 💖
           </p>

@@ -12,7 +12,7 @@ import BlogDropdown from "../componen/BlogDropdown";
 import BlogDropdownMobile from "../componen/BlogDropdownMobile";
 
 // Modales
-import MiCuenta from "../paginas/MiCuentaModal";
+import MiCuenta from "../paginas/MicuentaModal";
 import EditarDatosModal from "../componentes/EditarDatosModal";
 import MisPedidosModal from "../componentes/MisPedidosModal";
 
@@ -359,7 +359,7 @@ const Navbar = () => {
       {/* LOADER */}
       <AnimatePresence>
         {(cargando || globalLoading) && (
-          <motion.div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-[60]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-60" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
              <div className="relative">
                 <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin"></div>
                 <div className="absolute inset-0 flex items-center justify-center font-[Dancing Script] text-pink-600 font-bold">N</div>

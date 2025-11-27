@@ -100,7 +100,7 @@ export default function MiCuentaModal({ cerrar }) {
   // --- RENDERIZADO CON PORTAL Y NUEVA ESTÉTICA ---
   return ReactDOM.createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 font-sans">
+      <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 font-sans">
         
         {/* Backdrop */}
         <motion.div 

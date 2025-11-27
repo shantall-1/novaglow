@@ -12,7 +12,6 @@ export default function Carrito() {
     actualizarCantidad,
     total,
     vaciarCarrito,
-    restaurarProductos
   } = useCarrito();
   const { usuario, guardarDatosPedido } = useAuth();
   const navigate = useNavigate();
@@ -88,7 +87,6 @@ export default function Carrito() {
     </div>
   );
 
-  // --- ESTADO VACÍO ---
   if (carrito.length === 0) {
     return (
       <div className="min-h-screen relative flex items-center justify-center p-4 font-sans overflow-hidden bg-white">
@@ -316,20 +314,28 @@ export default function Carrito() {
                                 </div>
                             )}
 
-                            {formData.metodoPago === "Yape" && (
-                                <div className="relative group animate-in fade-in slide-in-from-top-2">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
-                                    <input
-                                        type="text"
-                                        name="numeroTelefono"
-                                        placeholder="Número de Celular"
-                                        value={formData.numeroTelefono}
-                                        onChange={manejarCambio}
-                                        required
-                                        className="w-full pl-12 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 text-sm font-medium"
-                                    />
-                                </div>
-                            )}
+ {/* CAMPOS SOLO SI YAPE */}
+          {formData.metodoPago === "Yape" && (
+            <div className="space-y-3">
+              <input
+                type="text"
+                name="numeroTelefono"
+                placeholder="Número de teléfono"
+                value={formData.numeroTelefono}
+                onChange={manejarCambio}
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              />
+              <div className="text-center">
+                <p className="font-semibold text-gray-700 mb-2">Escanea el QR para pagar:</p>
+                <img
+                  src="/qr-yape.jpeg"
+                  alt="QR Yape"
+                  className="w-40 h-40 mx-auto rounded-lg shadow"
+                />
+              </div>
+            </div>
+          )}
 
                             <div className="pt-4 flex flex-col gap-3">
                                 <button
