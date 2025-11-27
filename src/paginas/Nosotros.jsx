@@ -1,7 +1,10 @@
 import React from "react";
-import { Zap, Heart, Sparkles, Feather, Sun, Eye, Star, Aperture, } from "lucide-react";
+import { Sparkles, Feather, Sun, Eye, Star, } from "lucide-react";
 import { Link } from "react-router-dom";
-import BlogInspiracion from "./Blog-Inspiracion";
+import { HeaderCarrusel } from "../descubre/HeaderCarrusel";
+import Valores from "../descubre/valores.jsx";
+import PropositoMisionVision from "../descubre/Proposito.jsx";
+// --- Componente ContentCard (CORREGIDO: Manejo de Imagen por Defecto) ---
 
 const ContentCard = ({
   title,
@@ -92,20 +95,31 @@ const CategoryPromoCard = ({
   </div>
 );
 
-// Componente auxiliar para los principios
-const Principio = ({ title, icon, description }) => (
-  <div className="p-6 bg-white rounded-xl shadow-lg border-t-4 border-pink-500">
-    <div className="text-4xl mb-3 flex justify-center">
-      {icon === "✨" ? (
-        <Sparkles className="w-8 h-8 text-yellow-500" />
-      ) : icon === "📏" ? (
-        <Zap className="w-8 h-8 text-blue-500" />
-      ) : (
-        <Heart className="w-8 h-8 text-red-500" />
+const FeatureCard = ({ title, description, image, icon: Icon }) => (
+  <div
+    className="group relative p-6 rounded-2xl shadow-xl overflow-hidden border border-pink-200 bg-white/60 backdrop-blur-lg transition-all duration-300 hover:shadow-pink-300/40 hover:-translate-y-1"
+    style={{
+      backgroundImage: `url(${image})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
+  >
+    {/* Capa de oscurecimiento */}
+    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-300"></div>
+
+    <div className="relative z-10 text-center">
+      {Icon && (
+        <Icon className="w-10 h-10 mx-auto mb-3 text-pink-400 drop-shadow-md" />
+      )}
+
+      <h3 className="text-2xl font-bold text-white drop-shadow">{title}</h3>
+
+      {description && (
+        <p className="text-gray-200 text-sm mt-2 leading-relaxed">
+          {description}
+        </p>
       )}
     </div>
-    <h3 className="text-xl font-sans text-pink-600 mb-2">{title}</h3>
-    <p className="text-gray-500 text-sm">{description}</p>
   </div>
 );
 
@@ -130,227 +144,279 @@ const TeamMember = ({ name, role, tagline, imageUrl }) => (
 // --- 3. VISTA NOSOTROS (Corregido para aceptar 'setPage' y fusionado el contenido) ---
 export default function Nosotros() {
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8">
-      <header
-        className="text-center py-24 rounded-3xl shadow-2xl mb-16 relative overflow-hidden 
-                    border-b-8 border-pink-400" // Eliminados bg-fuchsia-900
-      >
-        {/* Fondo abstracto y dinámico */}
-        <div
-          className="absolute inset-0 bg-cover opacity-100"
-          style={{
-            backgroundImage:
-              "url('https://lacosmeticadeelyn.com/wp-content/uploads/2023/03/comprar-vestidos-de-fiesta.jpg')",
-          }}
-        ></div>
+    <div>
+      <HeaderCarrusel />
+      <div>
+        {/* 1. Narrativa Inmersiva: La Visión (Contenido nuevo) */}
+        <section>
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl font-semibold uppercase text-gray-800">
+              Nuestra historia
+            </h1>
+            <p className="text-xl text-gray-800 max-w-5xl mx-auto">
+              En Nova Glow, cada vestido cuenta una historia de empoderamiento,
+              brillo y elegancia. Fundada por Valentina C., nuestra marca nace
+              de la pasión por crear moda de noche que no solo deslumbre, sino
+              que inspire autenticidad y confianza real en cada mujer que la
+              lleva.
+            </p>
+          </div>
 
-        <div className="relative z-10">
-          <p className="text-lg font-semibold uppercase text-pink-300 mb-2 flex justify-center items-center">
-            {/* 🚨 CORREGIDO: Usando Aperture o Feather */}
-            <Aperture className="w-5 h-5 mr-2 animate-spin-slow" /> Moda con
-            Propósito y Pasión
+          <br />
+        </section>
+        <span className="bg-black w-full py-4 px-6 mt-10 block shadow-lg border border-pink-400/30">
+          <p className="text-lg text-white font-semibold uppercase text-center">
+            Somos más que una marca: somos un movimiento que celebra la fuerza
+            femenina a través del diseño.
           </p>
-
-          <h1 className="text-6xl font-extrabold text-white mb-4 tracking-tight animate-fade-in">
-            El Viaje Nova Glow
-          </h1>
-          <p className="text-xl font-light text-gray-200 max-w-3xl mx-auto transition-all duration-700 hover:text-white">
-            Nuestra historia es la fusión perfecta entre diseño de alta costura
-            y la búsqueda de la confianza interior.
-          </p>
-        </div>
-      </header>
-
-      {/* 1. Narrativa Inmersiva: La Visión (Contenido nuevo) */}
-      <section className="bg-pink-100 p-8 rounded-3xl shadow-xl mb-12">
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-sans text-gray-800">
-            La Noche en que Todo Comenzó
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Nova Glow nació de una simple necesidad: transformar la ropa de
-            noche. No buscábamos solo tela y lentejuelas, sino prendas que
-            encendieran la confianza. Creemos que cada mujer merece sentirse la
-            luz principal de la fiesta.
-          </p>
-        </div>
-
-        {/* CORRECCIÓN: Reemplazamos el DIV por una IMAGEN */}
-        <div className="mt-6 h-64 rounded-2xl overflow-hidden shadow-xl">
-          <img
-            // Usa una URL de imagen real aquí
-            src="https://revista-lagunas.s3.us-east-2.amazonaws.com/2023/12/1087-como-vestirse-en-navidad-los-mejores-look-y-combinaciones-101-big.jpg" // ¡Imagen insertada aquí!
-            alt="Una mujer en un vestido brillante de noche"
-            className="w-full h-full object-cover transition duration-500 hover:scale-105"
-          />
-        </div>
-      </section>
-
-      <section className="mb-16">
-        <header className="text-center mb-12">
-          <p className="text-sm font-semibold uppercase text-pink-600 mb-2 tracking-widest">
-            Nuestro Fundamento
-          </p>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800">
-            Nuestros Tres Pilares
-          </h2>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-          <Principio
-            title="Brillo Sostenible"
-            icon="✨"
-            description="Diseñamos con responsabilidad, priorizando materiales duraderos y procesos éticos para un glamour sin culpa."
-            delay={0}
-          />
-          <Principio
-            title="Ajuste Perfecto"
-            icon="📏"
-            description="Cada pieza pasa por rigurosas pruebas de ajuste para asegurar que te sientas cómoda y espectacular toda la noche."
-            delay={150}
-          />
-          <Principio
-            title="Confianza Instantánea"
-            icon="❤️"
-            description="Nuestra misión es simple: al ponerte Nova Glow, la confianza se activa al instante. Vendemos protagonismo."
-            delay={300}
-          />
-        </div>
-      </section>
-
-      <section className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 mb-12">
-        <h2 className="text-3xl font-extrabold text-pink-700 text-center mb-8">
-          Conoce al Equipo Detrás del Glamour
-        </h2>
-        <div className="flex justify-center space-x-12 flex-wrap gap-8">
-          <TeamMember
-            name="Valentina C."
-            role="Fundadora & CEO"
-            tagline="Mi pieza favorita para brillar es un buen top de satín."
-            imageUrl="https://images.imagenmia.com/model_version/1df843cb6790d0651e956078c93e0f37a1535300950019cc576ef7b8cc5d62a5/1723977778333-output.jpg"
-          />
-          <TeamMember
-            name="Shantall C."
-            role="Directora de Marketing"
-            tagline="La confianza es el mejor accesorio que una mujer puede llevar."
-            imageUrl="https://img.freepik.com/fotos-premium/imagen-mujer-entregando-paquete-fondo-impactante-diseno-limpio-sonrisa-feliz-fondo-pastel_934697-178.jpg"
-          />
-          <TeamMember
-            name="Camila C."
-            role="Jefa de Diseño"
-            tagline="Siempre inspirada por la luz de la ciudad a medianoche."
-            imageUrl="https://images.pexels.com/photos/19279369/pexels-photo-19279369.jpeg?cs=srgb&dl=pexels-s%C6%A1n-ng%E1%BB%8Dc-19279369.jpg&fm=jpg"
-          />
-          <TeamMember
-            name="Hylary R."
-            role="Gerente de Producción"
-            tagline="Cada detalle cuenta cuando se trata de crear magia."
-            imageUrl="https://img.freepik.com/fotos-premium/retrato-mujer-hermosa-sonriente-feliz_176420-15309.jpg"
-          />
-        </div>
-      </section>
-
-      <section className="grid md:grid-cols-2 gap-12 items-center">
-        {/* Texto: Misión */}
+        </span>
         <div>
-          <h2 className="text-3xl font-sans text-gray-800 mb-4 flex items-center gap-2">
-            <Heart className="w-6 h-6 text-fuchsia-500" /> Nuestra Misión
+          <PropositoMisionVision />
+        </div>
+        <section className="bg-gradient-linea-to-b from-pink-50 to-white py-20 px-6">
+          <h2 className="text-center text-4xl font-bold text-pink-500 mb-10">
+            Manifesto de Marca
           </h2>
-          <p className="text-gray-700 leading-relaxed mb-4">
-            Somos una marca impulsada por la creencia de que la moda de fiesta
-            debe empoderar. Nuestro compromiso es con la calidad, la
-            transparencia y con hacerte sentir única en cada evento.
-          </p>
-          <p className="text-gray-700 leading-relaxed font-sans font-bold">
-            ¡En Nova Glow, eres la estrella!
-          </p>
-        </div>
-        {/* Imagen: Misión */}
-        <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
-          <img
-            src="https://e00-telva.uecdn.es/assets/multimedia/imagenes/2022/10/06/16650606858239.jpg"
-            alt="Nuestra Misión Visual"
-            className="w-full h-full object-cover transition duration-500 hover:scale-105"
-          />
-        </div>
-      </section>
 
-      {/* --- Separador Visual (Opcional) --- */}
-      <hr className="border-t-2 border-fuchsia-100 mx-10" />
+          <div className="max-w-3xl mx-auto text-center text-gray-800 text-xl leading-relaxed space-y-4">
+            <p>Creemos que la noche es un escenario.</p>
+            <p>
+              Creemos en mujeres que no esperan ser vistas, sino que deciden
+              brillar.
+            </p>
+            <p>Creemos en la moda que dura, inspira y libera.</p>
+            <p>Y creemos en el poder de sentirse inolvidable.</p>
+          </div>
+        </section>
 
-      {/* 2. SECCIÓN: NUESTRA VISIÓN (Invertida) */}
-      <section className="grid md:grid-cols-2 gap-12 items-center">
-        {/* Imagen: Visión (Primera columna en dispositivos medianos) */}
-        <div className="md:order-1 relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
-          <img
-            src="https://www.clara.es/medio/2023/05/31/10-outfits-para-una-cena-informal-en-verano_c69e2aad_230531103813_1080x1349.jpg"
-            className="w-full h-full object-cover transition duration-500 hover:scale-105"
-          />
-        </div>
-        {/* Texto: Visión (Segunda columna en dispositivos medianos) */}
-        <div className="md:order-2">
-          <h2 className="text-3xl font-sans text-gray-800 mb-4 flex items-center gap-2">
-            <Eye className="w-6 h-6 text-violet-500" /> Nuestra Visión
+        <section className="py-20 px-6">
+          <h2 className="text-center text-4xl font-bold text-pink-500 mb-12">
+            Nuestro Camino
           </h2>
-          <p className="text-gray-700 leading-relaxed mb-4">
-            Nos vemos como la marca de referencia global en moda de fiesta que
-            combina lujo accesible con un compromiso genuino por la
-            sostenibilidad y el empoderamiento femenino.
+
+          <div className="relative max-w-3xl mx-auto">
+            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-pink-300 h-full"></div>
+            {[
+              { year: "2021", text: "Nace la idea de Nova Glow." },
+              {
+                year: "2022",
+                text: "Primeros prototipos y concepto de Brillo Sostenible.",
+              },
+              {
+                year: "2023",
+                text: "Lanzamiento oficial de la primera colección.",
+              },
+              {
+                year: "2024",
+                text: "Apertura de nuestra línea propia de confección.",
+              },
+              { year: "2025", text: "Expansión a ventas internacionales." },
+            ].map((item, idx) => (
+              <div key={idx} className="mb-12 flex items-start">
+                <div className="w-1/2 text-right pr-6">
+                  <h3 className="text-xl font-bold text-pink-500">
+                    {item.year}
+                  </h3>
+                </div>
+
+                <div className="w-4 h-4 bg-pink-500 rounded-full"></div>
+
+                <p className="w-1/2 pl-6 text-gray-700">{item.text}</p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <Valores />
+          </div>
+        </section>
+
+        <section className="py-20 px-6 bg-gradient-linea-to-b from-white to-pink-50/40">
+          {/* Encabezado General */}
+          <header className="text-center mb-16">
+            <p className="text-sm font-semibold uppercase text-pink-600 tracking-widest">
+              Nuestro Fundamento
+            </p>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800 uppercase">
+              Pilares & Valores de NovaGlow
+            </h2>
+          </header>
+
+          {/* Pilares */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto mb-20">
+            <FeatureCard
+              title="Brillo Sostenible"
+              description="Materiales duraderos, procesos éticos y diseño responsable para un glamour sin culpa."
+              image="/img/pilar-sostenible.jpg"
+              delay={0}
+            />
+
+            <FeatureCard
+              title="Ajuste Perfecto"
+              description="Cada prenda está probada para garantizar comodidad, seguridad y un look impecable."
+              image="/img/pilar-ajuste.jpg"
+              delay={150}
+            />
+
+            <FeatureCard
+              title="Confianza Instantánea"
+              description="Con Nova Glow, la seguridad y el protagonismo se activan desde el primer instante."
+              image="/img/pilar-confianza.jpg"
+              delay={300}
+            />
+          </div>
+        </section>
+        {/* 4. SECCIÓN: EQUIPO */}
+        <section className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 mb-12">
+          <h2 className="text-3xl font-extrabold text-pink-700 text-center mb-8">
+            Conoce al Equipo Detrás del Glamour
+          </h2>
+          <div className="flex justify-center space-x-12 flex-wrap gap-8">
+            <TeamMember
+              name="Valentina C."
+              role="Fundadora & CEO"
+              tagline="Mi pieza favorita para brillar es un buen top de satín."
+              imageUrl="https://images.imagenmia.com/model_version/1df843cb6790d0651e956078c93e0f37a1535300950019cc576ef7b8cc5d62a5/1723977778333-output.jpg"
+            />
+            <TeamMember
+              name="Shantall C."
+              role="Directora de Marketing"
+              tagline="La confianza es el mejor accesorio que una mujer puede llevar."
+              imageUrl="https://img.freepik.com/fotos-premium/imagen-mujer-entregando-paquete-fondo-impactante-diseno-limpio-sonrisa-feliz-fondo-pastel_934697-178.jpg"
+            />
+            <TeamMember
+              name="Camila C."
+              role="Jefa de Diseño"
+              tagline="Siempre inspirada por la luz de la ciudad a medianoche."
+              imageUrl="https://images.pexels.com/photos/19279369/pexels-photo-19279369.jpeg?cs=srgb&dl=pexels-s%C6%A1n-ng%E1%BB%8Dc-19279369.jpg&fm=jpg"
+            />
+            <TeamMember
+              name="Hylary R."
+              role="Gerente de Producción"
+              tagline="Cada detalle cuenta cuando se trata de crear magia."
+              imageUrl="https://img.freepik.com/fotos-premium/retrato-mujer-hermosa-sonriente-feliz_176420-15309.jpg"
+            />
+          </div>
+        </section>
+        <section className="py-20 px-6 bg-pink-50">
+          <h2 className="text-center text-4xl font-bold text-pink-500 mb-12">
+            Nuestro Proceso Creativo
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+            {[
+              { title: "Moodboards", img: "https://i.imgur.com/gS8w6n9.jpeg" },
+              {
+                title: "Selección de Materiales",
+                img: "https://i.imgur.com/5HeI4lM.jpeg",
+              },
+              {
+                title: "Confección Manual",
+                img: "https://i.imgur.com/KOaa7JM.jpeg",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-white rounded-3xl overflow-hidden shadow-lg"
+              >
+                <img src={item.img} className="w-full h-64 object-cover" />
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-pink-500">
+                    {item.title}
+                  </h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-black text-white py-20 px-6 text-center">
+          <h2 className="text-4xl font-bold mb-6">Inclusión y Diversidad</h2>
+          <p className="max-w-3xl mx-auto text-xl opacity-90">
+            Diseñamos para mujeres reales, de cuerpos reales, en todas sus historias,
+            tallas y expresiones.
           </p>
-          <p className="text-gray-700 leading-relaxed font-sans font-bold">
-            Un mundo donde cada noche es una oportunidad para brillar.
+        </section>
+
+        <section className="py-20 px-6">
+          <h2 className="text-center text-4xl font-bold text-pink-500 mb-10">
+            Historias Reales
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+            <blockquote className="p-6 bg-white shadow-xl rounded-xl border-l-4 border-pink-400">
+              “Nunca me había sentido tan segura y elegante como con su vestido.”
+              <span className="block text-pink-500 mt-3 font-semibold">— Andrea R.</span>
+            </blockquote>
+            <blockquote className="p-6 bg-white shadow-xl rounded-xl border-l-4 border-pink-400">
+              “El ajuste y la calidad son impecables. Literalmente brillé.”
+              <span className="block text-pink-500 mt-3 font-semibold">— Valeria M.</span>
+            </blockquote>
+          </div>
+        </section>
+
+        <section className="text-center py-20">
+          <h2 className="text-4xl font-bold text-pink-500 mb-6">
+            Descubre tu brillo
+          </h2>
+
+          <Link
+            to="/colecciones"
+            className="px-8 py-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition"
+          >
+            Ver Colecciones
+          </Link>
+        </section>
+
+
+
+        {/* 6. Promoción del Blog */}
+        <section className="text-center py-12 bg-pink-50 rounded-2xl shadow-inner mt-20">
+          <h2 className="text-4xl font-extrabold text-gray-800 mb-4 flex justify-center items-center gap-2">
+            <Sparkles className="w-8 h-8 text-yellow-500" />
+            Inspírate y Descubre Más
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
+            Sumérgete en nuestro blog para encontrar guías, tendencias y el
+            impulso de confianza que necesitas.
           </p>
-        </div>
-      </section>
 
-      {/* 6. Promoción del Blog */}
-      <section className="text-center py-12 bg-pink-50 rounded-2xl shadow-inner mt-20">
-        <h2 className="text-4xl font-extrabold text-gray-800 mb-4 flex justify-center items-center gap-2">
-          <Sparkles className="w-8 h-8 text-yellow-500" />
-          Inspírate y Descubre Más
-        </h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
-          Sumérgete en nuestro blog para encontrar guías, tendencias y el
-          impulso de confianza que necesitas.
-        </p>
+          {/* Tarjetas de Categorías */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
+            <CategoryPromoCard
+              title="Tendencias"
+              icon={Sun}
+              color="pink"
+              link="/inspiracion?tema=Tendencias"
+              imageUrl="http://www.tiendaunique.cl/cdn/shop/products/4244navy_2_e1173c6b-d1c1-48ad-8c5e-678abe5fdba2.jpg?v=1658170307&width=1024"
+              description="Descubre lo último en tejidos, cortes y colores de la moda nocturna global."
+            />
+            <CategoryPromoCard
+              title="Guías de Estilo"
+              icon={Feather}
+              color="violet"
+              link="/inspiracion?tema=Guia"
+              imageUrl="https://www.mujerde10.com/wp-content/uploads/2025/06/moda-outfits-de-noche-antro-juvenil-con-transparencias-5-1024x678.jpg"
+              description="Consejos prácticos para armar tu outfit perfecto para cualquier tipo de evento."
+            />
+            <CategoryPromoCard
+              title="Inspiración"
+              icon={Star}
+              color="yellow"
+              link="/inspiracion?tema=Inspiracion"
+              imageUrl="https://i.pinimg.com/564x/c5/53/a6/c553a67d99cb5d833d6828808e5e9ac4.jpg"
+              description="Artículos sobre el poder de la confianza, el empoderamiento y el brillo interior."
+            />
+          </div>
 
-        {/* Tarjetas de Categorías */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
-          <CategoryPromoCard
-            title="Tendencias"
-            icon={Sun}
-            color="pink"
-            link="/inspiracion?tema=Tendencias"
-            imageUrl="http://www.tiendaunique.cl/cdn/shop/products/4244navy_2_e1173c6b-d1c1-48ad-8c5e-678abe5fdba2.jpg?v=1658170307&width=1024"
-            description="Descubre lo último en tejidos, cortes y colores de la moda nocturna global."
-          />
-          <CategoryPromoCard
-            title="Guías de Estilo"
-            icon={Feather}
-            color="violet"
-            link="/inspiracion?tema=Guia"
-            imageUrl="https://www.mujerde10.com/wp-content/uploads/2025/06/moda-outfits-de-noche-antro-juvenil-con-transparencias-5-1024x678.jpg"
-            description="Consejos prácticos para armar tu outfit perfecto para cualquier tipo de evento."
-          />
-          <CategoryPromoCard
-            title="Inspiración"
-            icon={Star}
-            color="yellow"
-            link="/inspiracion?tema=Inspiracion"
-            imageUrl="https://i.pinimg.com/564x/c5/53/a6/c553a67d99cb5d833d6828808e5e9ac4.jpg"
-            description="Artículos sobre el poder de la confianza, el empoderamiento y el brillo interior."
-          />
-        </div>
-
-        {/* Botón de Llamado a la Acción */}
-        <Link
-          to="/inspiracion" // Asume que esta es la ruta a Blog-Inspiracion.jsx o su componente principal
-          className="inline-block bg-fuchsia-600 text-white font-semibold py-4 px-10 rounded-full text-lg hover:bg-fuchsia-700 transition duration-300 shadow-xl transform hover:scale-105"
-        >
-          Ir a la Galería de Inspiración
-        </Link>
-      </section>
-      
+          {/* Botón de Llamado a la Acción */}
+          <Link
+            to="/inspiracion" // Asume que esta es la ruta a Blog-Inspiracion.jsx o su componente principal
+            className="inline-block bg-fuchsia-600 text-white font-semibold py-4 px-10 rounded-full text-lg hover:bg-fuchsia-700 transition duration-300 shadow-xl transform hover:scale-105"
+          >
+            Ir a la Galería de Inspiración
+          </Link>
+        </section>
+      </div>
     </div>
   );
 }
