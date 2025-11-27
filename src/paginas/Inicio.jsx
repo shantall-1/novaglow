@@ -1,237 +1,371 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowRight, Star, Instagram, Sparkles, Play } from 'lucide-react'; 
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import CuponNovaGlow from '../layouts/Cupon';
+
+// Animaciones suaves
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+  }
+};
 
 const Inicio = () => {
   const [mostrarCupon, setMostrarCupon] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const targetRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: targetRef, offset: ["start start", "end start"] });
+  
+  // Parallax sutil
+  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  // --- Lógica Countdown ---
+  useEffect(() => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2); 
+    const interval = setInterval(() => {
+      const now = new Date();
+      const difference = targetDate - now;
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAbrirCupon = () => setMostrarCupon(true);
   const handleCerrarCupon = () => setMostrarCupon(false);
 
   return (
-    <div className="overflow-x-hidden bg-white selection:bg-rose-200 selection:text-rose-900 font-sans">
+    <div className="overflow-x-hidden bg-[#FFF5F7] selection:bg-pink-500 selection:text-white font-sans">
       
-      {/* CAPA DE RUIDO (Textura suave de fondo) */}
-      <div className="bg-noise fixed inset-0 z-50 pointer-events-none opacity-[0.03]"></div>
+      {/* Textura de ruido sutil */}
+      <div className="fixed inset-0 z-50 pointer-events-none opacity-[0.03] mix-blend-overlay">
+         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+      </div>
 
       {/* ==========================================================================
-         1. HERO SECTION (El que tú pediste: Dreamy & Bold)
+         1. HERO SECTION: Pink & Clean (CORREGIDO)
       ========================================================================== */}
-      <section className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 overflow-hidden">
-        {/* Fondo animado abstracto */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-rose-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse delay-700"></div>
-          <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] bg-pink-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-50"></div>
-        </div>
+      <div ref={targetRef} className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 overflow-hidden bg-linear-to-b from-white via-pink-50 to-white">
+        
+        {/* Fondos Ambientales (Solo Rosas y Blancos) */}
+        <motion.div style={{ y: yBg }} className="absolute inset-0 z-0">
+            <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-pink-200/40 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-rose-300/20 rounded-full blur-[120px]"></div>
+        </motion.div>
 
-        <div className="relative z-10 max-w-5xl space-y-6">
-          <span className="inline-block py-1 px-4 rounded-full border border-rose-300 bg-white/50 backdrop-blur-sm text-rose-600 text-xs font-bold tracking-widest uppercase mb-4 shadow-sm animate-bounce">
-            New Collection 2025
-          </span>
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="relative z-10 max-w-6xl space-y-8 pt-20"
+        >
           
-          <h1 className="text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-linear-to-r from-gray-900 via-rose-900 to-gray-900 tracking-tighter leading-[0.9]">
-            NOVA <br />
-            <span className="italic font-serif text-rose-500 hover:text-rose-400 transition-colors cursor-default">GLOW</span>
-          </h1>
+          {/* Badge */}
+          <motion.div variants={fadeInUp} className="flex justify-center">
+             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-pink-200 bg-white/80 backdrop-blur-sm text-pink-600 text-[11px] font-bold uppercase tracking-[0.2em] shadow-sm">
+                <Sparkles size={14} className="text-pink-500" /> New Collection 2025
+             </div>
+          </motion.div>
+          
+          {/* Título Gigante (Degradado Solicitado) */}
+          <motion.div variants={fadeInUp} className="relative">
+             <h1 className="text-7xl md:text-[10rem] font-black tracking-tighter leading-[0.85] select-none">
+                <span className="text-gray-900">NOVA</span>{" "}
+                <span className="italic font-serif text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600">
+                    GLOW
+                </span>
+             </h1>
+          </motion.div>
 
-          <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto font-light">
-            Moda que no solo se viste, se <span className="font-semibold text-rose-500">siente</span>. 
+          {/* Subtítulo */}
+          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-gray-600 max-w-lg mx-auto font-light leading-relaxed">
+            Moda que no solo se viste, se <span className="text-rose-500 font-medium italic">siente</span>. <br/>
             Refleja tu luz interior con nuestra colección más fresca.
-          </p>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-5 mt-8">
+          {/* Botones Interactivos */}
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-10">
             <Link
               to="/productos"
-              className="group relative px-8 py-4 bg-gray-900 text-white rounded-full font-bold text-lg overflow-hidden shadow-xl transition-all hover:scale-105 hover:shadow-rose-500/25"
+              className="group relative bg-black text-white text-lg font-bold py-4 px-12 rounded-full overflow-hidden shadow-lg hover:shadow-pink-200/50 hover:shadow-xl transition-all"
             >
-              <span className="relative z-10 group-hover:text-rose-200 transition">Ver Catálogo</span>
-              <div className="absolute inset-0 h-full w-full scale-0 rounded-full transition-all duration-300 group-hover:scale-100 group-hover:bg-gray-800/50"></div>
+              <span className="relative z-10 flex items-center gap-2">
+                 Ver Catálogo <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+              </span>
             </Link>
-
+            
             <button
               onClick={handleAbrirCupon}
-              className="px-8 py-4 bg-white/40 backdrop-blur-md border border-white text-rose-600 font-bold rounded-full text-lg shadow-lg transition-all hover:bg-white hover:scale-105"
+              className="group flex items-center gap-2 bg-white text-rose-600 font-bold py-4 px-10 rounded-full shadow-md border border-rose-100 hover:bg-rose-50 transition-all"
             >
-              🎁 Oferta Secreta
+              <Play size={18} fill="currentColor" className="text-rose-500" /> 
+              Oferta Secreta
             </button>
-          </div>
-        </div>
-      </section>
+          </motion.div>
+        </motion.div>
+      </div>
 
       {/* ==========================================================================
-         2. CINTA MARQUEE (Texto corriendo)
+         2. MARQUEE (Separador Rosa Intenso)
       ========================================================================== */}
-      <div className="py-6 bg-black rotate-1 scale-105 shadow-xl border-y-4 border-white relative z-20">
-        <div className="flex animate-marquee gap-12 whitespace-nowrap">
+      <div className="relative py-4 bg-rose-600 scale-[1.01] z-20 overflow-hidden shadow-xl">
+        <div className="flex animate-marquee gap-24 whitespace-nowrap items-center text-white">
           {[...Array(6)].map((_, i) => (
-             <span key={i} className="text-3xl md:text-5xl font-black text-white tracking-widest flex items-center gap-12">
-                NOVA GLOW <span className="text-rose-500 font-serif italic text-4xl">est. 2025</span>
-                <span className="text-transparent stroke-white text-outline-white">BE BOLD</span> 
-             </span>
+             <div key={i} className="flex items-center gap-24">
+                <span className="text-3xl font-black tracking-tighter">NOVA GLOW</span>
+                <span className="text-3xl font-serif italic opacity-80">est. 2025</span>
+                <Star className="w-5 h-5 fill-white opacity-80" />
+             </div>
           ))}
         </div>
       </div>
 
       {/* ==========================================================================
-         3. COLECCIÓN "PICK YOUR MOOD" (Diseño de tarjetas limpias/Grid)
-         Basado en tu imagen: image_494e19.jpg
+         3. EDITORIAL MANIFESTO
       ========================================================================== */}
-      <section className="py-24 px-4 bg-white relative z-10">
-        <div className="max-w-7xl mx-auto">
-            {/* Cabecera de Sección */}
-            <div className="flex justify-between items-end mb-12 border-b border-gray-100 pb-4">
-                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-900">
-                    PICK YOUR <br/> <span className="text-rose-500">MOOD</span>
-                </h2>
-                <Link to="/productos" className="hidden md:block text-lg border-b-2 border-black pb-1 font-bold hover:text-rose-500 hover:border-rose-500 transition">
-                    Ver todo →
-                </Link>
-            </div>
+      <section className="py-32 px-6 bg-white text-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="max-w-3xl mx-auto"
+          >
+              <h2 className="text-4xl md:text-5xl font-serif italic text-gray-900 leading-tight mb-8">
+                  "Tu brillo. Nuestra <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 not-italic font-sans font-black">inspiración</span>."
+              </h2>
+              <div className="w-16 h-1 bg-rose-100 mx-auto mb-8 rounded-full"></div>
+              <p className="text-gray-500 text-lg font-light max-w-xl mx-auto">
+                  En Nova Glow creemos que la moda es más que vestir bien: es una forma de expresión, un lenguaje visual y una manera de iluminar cada espacio.
+              </p>
+          </motion.div>
+      </section>
 
-            {/* Grid de 4 tarjetas (Party, Casual, Chic, Accessories) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                    { title: 'Fiesta', img: 'public/img/conjunto3.jpg' }, 
-                    { title: 'Casual', img: 'public/img/conjunto5.jpg' },
-                    { title: 'Chic', img: 'public/img/conjunto6.jpg' },
-                    { title: 'Accesorios', img: 'public/img/accesorios.jpg' },
-                ].map((cat, idx) => (
-                    <div key={idx} className="group relative h-[450px] rounded-[2.5rem] overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500">
-                        {/* Imagen de fondo */}
-                        <img 
-                            src={cat.img} 
-                            alt={cat.title} 
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        />
-                        
-                        {/* Overlay degradado suave */}
-                        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/60 opacity-60 group-hover:opacity-80 transition-opacity"></div>
-                        
-                        {/* Contenido flotante abajo */}
-                        <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between bg-white/95 backdrop-blur-md p-4 rounded-3xl transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                            <span className="font-bold text-gray-900 text-lg">{cat.title}</span>
-                            <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm group-hover:bg-rose-500 transition-colors">
-                                ➜
-                            </span>
+      {/* ==========================================================================
+         4. BENTO GRID (Vibes)
+      ========================================================================== */}
+      <section className="py-20 px-4 bg-[#FFF5F7]">
+        <div className="max-w-7xl mx-auto">
+            <motion.div 
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+                className="flex justify-between items-end mb-12 px-2"
+            >
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-900">
+                    PICK YOUR <span className="text-rose-500 italic font-serif">MOOD</span>
+                </h2>
+                <Link to="/productos" className="hidden md:flex items-center gap-2 font-bold text-sm uppercase tracking-widest border-b-2 border-black pb-1 hover:text-rose-600 hover:border-rose-600 transition group">
+                    Explorar Todo <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+                </Link>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[500px]">
+                
+                {/* Card Grande 1 */}
+                <div className="md:col-span-2 group relative rounded-[2.5rem] overflow-hidden cursor-pointer shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-pink-100">
+                    <img src="img/conjunto3.jpg" alt="Party" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute bottom-10 left-10 text-white">
+                        <h3 className="text-4xl font-black mb-2">Party Icons</h3>
+                        <p className="font-medium opacity-90 text-lg">Brilla toda la noche.</p>
+                    </div>
+                </div>
+
+                {/* Card Vertical 1 */}
+                <div className="group relative rounded-[2.5rem] overflow-hidden cursor-pointer bg-white shadow-sm transition-all hover:shadow-xl hover:shadow-pink-100">
+                    <img src="img/conjunto6.jpg" alt="Chic" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute bottom-6 left-6 right-6 text-center">
+                        <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-sm border border-white/50">
+                            <h3 className="text-lg font-bold text-gray-900">Chic & Classy</h3>
                         </div>
                     </div>
-                ))}
-            </div>
-            
-            <div className="mt-8 text-center md:hidden">
-                <Link to="/productos" className="text-lg font-bold underline">Ver todo el catálogo</Link>
+                </div>
+
+                {/* Card Vertical 2 */}
+                <div className="group relative rounded-[2.5rem] overflow-hidden cursor-pointer bg-white shadow-sm transition-all hover:shadow-xl hover:shadow-pink-100">
+                    <img src="img/conjunto5.jpg" alt="Casual" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute bottom-6 left-6 right-6 text-center">
+                        <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-sm border border-white/50">
+                            <h3 className="text-lg font-bold text-gray-900">Urban Casual</h3>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Card Grande 2 */}
+                <div className="md:col-span-2 group relative rounded-[2.5rem] overflow-hidden cursor-pointer shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-pink-100">
+                    <img src="img/accesorios.jpg" alt="Accesorios" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute bottom-10 left-10 text-white">
+                        <h3 className="text-4xl font-black mb-2">Accesorios</h3>
+                        <p className="font-medium opacity-90 text-lg">El toque final perfecto.</p>
+                    </div>
+                </div>
             </div>
         </div>
       </section>
 
-
       {/* ==========================================================================
-         4. REVIEWS SOCIAL PROOF (Diseño Animado y Limpio)
-         Basado en tu imagen: image_494d5d.jpg
+         5. TRENDING CAROUSEL (Productos Limpios)
       ========================================================================== */}
-      <section className="py-32 px-6 bg-[#FAFAFA] relative overflow-hidden">
-          {/* Fondo decorativo sutil */}
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-l from-rose-50 to-transparent pointer-events-none"></div>
-
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
-              
-              {/* IZQUIERDA: Textos y Avatares */}
-              <div>
-                  <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
-                      Ellas ya están <br/>
-                      <span className="text-transparent bg-clip-text bg-linear-to-r from-rose-400 to-purple-500">brillando.</span>
-                  </h2>
-                  <p className="text-xl text-gray-500 mb-10 font-light max-w-md">
-                    No es solo ropa, es una actitud. Únete a las chicas que ya encontraron su luz.
-                  </p>
-                  
-                  {/* Avatares superpuestos */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex -space-x-5">
-                        {[1,2,3,4].map((i) => (
-                            <div key={i} className="w-14 h-14 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-md">
-                                <img src={`https://i.pravatar.cc/150?img=${i+20}`} alt="User" className="w-full h-full object-cover" />
-                            </div>
-                        ))}
-                        <div className="w-14 h-14 rounded-full border-4 border-white bg-black text-white flex items-center justify-center font-bold text-sm shadow-md">
-                            +500
-                        </div>
-                    </div>
-                  </div>
+      <section className="py-24 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+              <div className="flex items-center gap-3 mb-12">
+                  <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
+                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">Trending Now</h2>
               </div>
-
-              {/* DERECHA: Tarjetas Flotantes (Animación suave) */}
-              <div className="relative flex flex-col gap-6">
-                  
-                  {/* Review 1 - @sofia_style */}
-                  <div className="bg-white p-8 rounded-4xl shadow-lg border border-gray-100 transform hover:-translate-y-2 transition-transform duration-300 relative animate-float">
-                      <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 font-bold text-xl">S</div>
-                          <div>
-                            <span className="font-bold text-gray-900 block">@sofia_style</span>
-                            <div className="flex text-yellow-400 text-xs">★★★★★</div>
+              
+              <div className="flex overflow-x-auto gap-6 pb-10 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing">
+                  {[1, 2, 3, 4, 5].map((item, i) => (
+                      <div key={item} className="min-w-[280px] snap-center group cursor-pointer">
+                          <div className="relative aspect-3/4 rounded-4xl overflow-hidden mb-4 bg-pink-50 shadow-sm transition-all duration-300 hover:shadow-md">
+                              <img src={`img/conjunto${item}.jpg`} alt="Product" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                              {item === 1 && <div className="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">Best Seller</div>}
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-base group-hover:text-rose-600 transition-colors">Nova Essential Top</h3>
+                          <div className="flex justify-between items-center mt-1">
+                              <p className="text-gray-500 text-sm">Satin Finish</p>
+                              <p className="font-bold text-rose-600">S/ 89.90</p>
                           </div>
                       </div>
-                      <p className="text-gray-600 font-medium">
-                        "Literalmente obsesionada con la tela. Es súper suave y el fit es perfecto. 10/10 ✨"
-                      </p>
-                  </div>
-                  
-                  {/* Review 2 - @valery.g (Desplazada hacia la derecha) */}
-                  <div className="bg-white p-8 rounded-4xl shadow-lg border border-gray-100 transform md:translate-x-12 hover:-translate-y-2 transition-transform duration-300 animate-float" style={{ animationDelay: '1s' }}>
-                      <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 font-bold text-xl">V</div>
-                          <div>
-                            <span className="font-bold text-gray-900 block">@valery.g</span>
-                            <div className="flex text-yellow-400 text-xs">★★★★★</div>
-                          </div>
-                      </div>
-                      <p className="text-gray-600 font-medium">
-                        "Llegó súper rápido y el empaque es hermoso. Me sentí como una influencer abriendo mi paquete."
-                      </p>
-                  </div>
+                  ))}
               </div>
           </div>
       </section>
 
+      {/* ==========================================================================
+         6. DROP COUNTDOWN (Fondo Negro Elegante)
+      ========================================================================== */}
+      <section className="py-32 bg-black text-white relative overflow-hidden">
+         {/* Brillos rosados sutiles */}
+         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-rose-600/20 rounded-full blur-[150px] pointer-events-none"></div>
+         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+         
+         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center relative z-10">
+            <div>
+                <div className="inline-flex items-center gap-2 text-rose-500 font-bold tracking-widest uppercase text-xs mb-6">
+                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span> Limited Edition
+                </div>
+                <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.9]">
+                    MIDNIGHT <br/> <span className="italic font-serif font-light text-white/40">VELVET</span>
+                </h2>
+                <p className="text-gray-400 text-lg mb-10 max-w-md leading-relaxed font-light">
+                    Una colección cápsula para las noches inolvidables. Texturas suaves y elegancia oscura.
+                </p>
+                
+                {/* Timer Minimalista */}
+                <div className="flex gap-10 mb-12 border-t border-white/10 pt-8">
+                    {Object.entries(timeLeft).map(([label, value]) => (
+                        <div key={label} className="text-center">
+                            <div className="text-3xl md:text-4xl font-black font-mono text-white tabular-nums">
+                                {String(value).padStart(2, '0')}
+                            </div>
+                            <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em]">{label}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <button className="bg-white text-black font-bold py-4 px-12 rounded-full hover:bg-rose-500 hover:text-white transition-all duration-300">
+                    Unirme a la Lista
+                </button>
+            </div>
+
+            <div className="relative hidden md:block h-[600px]">
+                <div className="relative rounded-[10rem] overflow-hidden h-full w-full bg-gray-900 shadow-2xl group border border-white/5">
+                    <img src="img/conjunto1.jpg" alt="Next Drop" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
+                    <div className="absolute bottom-12 w-full text-center">
+                        <p className="text-white font-serif italic text-2xl tracking-tight">Coming Soon...</p>
+                    </div>
+                </div>
+            </div>
+         </div>
+      </section>
 
       {/* ==========================================================================
-         5. NEWSLETTER / FOOTER (Oscuro y Minimalista)
+         7. SOCIAL PROOF (Limpio)
       ========================================================================== */}
-      <section className="py-32 bg-black text-white text-center relative overflow-hidden">
-        {/* Glow rojo sutil al fondo */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.3),transparent_70%)] animate-pulse"></div>
-        
+      <section className="py-24 bg-white">
+          <div className="text-center mb-16">
+              <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight uppercase">
+                  As Seen On You
+              </h2>
+              <p className="text-gray-500 font-medium flex items-center justify-center gap-2">
+                <Instagram size={18} /> @NovaGlow
+              </p>
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px] md:h-[500px]">
+              <div className="relative rounded-3xl overflow-hidden group cursor-pointer row-span-2">
+                  <img src="img/conjunto4.jpg" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
+              <div className="relative rounded-3xl overflow-hidden group cursor-pointer">
+                  <img src="img/conjunto2.jpg" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
+              </div>
+              <div className="relative rounded-3xl overflow-hidden group cursor-pointer row-span-2">
+                  <img src="img/conjunto5.jpg" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
+              </div>
+              <div className="relative rounded-3xl overflow-hidden group cursor-pointer">
+                  <img src="img/accesorios.jpg" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
+              </div>
+              
+              {/* CTA Block */}
+              <Link to="#" className="relative rounded-3xl overflow-hidden group cursor-pointer bg-rose-50 flex flex-col items-center justify-center text-rose-600 hover:bg-rose-600 hover:text-white transition-colors">
+                  <p className="font-bold text-sm uppercase tracking-wider mb-2">Ver Galería</p>
+                  <ArrowRight size={18} />
+              </Link>
+              
+              <div className="relative rounded-3xl overflow-hidden group cursor-pointer">
+                   <img src="img/conjunto6.jpg" className="w-full h-full object-cover" />
+              </div>
+          </div>
+      </section>
+
+      {/* ==========================================================================
+         8. NEWSLETTER FINAL (Elegante)
+      ========================================================================== */}
+      <section className="py-32 bg-[#FFF5F7] text-center relative overflow-hidden border-t border-pink-100">
         <div className="container mx-auto px-4 relative z-10">
-            <h2 className="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
-                DON'T MISS <br/> THE <span className="text-rose-500 italic font-serif">GLOW</span>
+            <h2 className="text-4xl md:text-7xl font-black mb-6 tracking-tighter text-gray-900">
+                JOIN THE <span className="italic font-serif text-rose-500">CLUB</span>
             </h2>
-            <p className="text-gray-400 max-w-lg mx-auto mb-10 text-lg">
-                Únete a la lista VIP. Drops exclusivos y descuentos secretos.
+            <p className="text-gray-500 max-w-md mx-auto mb-10 text-lg">
+                Acceso anticipado, ofertas secretas y vibes exclusivas directamente en tu inbox.
             </p>
             
-            <form className="max-w-md mx-auto flex gap-2 relative bg-white/10 p-2 rounded-full backdrop-blur-sm border border-white/20">
+            <form className="max-w-md mx-auto bg-white p-1.5 rounded-full flex border border-pink-200 shadow-sm focus-within:ring-2 focus-within:ring-pink-200 focus-within:border-pink-300 transition-all group">
                 <input 
                     type="email" 
                     placeholder="tu@email.com" 
-                    className="w-full bg-transparent border-none rounded-full px-6 py-3 focus:outline-none text-white placeholder:text-gray-500"
+                    className="bg-transparent w-full px-6 text-gray-900 outline-none placeholder:text-gray-400 font-medium text-sm" 
                 />
-                <button className="bg-white text-black rounded-full px-8 py-3 font-bold hover:bg-rose-500 hover:text-white transition-colors shadow-lg">
-                    Unirse
+                <button className="bg-rose-600 text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-rose-700 transition-colors flex items-center gap-2 shadow-md hover:shadow-lg">
+                    Suscribir
                 </button>
             </form>
-        </div>
-        
-        <div className="mt-20 pt-10 border-t border-gray-900 text-gray-600 text-sm font-bold tracking-widest uppercase">
-            © 2025 Nova Glow. All Rights Reserved.
         </div>
       </section>
 
       {/* CUPÓN POPUP */}
-      {mostrarCupon && (
-        <CuponNovaGlow onClose={handleCerrarCupon} onClaim={handleCerrarCupon} />
-      )}
+      <AnimatePresence>
+        {mostrarCupon && (
+            <CuponNovaGlow onClose={handleCerrarCupon} onClaim={handleCerrarCupon} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

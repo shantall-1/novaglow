@@ -120,7 +120,7 @@ export default function Suscripcion({ minimal = false }) {
             >
               <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 leading-[0.9]">
                 NO TE PIERDAS <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-500 to-purple-500 italic font-serif pr-2">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-400 via-rose-500 to-purple-500 italic font-serif pr-2">
                   EL GLOW
                 </span>
               </h2>
@@ -130,7 +130,7 @@ export default function Suscripcion({ minimal = false }) {
               </p>
 
               <form onSubmit={handleSubmit} className="max-w-md mx-auto relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-pink-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
                 <div className="relative flex items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-full p-2 transition-all focus-within:border-pink-500/50 focus-within:bg-white/15">
                   <Mail className="ml-4 text-gray-400" size={24} />
                   <input

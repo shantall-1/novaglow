@@ -92,8 +92,8 @@ const Intranet = () => {
         
         {/* Fondo Cibernético (Grid & Glow) */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
-            <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-pink-900/20 to-transparent blur-3xl"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-linear(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+            <div className="absolute top-0 left-0 right-0 h-[500px] bg-linear-to-b from-pink-900/20 to-transparent blur-3xl"></div>
         </div>
 
         <div className="relative z-10 container mx-auto px-4 py-12 max-w-6xl">
@@ -105,11 +105,11 @@ const Intranet = () => {
                 className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl relative overflow-hidden"
             >
                 {/* Barra de acento neón */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-pink-500 via-purple-500 to-blue-500"></div>
 
                 <div className="flex items-center gap-6">
                     <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center shadow-lg">
                             <Shield className="text-pink-500" size={32} />
                         </div>
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-black rounded-full animate-pulse"></div>
@@ -147,7 +147,7 @@ const Intranet = () => {
                 transition={{ delay: 0.2 }}
                 className="bg-[#0F0F0F] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl"
             >
-                <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gradient-to-r from-gray-900 to-black">
+                <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-linear-to-r from-gray-900 to-black">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         <Users className="text-gray-400" size={20} /> 
                         Base de Usuarios
@@ -180,7 +180,7 @@ const Intranet = () => {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             transition={{ delay: idx * 0.05 }}
-                                            className="hover:bg-white/[0.02] transition-colors group"
+                                            className="hover:bg-white/2 transition-colors group"
                                         >
                                             <td className="p-5">
                                                 <div className="flex items-center gap-4">

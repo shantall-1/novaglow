@@ -127,7 +127,7 @@ export default function BlogInspiracion() {
 
           <h1 className="text-6xl md:text-8xl font-black text-gray-900 tracking-tighter leading-[0.9] mb-6">
             EL DIARIO <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600 italic font-serif pr-2">GLOW</span>
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 italic font-serif pr-2">GLOW</span>
           </h1>
           
           <p className="text-xl text-gray-500 font-light max-w-2xl mx-auto">

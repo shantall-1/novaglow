@@ -56,7 +56,7 @@ const PerfilModal = ({ isOpen, onClose }) => {
       setNuevaFotoURL("");
       dispararConfeti();
       onClose();
-    } catch (err) {
+    } catch (error) {
       alert("Error al actualizar foto");
     }
     setSubiendo(false);
@@ -72,7 +72,7 @@ const PerfilModal = ({ isOpen, onClose }) => {
       });
       dispararConfeti();
       onClose();
-    } catch (err) {
+    } catch (error) {
       alert("No se pudo actualizar el nombre");
     }
     setSubiendo(false);

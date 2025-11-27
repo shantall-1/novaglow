@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 
-const CategoryPromoCard = ({ title, icon: Icon, color, link, description, imageUrl }) => (
+const CategoryPromoCard = ({ title, icon: Icon ,color, link, description, imageUrl }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className="group relative h-80 rounded-4xl overflow-hidden cursor-pointer"

@@ -12,8 +12,6 @@ import Nosotros from "./paginas/Nosotros";
 import Contacto from "./paginas/Contacto";
 import Footer from "./paginas/Footer";
 import Navbar from "./paginas/NavBar";
-import Login from "./paginas/Login";
-import Registro from "./paginas/Registro";
 import Logout from "./paginas/Logout";
 import Intranet from "./paginas/Intranet";
 import Perfil from "./paginas/Perfil";
@@ -55,8 +53,6 @@ function App() {
               <Route path="/suscripcion" element={<Suscripcion />} />
               <Route path="/intranet" element={<Intranet />} />
 
-              <Route path="/login" element={<Login />} />
-              <Route path="/registro" element={<Registro />} />
               <Route path="/logout" element={<Logout />} />
               <Route path="/perfil" element={<Perfil />} />
               
