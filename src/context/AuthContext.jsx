@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 
     await updateDoc(usuarioRef, datos);
 
-    // 🔥 Actualizar estado inmediatamente
+    // 🔥 Actualizar estado inmediatamente para reflejar cambios en la UI
     setUsuario((prev) => ({ ...prev, ...datos }));
   };
 
@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------------
-  // CAMPOS SUELTOS
+  // ACTUALIZACIONES ESPECÍFICAS
   // -----------------------------------
   const updateEmail = async (nuevoEmail) => {
     await actualizarDatosUsuario({ email: nuevoEmail });
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------------
-  // FOTO PERFIL
+  // GESTIÓN DE PERFIL (FOTO Y NOMBRE)
   // -----------------------------------
   const subirFotoPerfil = async (url) => {
     if (!auth.currentUser) return null;
@@ -150,28 +150,27 @@ export const AuthProvider = ({ children }) => {
     if (!auth.currentUser) return;
 
     const uid = auth.currentUser.uid;
-    const fotoFinal = foto ?? usuario?.foto;
+    // Si foto es null, lo guardamos como null (para borrar), si es undefined, mantenemos la actual
+    const fotoFinal = foto === null ? "" : (foto ?? usuario?.foto);
 
+    // Actualizar Auth de Firebase
     await updateProfile(auth.currentUser, {
       displayName: nombre ?? auth.currentUser.displayName,
+      photoURL: fotoFinal || "",
     });
 
+    // Actualizar Firestore
     await updateDoc(doc(db, "usuarios", uid), {
       nombre: nombre ?? auth.currentUser.displayName,
       foto: fotoFinal,
     });
 
-    const snap = await getDoc(doc(db, "usuarios", uid));
-    const data = snap.data();
-
-    setUsuario({
-      uid,
-      email: auth.currentUser.email,
-      displayName: data.nombre,
-      foto: data.foto,
-      direccion: data.direccion || "",
-      metodoPago: data.metodoPago || "",
-    });
+    // Actualizar Estado Local
+    setUsuario((prev) => ({
+        ...prev,
+        displayName: nombre ?? prev.displayName,
+        foto: fotoFinal
+    }));
   };
 
   const eliminarFotoPerfil = async () => {
@@ -179,7 +178,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------------
-  // LOGOUT
+  // LOGOUT & RESET
   // -----------------------------------
   const logout = async () => {
     await signOut(auth);
@@ -188,39 +187,35 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
-  
-// -----------------------------------
-// GUARDAR PEDIDO (VERSIÓN FINAL CORRECTA)
-// -----------------------------------
-const guardarDatosPedido = async (pedido) => {
-  if (!usuario) throw new Error("No hay usuario logueado");
+  // -----------------------------------
+  // 🔥 GUARDAR PEDIDO (VERSIÓN CORRECTA)
+  // -----------------------------------
+  const guardarDatosPedido = async (pedido) => {
+    if (!usuario) throw new Error("No hay usuario logueado");
 
-  const pedidosRef = collection(db, "usuarios", usuario.uid, "pedidos");
+    const pedidosRef = collection(db, "usuarios", usuario.uid, "pedidos");
 
-  // 🔥 AQUI SE GUARDA EL PEDIDO COMPLETO
-  await addDoc(pedidosRef, {
-    nombre: pedido.nombre,
-    email: pedido.email,
-    direccion: pedido.direccion,
-    productos: pedido.productos,   // AHORA SI SE GUARDA
-    total: pedido.total,           // AHORA SI SE GUARDA
-    metodoPago:  pedido.metodoPago,
-    numeroTarjeta: pedido.numeroTarjeta,
-    numeroTelefono: pedido.numeroTelefono, // si aplica
-    creadoEn: serverTimestamp(),
-  });
+    // 1. Guardar el pedido en la subcolección
+    await addDoc(pedidosRef, {
+      nombre: pedido.nombre,
+      email: pedido.email,
+      direccion: pedido.direccion,
+      productos: pedido.productos,   // ✅ Array de productos
+      total: pedido.total,           // ✅ Total numérico
+      metodoPago: pedido.metodoPago,
+      numeroTarjeta: pedido.numeroTarjeta || null,
+      numeroTelefono: pedido.numeroTelefono || null,
+      creadoEn: serverTimestamp(),
+    });
 
-  // 🔥 Actualizar datos del usuario
-  await actualizarDatosUsuario({
-    nombre: pedido.nombre,
-    email: pedido.email,
-    direccion: pedido.direccion,
-    metodoPago: pedido.metodoPago,
-  });
-};
-
-
-
+    // 2. Actualizar la info de contacto del usuario para futuras compras
+    await actualizarDatosUsuario({
+      nombre: pedido.nombre,
+      email: pedido.email,
+      direccion: pedido.direccion,
+      metodoPago: pedido.metodoPago,
+    });
+  };
 
   // -----------------------------------
   // OBTENER PEDIDOS
@@ -228,13 +223,15 @@ const guardarDatosPedido = async (pedido) => {
   const obtenerPedidos = async () => {
     if (!usuario) return [];
     const pedidosRef = collection(db, "usuarios", usuario.uid, "pedidos");
+    // Ordenar por fecha de creación descendente (más reciente primero)
     const q = query(pedidosRef, orderBy("creadoEn", "desc"));
+    
     const snap = await getDocs(q);
     return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   };
 
   // -----------------------------------
-  // ESCUCHAR SESIÓN (MEJORADO)
+  // ESCUCHAR CAMBIOS DE SESIÓN
   // -----------------------------------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -244,11 +241,12 @@ const guardarDatosPedido = async (pedido) => {
         return;
       }
 
+      // Sincronizar con Firestore
       const refUser = doc(db, "usuarios", user.uid);
       const snap = await getDoc(refUser);
       const data = snap.exists() ? snap.data() : {};
 
-      // 🔥 Combinar Auth + Firestore
+      // Construir objeto usuario completo
       setUsuario({
         uid: user.uid,
         email: user.email,
@@ -291,6 +289,3 @@ const guardarDatosPedido = async (pedido) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
-
-
