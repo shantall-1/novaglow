@@ -113,10 +113,7 @@ export default function ProductoDetalles() {
   };
 
   const handleAgregar = () => {
-    if (!sizeSeleccionado) {
-      alert("Por favor, selecciona una talla antes de agregar al carrito.");
-      return;
-    }
+
     const itemParaCarrito = {
       ...producto,
       price: parseFloat(precioDescuento),
@@ -272,7 +269,7 @@ export default function ProductoDetalles() {
                 </div>
 
                 <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">Talla</span>
+                    
                     <div className="flex flex-wrap gap-3">
                         {producto.sizes?.map(s => (
                             <motion.button 
