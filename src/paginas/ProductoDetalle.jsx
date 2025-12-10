@@ -212,7 +212,7 @@ export default function ProductoDetalles() {
   const [cantidad, setCantidad] = useState(1);
 
   const {
-    favoritos,
+    setFavorito,
     agregarFavorito,
     quitarFavorito,
     estaEnFavoritos,
@@ -281,7 +281,7 @@ export default function ProductoDetalles() {
   useEffect(() => {
     const unsub = suscribirseAComentarios(id);
     return () => unsub && unsub();
-  }, [id]);
+  }, [id, suscribirseAComentarios]);
 
   const toggleFavoritoYAbrirModal = async () => {
     try {

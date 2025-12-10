@@ -16,6 +16,9 @@ import Navbar from "./paginas/NavBar";
 import Logout from "./paginas/Logout";
 import Intranet from "./paginas/Intranet";
 import Perfil from "./paginas/Perfil";
+import FavoritosModal from "./paginas/FavoritosModal";
+
+
 // BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
 import AdminBlog from "./paginas/AdminBlog";
@@ -29,60 +32,78 @@ import "./App.css";
 
 function App() {
   return (
-    <>
-      <ScrollToTop />
-      
-      {/* 🎵 REPRODUCTOR GLOBAL FLOTANTE 🎵 */}
-      {/* Al ponerlo aquí, persiste en toda la navegación */}
-      <FloatingPlayer />
+    <CarritoProvider>
+      <>
+        <ScrollToTop />
+        
+        {/* 🎵 REPRODUCTOR GLOBAL FLOTANTE 🎵 */}
+        {/* Al ponerlo aquí, persiste en toda la navegación */}
+        <FloatingPlayer />
 
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        {/* 🌸 Navbar */}
-        <Navbar />
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          {/* 🌸 Navbar */}
+          <Navbar />
 
-        {/* 🧭 Contenido principal */}
-        <main className="grow pt-[72px] bg-pink-100">
-          <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/inicio" element={<Inicio />} />
-            <Route path="/productos" element={<Productos />} />
-            <Route path="/producto/:id" element={<ProductoDetalle />} />
-            <Route path="/nosotros" element={<Nosotros />} />
-            <Route path="/contacto" element={<Contacto />} />
+          {/* 🧭 Contenido principal */}
+          <main className="grow pt-[72px] bg-pink-100">
+            <Routes>
+              <Route path="/" element={<Inicio />} />
+              <Route path="/inicio" element={<Inicio />} />
+              <Route path="/productos" element={<Productos />} />
+              <Route path="/producto/:id" element={<ProductoDetalle />} />
+              <Route path="/nosotros" element={<Nosotros />} />
+              <Route path="/contacto" element={<Contacto />} />
 
-            <Route path="/inspiracion" element={<BlogInspiracion />} />
-            <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
+              <Route path="/inspiracion" element={<BlogInspiracion />} />
+              <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
 
-            <Route path="/adminblog" element={<AdminBlog />} />
-            <Route path="/suscripcion" element={<Suscripcion />} />
-            <Route path="/intranet" element={<Intranet />} />
+                <Route path="/adminblog" element={<AdminBlog />} />
+                <Route path="/suscripcion" element={<Suscripcion />} />
+                <Route path="/intranet" element={<Intranet />} />
 
-            <Route path="/logout" element={<Logout />} />
-            <Route path="/perfil" element={<Perfil />} />
-            
-            <Route
-              path="/carrito"
-              element={
-                <ProtectedRoute>
-                  <Carrito />
-                </ProtectedRoute>
-              }
-            />
+              <Route path="/logout" element={<Logout />} />
+              <Route path="/perfil" element={<Perfil />} />
+              
+              <Route
+                path="/carrito"
+                element={
+                  <ProtectedRoute>
+                    <Carrito />
+                  </ProtectedRoute>
+                }
+              />
+                <Route path="/logout" element={<Logout />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/favoritosModal" element={<FavoritosModal />} />
+                
 
-            <Route
-              path="/confirmacion"
-              element={
-                <ProtectedRoute>
-                  <Confirmacion />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </main>
 
-        <Footer />
-      </div>
-    </>
+                <Route
+                  path="/carrito"
+                  element={
+                    <ProtectedRoute>
+                      <Carrito />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/confirmacion"
+                  element={
+                    <ProtectedRoute>
+                      <Confirmacion />
+                    </ProtectedRoute>
+                  }
+                />
+
+
+              </Routes>
+            </main>
+
+            <Footer />
+          </div>
+        </>
+      </CarritoProvider>
   );
 }
 
