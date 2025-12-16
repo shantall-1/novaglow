@@ -265,3 +265,6 @@ export default function BlogInspiracion() {
     </div>
   );
 }
+
+
+            {/* 1. GRID PRINCIPAL */}
