@@ -1,115 +1,89 @@
-// src/context/ComentariosContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
-import { db, auth, googleProvider } from "../lib/firebase";
+import { createContext, useContext, useState } from "react";
 import {
   collection,
-  addDoc,
   query,
   where,
   orderBy,
   onSnapshot,
-  serverTimestamp,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp
 } from "firebase/firestore";
-import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { db } from "../lib/firebase";
+import { useAuth } from "./AuthContext";
 
 const ComentariosContext = createContext();
+
 export const useComentarios = () => useContext(ComentariosContext);
 
 export const ComentariosProvider = ({ children }) => {
-  const [comentariosPorProducto, setComentariosPorProducto] = useState({});
-  const [usuario, setUsuario] = useState(null);
-  const [unsubs, setUnsubs] = useState({}); // para manejar múltiples suscripciones
+  const { user } = useAuth();
+  const [comentarios, setComentarios] = useState([]);
 
-  // Listener auth
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      console.log("[Comentarios] auth:", u?.email || null);
-      setUsuario(u || null);
-    });
-    return () => unsub();
-  }, []);
-
-  // Suscribirse a comentarios de un producto (retorna unsubscribe)
-  const suscribirseAComentarios = (idProducto) => {
-    if (!idProducto) return () => {};
-
-    // si ya había una suscripción para ese id, retornar esa unsubscribe
-    if (unsubs[idProducto]) return unsubs[idProducto];
+  // 👂 ESCUCHAR COMENTARIOS DEL PRODUCTO
+  const escucharComentarios = (productoId) => {
+    if (!productoId) return () => {};
 
     const q = query(
       collection(db, "comentarios"),
-      where("productId", "==", String(idProducto)),
-      orderBy("createdAt", "desc")
+      where("productoId", "==", productoId),
+      orderBy("createdAt", "asc")
     );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const lista = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-        console.log(`[Comentarios] snapshot ${idProducto}:`, lista);
-        setComentariosPorProducto((prev) => ({ ...prev, [idProducto]: lista }));
-      },
-      (err) => {
-        console.error("[Comentarios] onSnapshot error:", err);
-        setComentariosPorProducto((prev) => ({ ...prev, [idProducto]: [] }));
-      }
-    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setComentarios(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
+    });
 
-    setUnsubs((prev) => ({ ...prev, [idProducto]: unsubscribe }));
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-      setUnsubs((prev) => {
-        const n = { ...prev };
-        delete n[idProducto];
-        return n;
-      });
-    };
+    return unsubscribe;
   };
 
-  // Forzar login con popup (retorna user)
-  const loginConPopup = async () => {
-    if (auth.currentUser) return auth.currentUser;
-    const res = await signInWithPopup(auth, googleProvider);
-    setUsuario(res.user);
-    return res.user;
-  };
-
-  // Agregar comentario (si no está logueada pide login)
-  const agregarComentario = async (idProducto, texto) => {
+  // ➕ AGREGAR COMENTARIO (SEGURO)
+  const agregarComentario = async (productoId, texto) => {
     if (!texto || !texto.trim()) return;
 
-    try {
-      let user = usuario;
-      if (!user) {
-        const res = await loginConPopup();
-        user = res;
-      }
-
-      const userName = user.displayName || user.email || "Usuario";
-
-      await addDoc(collection(db, "comentarios"), {
-        productId: String(idProducto),
-        texto: texto.trim(),
-        userName,
-        createdAt: serverTimestamp(),
-      });
-
-      console.log("[Comentarios] comentario añadido para", idProducto);
-      // onSnapshot se encargará de actualizar el state
-    } catch (error) {
-      console.error("[Comentarios] error agregarComentario:", error);
-      throw error;
+    if (!user) {
+      console.warn("Usuario no autenticado, no se puede comentar");
+      return;
     }
+
+    await addDoc(collection(db, "comentarios"), {
+      productoId,
+      texto: texto.trim(),
+      userId: user.uid,
+      userEmail: user.email,
+      createdAt: serverTimestamp(),
+    });
+  };
+
+  // ✏️ EDITAR COMENTARIO
+  const editarComentario = async (id, texto) => {
+    if (!texto || !texto.trim()) return;
+
+    await updateDoc(doc(db, "comentarios", id), {
+      texto: texto.trim(),
+    });
+  };
+
+  // 🗑️ BORRAR COMENTARIO
+  const borrarComentario = async (id) => {
+    await deleteDoc(doc(db, "comentarios", id));
   };
 
   return (
     <ComentariosContext.Provider
       value={{
-        comentariosPorProducto,
-        suscribirseAComentarios,
+        comentarios,
+        escucharComentarios,
         agregarComentario,
-        usuario,
+        editarComentario,
+        borrarComentario,
       }}
     >
       {children}

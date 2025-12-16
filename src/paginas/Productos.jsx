@@ -25,16 +25,18 @@ export default function Productos() {
   // Formulario
   const [modalAgregar, setModalAgregar] = useState(false);
   const [nuevoProducto, setNuevoProducto] = useState({
-    name: "",
-    category: "",
-    price: "",
-    discount: "",
-    description: "",
-    image: "",
-    colors: "",
-    rating: "",
-    stock: "",
-  });
+  name: "",
+  category: "",
+  collection: "", // 🌙 MUY IMPORTANTE
+  price: "",
+  discount: "",
+  description: "",
+  image: "",
+  colors: "",
+  rating: "",
+  stock: "",
+});
+
 
   /* -----------------------------------------------------
      CARGA SOLO DESDE FIREBASE (productosData ELIMINADO)
@@ -57,9 +59,24 @@ export default function Productos() {
         isBestSeller: p.isBestSeller ?? (Math.random() > 0.85),
       }));
 
-      setOriginalProducts(procesados);
-      setProductos(procesados);
-      setVisibleProducts(procesados.slice(0, 10));
+      const ordenados = [
+  ...procesados.filter(
+    (p) =>
+      p.collection &&
+      p.collection.toLowerCase() === "night glow x euphoria"
+  ),
+  ...procesados.filter(
+    (p) =>
+      !p.collection ||
+      p.collection.toLowerCase() !== "night glow x euphoria"
+  ),
+];
+
+setOriginalProducts(ordenados);
+setProductos(ordenados);
+setVisibleProducts(ordenados.slice(0, 10));
+
+      
     } catch (error) {
       console.error("❌ Error cargando productos:", error);
       setOriginalProducts([]);
@@ -81,31 +98,52 @@ export default function Productos() {
   }, [productos, visibleCount]);
 
   /* FILTROS */
-  const filtrarProductos = (filtros = {}) => {
-    let filtrados = [...originalProducts];
+    const filtrarProductos = (filtros = {}) => {
 
-    if (filtros.categoria && filtros.categoria !== "Todas")
-      filtrados = filtrados.filter((p) => p.category === filtros.categoria);
 
-    if (filtros.precioMin)
-      filtrados = filtrados.filter((p) => p.price >= parseFloat(filtros.precioMin));
+  let filtrados = [...originalProducts];
 
-    if (filtros.precioMax)
-      filtrados = filtrados.filter((p) => p.price <= parseFloat(filtros.precioMax));
+  if (filtros.categoria) {
+    filtrados = filtrados.filter((p) => {
+      if (filtros.categoria === "Night Glow x Euphoria") {
+        return (
+          p.collection &&
+          p.collection.trim().toLowerCase() ===
+            "night glow x euphoria"
+        );
+      }
 
-    if (filtros.nombre)
-      filtrados = filtrados.filter((p) =>
-        p.name.toLowerCase().includes(filtros.nombre.toLowerCase())
+      return (
+        p.category &&
+        p.category.trim().toLowerCase() ===
+          filtros.categoria.toLowerCase()
       );
+    });
+  }
 
-    if (filtros.orden === "asc")
-      filtrados.sort((a, b) => a.price - b.price);
-    else if (filtros.orden === "desc")
-      filtrados.sort((a, b) => b.price - a.price);
+  if (filtros.precioMin)
+    filtrados = filtrados.filter(
+      (p) => p.price >= parseFloat(filtros.precioMin)
+    );
 
-    setProductos(filtrados);
-    setVisibleCount(10);
-  };
+  if (filtros.precioMax)
+    filtrados = filtrados.filter(
+      (p) => p.price <= parseFloat(filtros.precioMax)
+    );
+
+  if (filtros.nombre)
+    filtrados = filtrados.filter((p) =>
+      p.name.toLowerCase().includes(filtros.nombre.toLowerCase())
+    );
+
+  if (filtros.orden === "asc")
+    filtrados.sort((a, b) => a.price - b.price);
+  else if (filtros.orden === "desc")
+    filtrados.sort((a, b) => b.price - a.price);
+
+  setProductos(filtrados);
+  setVisibleCount(10);
+};
 
   const handleCargarMas = async () => {
     setLoadingMore(true);
@@ -115,6 +153,7 @@ export default function Productos() {
   };
 
   /* AGREGAR PRODUCTO */
+
   const agregarProductoFirebase = async () => {
     if (!esAdmin) return;
 
@@ -153,6 +192,7 @@ export default function Productos() {
         colors: "",
         rating: "",
         stock: "",
+          collection: "",
       });
     } catch (e) {
       console.error("Error al agregar", e);
@@ -177,7 +217,8 @@ export default function Productos() {
         <aside className="md:w-64 shrink-0 z-20">
           <div className="sticky top-28">
             <Sidebar
-              categorias={["Ropa", "Maquillaje", "Accesorios"]}
+             categorias={[ "Night Glow x Euphoria", "Ropa", "Maquillaje", "Accesorios",  
+  ]}
               onFilter={filtrarProductos}
               className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-4xl p-6 shadow-xl shadow-pink-100/50"
             />
@@ -219,7 +260,14 @@ export default function Productos() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.3 }}
-                      className="group bg-white rounded-4xl p-3 shadow-sm hover:shadow-2xl hover:shadow-pink-100/60 transition-all duration-500 border border-transparent hover:border-pink-100 flex flex-col relative"
+                     className={`group bg-white rounded-4xl p-3 shadow-sm transition-all duration-500 flex flex-col relative
+  ${
+    p.collection?.trim().toLowerCase() === "night glow x euphoria"
+      ? "border-2 border-purple-500 shadow-purple-300/40 hover:shadow-purple-400/60"
+      : "border border-transparent hover:border-pink-100 hover:shadow-pink-100/60"
+  }
+`}
+
                     >
 
                       {/* IMAGEN */}
@@ -429,27 +477,51 @@ export default function Productos() {
 
               <div className="space-y-8">
 
-                {/* INFO BÁSICA */}
-                <section>
-                  <h3 className="text-lg font-bold text-gray-700 mb-3">Información Básica</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Nombre"
-                      className="bg-gray-50 border p-3 rounded-xl"
-                      value={nuevoProducto.name}
-                      onChange={(e) => setNuevoProducto({ ...nuevoProducto, name: e.target.value })}
-                    />
 
-                    <input
-                      type="text"
-                      placeholder="Categoría"
-                      className="bg-gray-50 border p-3 rounded-xl"
-                      value={nuevoProducto.category}
-                      onChange={(e) => setNuevoProducto({ ...nuevoProducto, category: e.target.value })}
-                    />
-                  </div>
-                </section>
+  {/* INFO BÁSICA */}
+  <section>
+    <h3 className="text-lg font-bold text-gray-700 mb-3">
+      Información Básica
+    </h3>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <select
+  className="bg-gray-50 border p-3 rounded-xl md:col-span-2"
+  value={nuevoProducto.collection}
+  onChange={(e) =>
+    setNuevoProducto({ ...nuevoProducto, collection: e.target.value })
+  }
+>
+  <option value="">Sin colección</option>
+  <option value="Night Glow x Euphoria">
+    Night Glow x Euphoria
+  </option>
+</select>
+
+
+      <input
+        type="text"
+        placeholder="Nombre"
+        className="bg-gray-50 border p-3 rounded-xl"
+        value={nuevoProducto.name}
+        onChange={(e) =>
+          setNuevoProducto({ ...nuevoProducto, name: e.target.value })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Categoría"
+        className="bg-gray-50 border p-3 rounded-xl"
+        value={nuevoProducto.category}
+        onChange={(e) =>
+          setNuevoProducto({ ...nuevoProducto, category: e.target.value })
+        }
+      />
+    </div>
+  </section>
+
 
                 {/* PRECIOS */}
                 <section>

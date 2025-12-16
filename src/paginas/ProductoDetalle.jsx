@@ -4,10 +4,12 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useCarrito } from "../context/CarritoContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "../context/MusicContext";
+import { addDoc, serverTimestamp } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
+import { useComentarios } from "../context/ComentariosContext";
 
 // Contexts y componentes
 import { useFavoritos } from "../context/FavoriteContext";
-import { useComentarios } from "../context/ComentariosContext";
 import ModalFavoritos from "../componentes/ModalFavoritos";
 import { auth, googleProvider } from "../lib/firebase";
 import { db } from "../lib/firebase"; // Firestore
@@ -29,10 +31,10 @@ import {
 // --- DATOS ESTÉTICOS ---
 const maquillaje = [
   {
-    id: 16,
-    nombre: "Labial rosa nude",
-    link: "https://i.pinimg.com/736x/ca/b8/29/cab8294334fe8a3d1bdcd72b3b57b25d.jpg",
-    price: 45.0,
+    productId: "x4vL8PR20CZdfDERVwyE", 
+    nombre: "Sombras tonos cálidos",
+    link: "https://i.pinimg.com/736x/18/e0/49/18e0491791e065357f0637c97933b591.jpg",
+    price: 34,
   },
   {
     id: 17,
@@ -67,12 +69,14 @@ const accesorios = [
     link: "https://i.pinimg.com/736x/80/cf/da/80cfda63ef970b64d57f177b371ace49.jpg",
     price: 29.0,
   },
+  
   {
-    id: 22,
+    productId: "1MnWi2PLGMq2xfMavsnk", // 🔥 ID REAL DE FIREBASE
     nombre: "Bolso pequeño beige",
     link: "https://i.pinimg.com/736x/18/e0/49/18e0491791e065357f0637c97933b591.jpg",
-    price: 120.0,
+    price: 123,
   },
+
   {
     id: 23,
     nombre: "Pulsera con charms",
@@ -162,6 +166,8 @@ const canciones = [
   },
 ];
 
+
+
 const frasesPositivas = [
   "Eres más fuerte de lo que crees.",
   "La moda no te define, tu actitud sí.",
@@ -198,6 +204,13 @@ export default function ProductoDetalles() {
   const [colorSeleccionado, setColorSeleccionado] = useState("");
   const [tallaSeleccionada, setTallaSeleccionada] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [review, setReview] = useState("");
+  const [reviews, setReviews] = useState([]);
+
+  // MOOD BOOSTER 
+const [frases, setFrases] = useState([]);
+const [nuevaFrase, setNuevaFrase] = useState("");
+
 
   // 🟣 useEffect PARA TRAER PRODUCTO
   useEffect(() => {
@@ -208,6 +221,7 @@ export default function ProductoDetalles() {
 
         if (snap.exists()) {
   const data = snap.data();
+
 
   // 🔹 Normalizamos todos los campos
   const productoNormalizado = {
@@ -250,6 +264,7 @@ export default function ProductoDetalles() {
 
 
 
+
   const {
     setFavorito,
     agregarFavorito,
@@ -259,10 +274,41 @@ export default function ProductoDetalles() {
     loginConPopup,
   } = useFavoritos();
   const [favoritosModal, setFavoritosModal] = useState(false);
-  const { suscribirseAComentarios, comentariosPorProducto, agregarComentario } =
-    useComentarios();
-  const [review, setReview] = useState("");
-  const reviews = comentariosPorProducto[id] || [];
+
+  const {
+  comentarios,
+  escucharComentarios,
+  agregarComentario,
+  editarComentario,
+  borrarComentario,
+} = useComentarios();
+
+  // 🔹 useEffect para escuchar comentarios
+useEffect(() => {
+  if (!id) return;
+  const unsub = escucharComentarios(id); // escucha solo este producto
+  return () => {
+    if (typeof unsub === "function") unsub();
+  };
+}, [id, escucharComentarios]);
+
+// 🔹 useEffect para filtrar reviews
+useEffect(() => {
+  setReviews(comentarios.filter(c => c.productoId === id));
+}, [comentarios, id]);
+
+
+useEffect(() => {
+  const q = collection(db, "frasesMood");
+
+  const unsub = onSnapshot(q, (snap) => {
+    setFrases(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+
+  return () => unsub();
+}, []);
+
+  
 
   // ✅ FILTRO VISUAL:
   // Creamos una lista pequeña SOLO para mostrar los botones que quieres.
@@ -303,10 +349,7 @@ export default function ProductoDetalles() {
     agregarAlCarrito(itemParaCarrito, cantidad);
   };
 
-  useEffect(() => {
-    const unsub = suscribirseAComentarios(id);
-    return () => unsub && unsub();
-  }, [id, suscribirseAComentarios]);
+  
 
   const toggleFavoritoYAbrirModal = async () => {
     try {
@@ -331,16 +374,34 @@ export default function ProductoDetalles() {
   };
 
   const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!review.trim()) return;
-    try {
-      await agregarComentario(id, review.trim());
-      setReview("");
-    } catch (err) {
-      console.error("Error guardando comentario:", err);
-    }
-  };
+  e.preventDefault();
+  if (!review.trim()) return;
+  if (!user) return alert("Debes iniciar sesión para comentar");
+  
 
+
+
+  try {
+    await agregarComentario(id, review.trim());
+    setReview("");
+  } catch (err) {
+    console.error("Error guardando comentario:", err);
+  }
+};
+
+
+  const esFavorito =
+  producto && typeof estaEnFavoritos === "function"
+    ? estaEnFavoritos(producto.id)
+    : false;
+
+if (!producto) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 font-bold text-xl">Cargando producto...</p>
+    </div>
+  );
+}
   const formatDate = (item) => {
     const ts = item.createdAt || item.fecha;
     try {
@@ -353,13 +414,7 @@ export default function ProductoDetalles() {
     }
   };
 
-  if (!producto) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500 font-bold text-xl">Cargando producto...</p>
-    </div>
-  );
-}
+  
 
   return (
     <div className="min-h-screen relative font-sans overflow-x-hidden bg-white selection:bg-rose-200 selection:text-rose-900 pb-20 pt-24">
@@ -533,20 +588,22 @@ export default function ProductoDetalles() {
               </motion.button>
 
               <motion.button
-                onClick={toggleFavoritoYAbrirModal}
-                whileHover={{ scale: 1.1, rotate: 10 }}
-                whileTap={{ scale: 0.9 }}
-                className={`p-3 rounded-full border-2 transition-all ${
-                  estaEnFavoritos(producto.id)
-                    ? "border-rose-500 bg-rose-50 text-rose-500"
-                    : "border-gray-200 bg-white text-gray-400 hover:border-rose-300 hover:text-rose-400"
-                }`}
-              >
-                <Heart
-                  size={24}
-                  fill={estaEnFavoritos(producto.id) ? "currentColor" : "none"}
-                />
-              </motion.button>
+  onClick={toggleFavoritoYAbrirModal}
+  whileHover={{ scale: 1.1, rotate: 10 }}
+  whileTap={{ scale: 0.9 }}
+  className={`p-3 rounded-full border-2 transition-all ${
+    esFavorito
+      ? "border-rose-500 bg-rose-50 text-rose-500"
+      : "border-gray-200 bg-white text-gray-400 hover:border-rose-300 hover:text-rose-400"
+  }`}
+>
+  <Heart
+    size={24}
+    fill={esFavorito ? "currentColor" : "none"}
+  />
+</motion.button>
+
+
             </div>
             <p className="text-xs text-gray-400 font-medium text-center sm:text-left">
               Stock disponible:{" "}
@@ -577,7 +634,8 @@ export default function ProductoDetalles() {
                 viewport={{ once: true, margin: "-50px" }}
               >
                 {maquillaje.map((item) => (
-                  <motion.div key={item.id} variants={itemVariants}>
+                  <motion.div key={item.id || item.productId} variants={itemVariants}>
+
                     <div className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all block bg-white h-full cursor-pointer">
                       <div className="overflow-hidden rounded-2xl h-40">
                         <img
@@ -613,7 +671,8 @@ export default function ProductoDetalles() {
                 viewport={{ once: true, margin: "-50px" }}
               >
                 {accesorios.map((item) => (
-                  <motion.div key={item.id} variants={itemVariants}>
+                  <motion.div key={item.id || item.productId} variants={itemVariants}>
+
                     <div className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all block bg-white h-full cursor-pointer">
                       <div className="overflow-hidden rounded-2xl h-40">
                         <img
@@ -643,17 +702,55 @@ export default function ProductoDetalles() {
               <h2 className="text-3xl font-black text-gray-900 mb-8">
                 MOOD BOOSTER ✨
               </h2>
-              <div className="flex flex-wrap justify-center gap-4 mb-10">
-                {frasesPositivas.map((fr, i) => (
-                  <motion.span
-                    key={i}
-                    whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
-                    className="bg-white px-6 py-3 rounded-full shadow-sm text-sm font-bold text-gray-600 cursor-default border border-white/50"
-                  >
-                    {fr}
-                  </motion.span>
-                ))}
-              </div>
+              <form
+  onSubmit={async (e) => {
+    e.preventDefault();
+    if (!nuevaFrase.trim()) return;
+
+    await addDoc(collection(db, "frasesMood"), {
+      texto: nuevaFrase,
+      createdAt: serverTimestamp(),
+    });
+
+    setNuevaFrase("");
+  }}
+  className="mb-8 flex justify-center gap-3"
+>
+  <input
+    value={nuevaFrase}
+    onChange={(e) => setNuevaFrase(e.target.value)}
+    placeholder="Escribe tu frase ✨"
+    className="px-6 py-3 rounded-full border border-gray-200 shadow-sm w-72 text-sm"
+  />
+  <button className="bg-rose-500 text-white px-6 py-3 rounded-full font-bold">
+    Publicar
+  </button>
+</form>
+
+            <div className="flex flex-wrap justify-center gap-4 mb-10">
+  {/* Frases fijas */}
+  {frasesPositivas.map((texto, i) => (
+    <motion.span
+      key={`static-${i}`}
+      whileHover={{ scale: 1.05 }}
+      className="bg-white px-6 py-3 rounded-full shadow-sm text-sm font-bold text-gray-600"
+    >
+      {texto}
+    </motion.span>
+  ))}
+
+  {/* Frases de Firebase */}
+  {frases.map((f) => (
+    <motion.span
+      key={f.id}
+      whileHover={{ scale: 1.05 }}
+      className="bg-white px-6 py-3 rounded-full shadow-sm text-sm font-bold text-gray-600"
+    >
+      {f.texto}
+    </motion.span>
+  ))}
+</div>
+
 
               <div className="inline-flex flex-col items-center bg-white/50 p-6 rounded-[2rem] backdrop-blur-sm border border-white shadow-lg">
                 <span className="w-full text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
@@ -705,6 +802,7 @@ export default function ProductoDetalles() {
         </div>
 
         {/* === SECCIÓN DE RESEÑAS === */}
+
         <div className="mt-20">
           <div className="bg-white/80 backdrop-blur-xl rounded-[3rem] shadow-xl p-8 md:p-12 border border-white">
             <h2 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3">
@@ -735,6 +833,7 @@ export default function ProductoDetalles() {
             <div className="space-y-6">
               {reviews.length > 0 ? (
                 reviews.map((r) => (
+
                   <motion.div
                     key={r.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -753,6 +852,53 @@ export default function ProductoDetalles() {
                         </span>
                       </h4>
                       <p className="text-gray-600 mt-2 italic">"{r.texto}"</p>
+
+                  
+<div className="flex gap-3 mt-3 text-xs font-bold text-gray-400">
+  <button
+    onClick={() => {
+      const nuevo = prompt("Editar comentario:", r.texto);
+      if (nuevo) editarComentario(r.id, nuevo);
+    }}
+    className="hover:text-gray-900"
+  >
+    Editar
+  </button>
+
+  <button
+    onClick={() => {
+      if (confirm("¿Eliminar comentario?")) borrarComentario(r.id);
+    }}
+    className="hover:text-red-500"
+  >
+    Eliminar
+  </button>
+
+  <button
+    onClick={() => {
+      const resp = prompt("Responder comentario:");
+      if (resp) responderComentario(id, r.id, resp);
+    }}
+    className="hover:text-rose-500"
+  >
+    Responder
+  </button>
+</div>
+
+
+
+                        {reviews
+  .filter((x) => x.respuestaA === r.id)
+  .map((resp) => (
+    <div
+      key={resp.id}
+      className="ml-10 mt-3 bg-rose-50 p-3 rounded-xl text-sm"
+    >
+      <strong>{resp.userName}:</strong> {resp.texto}
+    </div>
+  ))}
+
+
                     </div>
                   </motion.div>
                 ))

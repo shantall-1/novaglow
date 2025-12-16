@@ -8,8 +8,8 @@ import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import { CarritoProvider } from "./context/CarritoContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
-import { ComentariosProvider } from "./context/ComentariosContext";
 import { MusicProvider } from "./context/MusicContext"; // <--- IMPORTAR ESTO
+import { ComentariosProvider } from "./context/ComentariosContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
