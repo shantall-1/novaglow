@@ -82,12 +82,12 @@ export default function FloatingPlayer() {
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         
         // 🔥 CAMBIO CLAVE 1: overflow-visible cuando está minimizado para que se vea el tooltip
-        className={`fixed bottom-6 left-6 z-[9999] bg-black/90 backdrop-blur-xl border border-white/20 shadow-2xl ${isMinimized ? 'overflow-visible' : 'overflow-hidden'}`}
+        className={`fixed bottom-6 left-6 z-9999 bg-black/90 backdrop-blur-xl border border-white/20 shadow-2xl ${isMinimized ? 'overflow-visible' : 'overflow-hidden'}`}
     >
         {/* === IFRAME FANTASMA === */}
         <div className={isMinimized ? "absolute opacity-0 pointer-events-none w-0 h-0" : "w-full h-full absolute inset-0 rounded-2xl overflow-hidden"}>
              {!isMinimized && (
-                 <div className="absolute top-[3.5rem] left-4 right-4 h-40 rounded-2xl overflow-hidden z-0 bg-black/50" />
+                 <div className="absolute top-14left-4 right-4 h-40 rounded-2xl overflow-hidden z-0 bg-black/50" />
              )}
              <iframe 
                 id="yt-player-frame" 
@@ -130,7 +130,7 @@ export default function FloatingPlayer() {
                         if (diffX < 5 && diffY < 5) setIsMinimized(false);
                     }}
                 >
-                    <div className="w-10 h-10 bg-gradient-to-tr from-rose-500 to-purple-600 rounded-full flex items-center justify-center animate-spin-slow pointer-events-none relative z-10">
+                    <div className="w-10 h-10 bg-linear-to-tr from-rose-500 to-purple-600 rounded-full flex items-center justify-center animate-spin-slow pointer-events-none relative z-10">
                         <Disc size={20} className="text-white" />
                     </div>
 
@@ -159,7 +159,7 @@ export default function FloatingPlayer() {
                     >
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <div className="w-10 h-10 bg-gradient-to-tr from-rose-500 to-purple-600 rounded-full flex items-center justify-center animate-spin-slow shadow-lg shadow-rose-500/30">
+                                <div className="w-10 h-10 bg-linear-to-tr from-rose-500 to-purple-600 rounded-full flex items-center justify-center animate-spin-slow shadow-lg shadow-rose-500/30">
                                     <Disc size={20} className="text-white" />
                                 </div>
                                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></span>

@@ -19,7 +19,8 @@ import {
   addDoc,
   getDocs,
   query,
-  orderBy
+  orderBy,
+  where
 } from "firebase/firestore";
 
 const AuthContext = createContext();
@@ -84,6 +85,7 @@ export const AuthProvider = ({ children }) => {
       foto: data.foto || user.photoURL,
       direccion: data.direccion || "",
       metodoPago: data.metodoPago || "",
+      telefono: data.telefono || "",
     });
 
     return user;
@@ -113,6 +115,7 @@ export const AuthProvider = ({ children }) => {
       foto: fotoURL,
       direccion: "",
       metodoPago: "",
+      telefono: "",
     });
 
     return user;
@@ -188,44 +191,54 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
   // -----------------------------------
-  // 🔥 GUARDAR PEDIDO (VERSIÓN CORRECTA)
-  // -----------------------------------
-  const guardarDatosPedido = async (pedido) => {
-    if (!usuario) throw new Error("No hay usuario logueado");
+// 🔥 GUARDAR PEDIDO EN COLECCIÓN "pedidos" (NO dentro de usuarios)
+// -----------------------------------
+const guardarDatosPedido = async (pedido) => {
+  if (!usuario) throw new Error("No hay usuario logueado");
 
-    const pedidosRef = collection(db, "usuarios", usuario.uid, "pedidos");
+  // Guardar en colección global "pedidos"
+  await addDoc(collection(db, "pedidos"), {
+    userId: usuario.uid,
+    nombre: pedido.nombre,
+    email: pedido.email,
+    direccion: pedido.direccion,
+    productos: pedido.productos,
+    total: pedido.total,
+    metodoPago: pedido.metodoPago,
+    numeroTarjeta: pedido.numeroTarjeta || null,
+    numeroTelefono: pedido.numeroTelefono || null, // ✔ TELÉFONO
+    creadoEn: serverTimestamp(),
+  });
 
-    // 1. Guardar el pedido en la subcolección
-    await addDoc(pedidosRef, {
-      nombre: pedido.nombre,
-      email: pedido.email,
-      direccion: pedido.direccion,
-      productos: pedido.productos,   // ✅ Array de productos
-      total: pedido.total,           // ✅ Total numérico
-      metodoPago: pedido.metodoPago,
-      numeroTarjeta: pedido.numeroTarjeta || null,
-      numeroTelefono: pedido.numeroTelefono || null,
-      creadoEn: serverTimestamp(),
-    });
+  // Actualizar datos de contacto para futuras compras
+  await actualizarDatosUsuario({
+    nombre: pedido.nombre,
+    email: pedido.email,
+    direccion: pedido.direccion,
+    metodoPago: pedido.metodoPago,
+    telefono: pedido.numeroTelefono,
+  });
 
-    // 2. Actualizar la info de contacto del usuario para futuras compras
-    await actualizarDatosUsuario({
-      nombre: pedido.nombre,
-      email: pedido.email,
-      direccion: pedido.direccion,
-      metodoPago: pedido.metodoPago,
-    });
-  };
+  // Actualizar estado local
+  setUsuario((prev) => ({
+    ...prev,
+    displayName: pedido.nombre,
+    email: pedido.email,
+    direccion: pedido.direccion,
+    metodoPago: pedido.metodoPago,
+    telefono: pedido.numeroTelefono,
+  }));
+};
 
   // -----------------------------------
   // OBTENER PEDIDOS
   // -----------------------------------
   const obtenerPedidos = async () => {
     if (!usuario) return [];
-    const pedidosRef = collection(db, "usuarios", usuario.uid, "pedidos");
+    const pedidosRef = collection(db, "pedidos");
     // Ordenar por fecha de creación descendente (más reciente primero)
-    const q = query(pedidosRef, orderBy("creadoEn", "desc"));
-    
+    const q = query(pedidosRef, where("userId", "==", usuario.uid), orderBy("creadoEn", "desc"));
+
     const snap = await getDocs(q);
     return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   };
@@ -254,6 +267,7 @@ export const AuthProvider = ({ children }) => {
         foto: data.foto || user.photoURL || "",
         direccion: data.direccion || "",
         metodoPago: data.metodoPago || "",
+        telefono: data.telefono || "", // <--- Añadido teléfono 
       });
 
       setCargando(false);
