@@ -100,19 +100,36 @@ export default function BlogInspiracion() {
     if (!confirm("¿Seguro que quieres eliminar este artículo?")) return;
     await deleteDoc(doc(db, "articulos", id));
   };
+  
+  const videoBgUrl =
+  "https://www.pexels.com/es-es/download/video/4899615/";
 
   return (
-    <div className="min-h-screen bg-[#FDFBFD] text-gray-800 font-sans selection:bg-pink-200 selection:text-pink-900 relative overflow-hidden">
-      
-      {/* Fondo Decorativo */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-         <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-         <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-pink-300/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse"></div>
-         <div className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] bg-rose-200/30 rounded-full blur-[100px] mix-blend-multiply"></div>
-      </div>
+  <div className="min-h-screen bg-[#FDFBFD] text-gray-800 font-sans selection:bg-pink-200 selection:text-pink-900 relative overflow-hidden">
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-28 pb-12">
-        
+    {/* 🎥 FONDO VIDEO + DECORATIVO */}
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2 }}
+        className="absolute inset-0"
+      >
+        <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+          <source src={videoBgUrl} type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/30" />
+      </motion.div>
+
+      <div className="absolute inset-0 opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-pink-300/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" />
+      <div className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] bg-rose-200/30 rounded-full blur-[100px] mix-blend-multiply" />
+    </div>
+
+    {/* ✅ ESTE DIV FALTABA */}
+    <div className="relative z-10 max-w-7xl mx-auto px-6 pt-28 pb-12">
+   
+
         {/* 🌸 HEADER EDITORIAL */}
         <motion.header 
             initial={{ opacity: 0, y: 20 }}

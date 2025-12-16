@@ -203,6 +203,8 @@ export default function AdminBlog() {
     setLoadingEnviar(false);
   };
 
+  
+
   return (
     <>
       {/* FONDO CON VIDEO */}
