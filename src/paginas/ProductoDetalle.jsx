@@ -25,6 +25,7 @@ import {
   Check,
 } from "lucide-react";
 
+
 // --- DATOS ESTÉTICOS ---
 const maquillaje = [
   {
@@ -188,31 +189,69 @@ export default function ProductoDetalles() {
   const { id } = useParams();
   const { agregarAlCarrito } = useCarrito();
 
-  // ✅ Traemos activeSong para saber cuál está sonando y pintar el botón de rosa
+  // música
   const { playSong, activeSong } = useMusic();
 
+  // ESTADOS — deben ir TODOS arriba siempre
   const [producto, setProducto] = useState(null);
-
-  // --- EFECTO PARA TRAER PRODUCTO ---
- useEffect(() => {
-  if (!producto) return; // Evita que se ejecute si producto es null
-
-  setImagenPrincipal(producto.gallery?.[0] || producto.image);
-  setColorSeleccionado(producto.colors?.[0] || "");
-  setSizeSeleccionado(producto.sizes?.[0] || "");
-  setCantidad(1);
-  window.scrollTo(0, 0);
-}, [id, producto]);
-
-
-
-  const [imagenPrincipal, setImagenPrincipal] = useState("");
+  const [imagenActual, setImagenActual] = useState("");
   const [colorSeleccionado, setColorSeleccionado] = useState("");
-  const [sizeSeleccionado, setSizeSeleccionado] = useState("");
+  const [tallaSeleccionada, setTallaSeleccionada] = useState("");
   const [cantidad, setCantidad] = useState(1);
 
+  // 🟣 useEffect PARA TRAER PRODUCTO
+  useEffect(() => {
+    const traerProducto = async () => {
+      try {
+        const ref = doc(db, "productos", id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+  const data = snap.data();
+
+  // 🔹 Normalizamos todos los campos
+  const productoNormalizado = {
+    id: snap.id,
+    category: data.category || "Ropa",
+    colors: Array.isArray(data.colors) ? data.colors : [data.colors || "unico"],
+    sizes: Array.isArray(data.sizes) ? data.sizes : [data.sizes || "unico"],
+    creador: data.creador || "desconocido",
+    description: data.description || "",
+    discount: Number(data.discount) || 0,
+    image: data.image || "",
+    gallery: data.gallery || [],
+    name: data.name || "Producto",
+    price: Number(data.price) || 0,
+    rating: Number(data.rating) || 0,
+    stock: Number(data.stock) || 0,
+  };
+
+  setProducto(productoNormalizado);
+
+  // inicializar estados basados en el producto normalizado
+  setImagenActual(productoNormalizado.gallery[0] || productoNormalizado.image);
+  setColorSeleccionado(productoNormalizado.colors[0]);
+  setTallaSeleccionada(productoNormalizado.sizes[0]);
+  setCantidad(1);
+} else {
+  console.warn("Producto no encontrado:", id);
+  setProducto(null);
+}
+
+
+      } catch (error) {
+        console.error("Error obteniendo producto:", error);
+        setProducto(null);
+      }
+    };
+
+    if (id) traerProducto();
+  }, [id]);
+
+
+
   const {
-    favoritos,
+    setFavorito,
     agregarFavorito,
     quitarFavorito,
     estaEnFavoritos,
@@ -237,20 +276,6 @@ export default function ProductoDetalles() {
       ).toFixed(2)
     : 0;
 
-  useEffect(() => {
-    setImagenPrincipal(producto.gallery?.[0] || producto.image);
-    setColorSeleccionado(producto.colors?.[0] || "");
-    setSizeSeleccionado(producto.sizes?.[0] || "");
-    setCantidad(1);
-    window.scrollTo(0, 0);
-  }, [id, producto]);
-
-  if (!producto)
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        Cargando producto...
-      </div>
-    );
 
   const renderStars = (rating) => {
     const safeRating = rating || 0;
@@ -271,8 +296,8 @@ export default function ProductoDetalles() {
     const itemParaCarrito = {
       ...producto,
       price: parseFloat(precioDescuento),
-      image: imagenPrincipal,
-      size: sizeSeleccionado,
+      image: imagenActual,
+      size: tallaSeleccionada,
       color: colorSeleccionado,
     };
     agregarAlCarrito(itemParaCarrito, cantidad);
@@ -281,7 +306,7 @@ export default function ProductoDetalles() {
   useEffect(() => {
     const unsub = suscribirseAComentarios(id);
     return () => unsub && unsub();
-  }, [id]);
+  }, [id, suscribirseAComentarios]);
 
   const toggleFavoritoYAbrirModal = async () => {
     try {
@@ -328,6 +353,14 @@ export default function ProductoDetalles() {
     }
   };
 
+  if (!producto) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 font-bold text-xl">Cargando producto...</p>
+    </div>
+  );
+}
+
   return (
     <div className="min-h-screen relative font-sans overflow-x-hidden bg-white selection:bg-rose-200 selection:text-rose-900 pb-20 pt-24">
       {/* === FONDO ANIMADO === */}
@@ -348,10 +381,11 @@ export default function ProductoDetalles() {
           {/* GALERÍA */}
           <div className="relative w-full h-[500px] rounded-[2rem] overflow-hidden bg-gray-100 shadow-inner">
             <img
-              src={imagenPrincipal}
-              alt={producto.name}
-              className="w-full h-full object-cover transition-transform duration-700"
-            />
+  src={imagenActual}
+  alt={producto.name}
+  className="w-full h-full object-cover transition-transform duration-700"
+/>
+
             {producto.discount > 0 && (
               <span className="absolute top-4 left-4 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                 -{producto.discount}% OFF
@@ -450,11 +484,11 @@ export default function ProductoDetalles() {
                   {producto.sizes?.map((s) => (
                     <motion.button
                       key={s}
-                      onClick={() => setSizeSeleccionado(s)}
+                      onClick={() => setTallaSeleccionada(s)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                        sizeSeleccionado === s
+                       tallaSeleccionada === s
                           ? "bg-gray-900 text-white shadow-lg transform scale-105"
                           : "bg-white text-gray-600 border border-gray-200 hover:border-rose-300"
                       }`}

@@ -368,13 +368,14 @@ export default function Productos() {
                 <FaTimes size={20} />
               </button>
 
-              <div className="md:w-1/2 h-64 md:h-auto bg-gray-100">
-                <img
-                  src={productoSeleccionado.image}
-                  alt={productoSeleccionado.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <div className="md:w-1/2 flex items-center justify-center bg-gray-100 p-4">
+  <img
+    src={productoSeleccionado.image}
+    alt={productoSeleccionado.name}
+    className="max-w-[400px] max-h-[400px] object-contain rounded-2xl shadow-lg"
+  />
+</div>
+
 
               <div className="md:w-1/2 p-8 md:p-12">
                 <h2 className="text-3xl font-black text-gray-900 mb-4">
@@ -555,4 +556,3 @@ export default function Productos() {
     </div>
   );
 }
-

@@ -10,6 +10,7 @@ export default function Carrito() {
     carrito,
     eliminarDelCarrito,
     actualizarCantidad,
+    actualizarTalla,
     total,
     vaciarCarrito,
   } = useCarrito();
@@ -39,6 +40,23 @@ export default function Carrito() {
       }));
     }
   }, [usuario]);
+
+const handleEditarTalla = (item) => {
+  if (!item.talla) {
+    alert("Este producto no tiene talla.");
+    return;
+  }
+
+  const nuevaTalla = prompt(
+    "Ingresa la nueva talla (S, M, L, XL):",
+    item.talla
+  );
+
+  if (!nuevaTalla) return;
+
+  actualizarCantidad(item.id, item.cantidad); // mantiene cantidad
+  actualizarTalla(item.id, nuevaTalla);
+};
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
@@ -157,9 +175,20 @@ export default function Carrito() {
                               <h3 className="font-bold text-xl text-gray-900">{item.name}</h3>
                               <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">{item.category}</p>
                            </div>
+
+                             {item.category === "ropa" && item.talla && (
+                                 <button
+                                     onClick={() => handleEditarTalla(item)}
+                                     className="text-rose-500 text-xs font-bold underline mt-1 hover:text-rose-700 transition"
+                                 >
+                                     Editar talla (actual: {item.talla})
+                                 </button>
+                             )}
+
+
                            <p className="hidden sm:block font-black text-xl text-gray-900">${(item.price * item.cantidad).toFixed(2)}</p>
                         </div>
-                        
+                      
                         <div className="flex items-center justify-between sm:justify-start gap-6 mt-4">
                             <p className="sm:hidden font-black text-xl text-gray-900">${(item.price * item.cantidad).toFixed(2)}</p>
                             

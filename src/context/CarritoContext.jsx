@@ -23,6 +23,14 @@ export function CarritoProvider({ children }) {
     cargarCarrito();
   }, [usuario]);
 
+const actualizarTalla = (id, nuevaTalla) => {
+  setCarrito((prev) =>
+    prev.map((item) =>
+      item.id === id ? { ...item, talla: nuevaTalla } : item
+    )
+  );
+};
+
   // 🔹 Guardar carrito en Firebase
   const guardarCarritoFirebase = async (items) => {
     if (!usuario) return;
@@ -104,6 +112,7 @@ export function CarritoProvider({ children }) {
         actualizarCantidad,
         vaciarCarrito,
         restaurarProductos,
+        actualizarTalla,
         total,
       }}
     >
