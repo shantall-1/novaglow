@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, MapPin, CreditCard, Save, CheckCircle, AlertCircle } from "lucide-react";
@@ -6,16 +6,26 @@ import { useAuth } from "../context/AuthContext";
 import confetti from "canvas-confetti";
 
 const EditarDatosModal = ({ isOpen, onClose }) => {
-  const { usuario, updateEmail, updateDireccion, updateMetodoPago } = useAuth();
+  const { usuario, actualizarDatosUsuario} = useAuth();
 
   // Estados locales inicializados con datos del usuario
-  const [nuevoCorreo, setNuevoCorreo] = useState(usuario?.email || "");
+  const [nuevoNombre, setNuevoNombre] = useState(usuario?.displayName || usuario?.nombre || "");
   const [nuevaDireccion, setNuevaDireccion] = useState(usuario?.direccion || "");
   const [nuevoMetodoPago, setNuevoMetodoPago] = useState(usuario?.metodoPago || "");
   
+  const [nuevoTelefono, setNuevoTelefono] = useState(usuario?.telefono || "");
+
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState(null);
   const [tipoMensaje, setTipoMensaje] = useState(""); // 'success' o 'error'
+
+  // 🔥 Actualizar valores desde AuthContext
+  useEffect(() => {
+    setNuevoNombre(usuario?.displayName || usuario?.nombre || "");
+    setNuevaDireccion(usuario?.direccion || "");
+    setNuevoMetodoPago(usuario?.metodoPago || "");
+    setNuevoTelefono(usuario?.telefono || "");
+  }, [usuario]);
 
   if (!usuario) return null;
 
@@ -40,43 +50,52 @@ const EditarDatosModal = ({ isOpen, onClose }) => {
   };
 
   // --- VALIDACIONES ---
-  const validarCorreo = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
+  
 
   // --- GUARDAR ---
   const guardarDatos = async () => {
     setMensaje(null);
 
     // Validaciones Locales
-    if (!validarCorreo(nuevoCorreo)) {
+    if (!nuevoNombre.trim()) {
       setTipoMensaje("error");
-      setMensaje("El correo no es válido.");
+      setMensaje("⚠️ El nombre no puede estar vacío.");
       return;
     }
     if (!nuevaDireccion.trim()) {
-        setTipoMensaje("error");
-        setMensaje("La dirección es requerida.");
-        return;
+      setTipoMensaje("error");
+      setMensaje("La dirección es requerida.");
+      return;
     }
     if (!nuevoMetodoPago.trim()) {
-        setTipoMensaje("error");
-        setMensaje("El método de pago es requerido.");
-        return;
+      setTipoMensaje("error");
+      setMensaje("El método de pago es requerido.");
+      return;
+    }
+    if (!/^\d{6,15}$/.test(nuevoTelefono)) {
+      setTipoMensaje("error");
+      setMensaje("⚠️ El número de teléfono no es válido.");
+      return;
     }
 
     setSubiendo(true);
     try {
       // Actualizamos solo si hubo cambios
-      if (nuevoCorreo !== usuario.email) await updateEmail(nuevoCorreo);
-      if (nuevaDireccion !== usuario.direccion) await updateDireccion(nuevaDireccion);
-      if (nuevoMetodoPago !== usuario.metodoPago) await updateMetodoPago(nuevoMetodoPago);
+      //      if (nuevoNombre !== usuario.displayName && nuevoNombre !== usuario.nombre) {
+      //      if (nuevoMetodoPago !== usuario.metodoPago) await updateMetodoPago(nuevoMetodoPago);
+      await actualizarDatosUsuario({
+        nombre: nuevoNombre,
+        direccion: nuevaDireccion,
+        metodoPago: nuevoMetodoPago,
+        telefono: nuevoTelefono,
+      });
 
       dispararConfeti();
       setTipoMensaje("success");
       setMensaje("¡Datos actualizados correctamente!");
       
+      setMensaje("✅ Datos actualizados correctamente!");
+
       setTimeout(() => {
         setMensaje(null);
         onClose();
@@ -87,6 +106,7 @@ const EditarDatosModal = ({ isOpen, onClose }) => {
       setTipoMensaje("error");
       setMensaje("Error al actualizar: " + err.message);
     }
+
     setSubiendo(false);
   };
 
@@ -169,50 +189,82 @@ const EditarDatosModal = ({ isOpen, onClose }) => {
 
                 <div className="space-y-4">
                     
-                    {/* CAMPO: CORREO */}
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
-                        <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
-                            <input
-                                type="email"
-                                value={nuevoCorreo}
-                                onChange={(e) => setNuevoCorreo(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 rounded-2xl focus:outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
-                                placeholder="tu@email.com"
-                            />
-                        </div>
-                    </div>
+                    {/* NOMBRE */}
+<div className="space-y-1">
+  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+    Nombre
+  </label>
+  <div className="relative group">
+    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
+    <input
+      type="text"
+      value={nuevoNombre}
+      onChange={(e) => setNuevoNombre(e.target.value)}
+      className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 
+                 rounded-2xl focus:outline-none focus:border-rose-400 
+                 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
+      placeholder="Tu nombre"
+    />
+  </div>
+</div>
 
-                    {/* CAMPO: DIRECCIÓN */}
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Dirección de Envío</label>
-                        <div className="relative group">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
-                            <input
-                                type="text"
-                                value={nuevaDireccion}
-                                onChange={(e) => setNuevaDireccion(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 rounded-2xl focus:outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
-                                placeholder="Ej: Av. Siempre Viva 123"
-                            />
-                        </div>
-                    </div>
+{/* DIRECCIÓN */}
+<div className="space-y-1">
+  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+    Dirección
+  </label>
+  <div className="relative group">
+    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
+    <input
+      type="text"
+      value={nuevaDireccion}
+      onChange={(e) => setNuevaDireccion(e.target.value)}
+      className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 
+                 rounded-2xl focus:outline-none focus:border-rose-400 
+                 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
+      placeholder="Tu dirección"
+    />
+  </div>
+</div>
 
-                    {/* CAMPO: MÉTODO DE PAGO */}
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Método de Pago Preferido</label>
-                        <div className="relative group">
-                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
-                            <input
-                                type="text"
-                                value={nuevoMetodoPago}
-                                onChange={(e) => setNuevoMetodoPago(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 rounded-2xl focus:outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
-                                placeholder="Ej: Tarjeta Crédito / Yape"
-                            />
-                        </div>
-                    </div>
+{/* MÉTODO DE PAGO */}
+<div className="space-y-1">
+  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+    Método de Pago
+  </label>
+  <div className="relative group">
+    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
+    <input
+      type="text"
+      value={nuevoMetodoPago}
+      onChange={(e) => setNuevoMetodoPago(e.target.value)}
+      className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 
+                 rounded-2xl focus:outline-none focus:border-rose-400 
+                 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
+      placeholder="Yape, Plin, Tarjeta..."
+    />
+  </div>
+</div>
+
+{/* TELÉFONO */}
+<div className="space-y-1">
+  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+    Número de Teléfono
+  </label>
+  <div className="relative group">
+    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" size={18} />
+    <input
+      type="text"
+      value={nuevoTelefono}
+      onChange={(e) => setNuevoTelefono(e.target.value)}
+      className="w-full pl-12 pr-4 py-3.5 bg-white/60 border border-gray-200 
+                 rounded-2xl focus:outline-none focus:border-rose-400 
+                 focus:ring-4 focus:ring-rose-100 text-sm font-medium transition-all"
+      placeholder="Ej: 987654321"
+    />
+  </div>
+</div>
+
 
                     {/* BOTÓN GUARDAR */}
                     <button
@@ -228,7 +280,6 @@ const EditarDatosModal = ({ isOpen, onClose }) => {
                             </>
                         )}
                     </button>
-
                 </div>
             </div>
           </motion.div>
