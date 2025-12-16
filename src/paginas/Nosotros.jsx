@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 
-const CategoryPromoCard = ({ title, icon: Icon ,color, link, description, imageUrl }) => (
+const CategoryPromoCard = ({ title, icon: Icon, color, link, description, imageUrl }) => (
   <motion.div 
     whileHover={{ y: -10 }}
     className="group relative h-80 rounded-4xl overflow-hidden cursor-pointer"
@@ -76,18 +76,45 @@ const TeamMember = ({ name, role, tagline, imageUrl, index }) => (
   </motion.div>
 );
 
+const videoBgUrl =
+  "https://www.pexels.com/es-es/download/video/4899609/";
+
 // --- COMPONENTE PRINCIPAL ---
 
 export default function Nosotros() {
   return (
     <div className="bg-[#FDFBFD] text-gray-800 font-sans selection:bg-pink-200 selection:text-pink-900 overflow-x-hidden">
       
-      {/* Fondo Decorativo (Noise & Blobs) */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-         <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-         <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-pink-300/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse"></div>
-         <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-rose-300/20 rounded-full blur-[100px] mix-blend-multiply"></div>
-      </div>
+     {/* 🎥 VIDEO DE FONDO */}
+<div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 1.2 }}
+    className="absolute inset-0"
+  >
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="w-full h-full object-cover"
+    >
+      <source src={videoBgUrl} type="video/mp4" />
+    </video>
+
+    {/* Overlay para legibilidad */}
+    <div className="absolute inset-0 bg-white/70 md:bg-white/60" />
+  </motion.div>
+
+  {/* Noise */}
+  <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+  {/* Blobs decorativos */}
+  <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-pink-300/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" />
+  <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-rose-300/20 rounded-full blur-[100px] mix-blend-multiply" />
+</div>
 
       <div className="relative z-10">
           
@@ -305,4 +332,4 @@ export default function Nosotros() {
       </div>
     </div>
   );
-}
+}  

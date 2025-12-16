@@ -52,15 +52,18 @@ const Footer = () => {
                     <h4 className="font-bold text-white mb-6">Descubre</h4>
                     <ul className="space-y-4 text-sm text-gray-400">
                         <li>
-                            <Link to="/blog-inspiracion" onClick={scrollToTop} className="hover:text-pink-500 transition-colors flex items-center gap-2 group">
+                            <Link to="/inspiracion" onClick={scrollToTop} className="hover:text-pink-500 transition-colors flex items-center gap-2 group">
                                 Blog & Galería <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
                         </li>
                         <li>
-                            <Link to="/guia-estilo" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Guía de Estilo</Link>
+                            <Link to="/inspiracion?tema=Guia" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Guía de Estilo</Link>
                         </li>
                         <li>
-                            <Link to="/tendencias-noche" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Tendencias 2025</Link>
+                            <Link to="/inspiracion?tema=Tendencias" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Tendencias 2025</Link>
+                        </li>
+                          <li>
+                            <Link to="/inspiracion?tema=Inspiracion" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Inspiracion</Link>
                         </li>
                         <li>
                             <Link to="/productos" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Catálogo</Link>
@@ -128,4 +131,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default Footer;  
