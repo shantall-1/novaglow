@@ -94,7 +94,7 @@ const EditarDatosModal = ({ isOpen, onClose }) => {
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 font-sans">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 font-sans">
           
           {/* Backdrop */}
           <motion.div 
