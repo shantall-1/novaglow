@@ -73,9 +73,9 @@ const Footer = () => {
                     <h4 className="font-bold text-white mb-6">Ayuda</h4>
                     <ul className="space-y-4 text-sm text-gray-400">
                         <li><Link to="/contacto" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Contáctanos</Link></li>
-                        <li><a href="#" className="hover:text-pink-500 transition-colors">Envíos y Devoluciones</a></li>
-                        <li><a href="#" className="hover:text-pink-500 transition-colors">Términos y Condiciones</a></li>
-                        <li><a href="#" className="hover:text-pink-500 transition-colors">Política de Privacidad</a></li>
+                        <li><Link to="/envios-devoluciones" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Envíos y Devoluciones</Link></li>
+                        <li><Link to="/terminos-condiciones" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Términos y Condiciones</Link></li>
+                        <li><Link to="/politica-privacidad" onClick={scrollToTop} className="hover:text-pink-500 transition-colors">Política de Privacidad</Link></li>
                     </ul>
                 </div>
 

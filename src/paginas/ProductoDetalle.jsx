@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc } from "firebase/firestore";
 import { useCarrito } from "../context/CarritoContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "../context/MusicContext";
@@ -379,7 +379,7 @@ export default function ProductoDetalles() {
           className="bg-white/70 backdrop-blur-2xl rounded-[3rem] shadow-2xl border border-white/60 p-6 md:p-10 grid md:grid-cols-2 gap-12"
         >
           {/* GALERÍA */}
-          <div className="relative w-full h-[500px] rounded-[2rem] overflow-hidden bg-gray-100 shadow-inner">
+          <div className="relative w-full h-[500px] rounded-4xl overflow-hidden bg-gray-100 shadow-inner">
             <img
   src={imagenActual}
   alt={producto.name}
@@ -586,7 +586,7 @@ export default function ProductoDetalles() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
+                      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-3 pt-8">
                         <p className="text-white text-xs font-bold text-center truncate">
                           {item.nombre}
                         </p>
@@ -622,7 +622,7 @@ export default function ProductoDetalles() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
+                      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-3 pt-8">
                         <p className="text-white text-xs font-bold text-center truncate">
                           {item.nombre}
                         </p>
@@ -638,7 +638,7 @@ export default function ProductoDetalles() {
           </div>
 
           {/* === MOOD BOOSTER (ARREGLADO FINAL) === */}
-          <div className="bg-gradient-to-r from-rose-50 to-purple-50 rounded-[3rem] p-10 md:p-16 text-center shadow-inner relative overflow-hidden">
+          <div className="bg-linear-to-r from-rose-50 to-purple-50 rounded-[3rem] p-10 md:p-16 text-center shadow-inner relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-3xl font-black text-gray-900 mb-8">
                 MOOD BOOSTER ✨
@@ -655,7 +655,7 @@ export default function ProductoDetalles() {
                 ))}
               </div>
 
-              <div className="inline-flex flex-col items-center bg-white/50 p-6 rounded-[2rem] backdrop-blur-sm border border-white shadow-lg">
+              <div className="inline-flex flex-col items-center bg-white/50 p-6 rounded-4xl backdrop-blur-sm border border-white shadow-lg">
                 <span className="w-full text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
                   <Music size={14} /> Reproducir Playlist
                 </span>
