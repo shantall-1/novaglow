@@ -17,7 +17,9 @@ import Logout from "./paginas/Logout";
 import Intranet from "./paginas/Intranet";
 import Perfil from "./paginas/Perfil";
 import FavoritosModal from "./paginas/FavoritosModal";
-
+import EnviosYDevoluciones from "./paginas/EnviosYDevoluciones";
+import TerminosYCondiciones from "./paginas/TerminosYCondiciones";
+import PoliticaPrivacidad from "./paginas/PoliticaPrivacidad";
 
 // BLOG
 import BlogInspiracion from "./paginas/Blog-Inspiracion";
@@ -53,6 +55,9 @@ function App() {
               <Route path="/producto/:id" element={<ProductoDetalle />} />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/contacto" element={<Contacto />} />
+              <Route path="/envios-devoluciones" element={<EnviosYDevoluciones />} />
+              <Route path="/terminos-condiciones" element={<TerminosYCondiciones />} />
+              <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
 
               <Route path="/inspiracion" element={<BlogInspiracion />} />
               <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
