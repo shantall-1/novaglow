@@ -9,35 +9,38 @@ export function CarritoProvider({ children }) {
   const { usuario } = useAuth();
   const [carrito, setCarrito] = useState([]);
 
-  // 🔹 Cargar carrito de Firebase al iniciar sesión
+  // 🔹 1. Cargar carrito de Firebase al iniciar sesión o cambiar usuario
   useEffect(() => {
     const cargarCarrito = async () => {
       if (!usuario) {
         setCarrito([]);
         return;
       }
-      const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
-      const snap = await getDoc(ref);
-      if (snap.exists()) setCarrito(snap.data().items || []);
+      try {
+        const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setCarrito(snap.data().items || []);
+        }
+      } catch (error) {
+        console.error("Error al cargar carrito:", error);
+      }
     };
     cargarCarrito();
-  }, [usuario]);
+  }, [usuario?.uid]); // ✅ Usamos uid para mayor estabilidad
 
-const actualizarTalla = (id, nuevaTalla) => {
-  setCarrito((prev) =>
-    prev.map((item) =>
-      item.id === id ? { ...item, talla: nuevaTalla } : item
-    )
-  );
-};
-
-  // 🔹 Guardar carrito en Firebase
+  // 🔹 2. Función auxiliar para guardar en Firebase
   const guardarCarritoFirebase = async (items) => {
     if (!usuario) return;
-    const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
-    await setDoc(ref, { items });
+    try {
+      const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
+      await setDoc(ref, { items, últimaActualización: new Date() });
+    } catch (error) {
+      console.error("Error al guardar en Firebase:", error);
+    }
   };
 
+  // 🔹 3. Acciones del Carrito
   const agregarAlCarrito = (producto, cantidad = 1) => {
     if (!producto || !producto.id) return;
 
@@ -50,6 +53,7 @@ const actualizarTalla = (id, nuevaTalla) => {
               : item
           )
         : [...prev, { ...producto, cantidad }];
+      
       guardarCarritoFirebase(nuevoCarrito);
       return nuevoCarrito;
     });
@@ -71,6 +75,17 @@ const actualizarTalla = (id, nuevaTalla) => {
           : prev.map((item) =>
               item.id === id ? { ...item, cantidad: nuevaCantidad } : item
             );
+      guardarCarritoFirebase(nuevoCarrito);
+      return nuevoCarrito;
+    });
+  };
+
+  // ✅ CORREGIDO: Ahora guarda en Firebase después de cambiar la talla
+  const actualizarTalla = (id, nuevaTalla) => {
+    setCarrito((prev) => {
+      const nuevoCarrito = prev.map((item) =>
+        item.id === id ? { ...item, talla: nuevaTalla } : item
+      );
       guardarCarritoFirebase(nuevoCarrito);
       return nuevoCarrito;
     });
@@ -98,6 +113,7 @@ const actualizarTalla = (id, nuevaTalla) => {
     });
   };
 
+  // 🔹 4. Cálculo de Total con useMemo
   const total = useMemo(
     () => carrito.reduce((acc, item) => acc + item.price * item.cantidad, 0),
     [carrito]
@@ -127,4 +143,3 @@ export const useCarrito = () => {
     throw new Error("useCarrito debe usarse dentro de un CarritoProvider");
   return context;
 };
-

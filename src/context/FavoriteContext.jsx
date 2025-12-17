@@ -16,34 +16,29 @@ export const useFavoritos = () => useContext(FavoriteContext);
 export const FavoriteProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [favoritos, setFavoritos] = useState([]);
-  const [unsubFavs, setUnsubFavs] = useState(null);
 
-  // Escuchar auth (solo una vez)
+  // 1. Escuchar Auth
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
       console.log("[Favorite] onAuthStateChanged ->", u?.email || null);
       setUser(u || null);
     });
-    return () => unsub();
+    return () => unsubAuth();
   }, []);
 
-  // Suscribirse a favoritos en cuanto haya user
+  // 2. Suscribirse a Favoritos (SIN setUnsubFavs en el estado)
   useEffect(() => {
-    // limpiar suscripción previa
-    if (typeof unsubFavs === "function") {
-      unsubFavs();
-      setUnsubFavs(null);
-    }
-
+    // Si no hay usuario, limpiamos la lista y no hacemos nada
     if (!user) {
       setFavoritos([]);
       return;
     }
 
-    const uid = user.uid;
-    const favRef = collection(db, "favoritos", uid, "items");
+    console.log("[Favorite] Iniciando suscripción para:", user.uid);
+    const favRef = collection(db, "favoritos", user.uid, "items");
 
-    const unsub = onSnapshot(
+    // Firebase maneja la suscripción aquí
+    const unsubscribe = onSnapshot(
       favRef,
       (snap) => {
         const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -52,41 +47,32 @@ export const FavoriteProvider = ({ children }) => {
       },
       (err) => {
         console.error("[Favorite] onSnapshot error:", err);
-        setFavoritos([]);
       }
     );
 
-    setUnsubFavs(() => unsub);
-
+    // ✅ REGLA DE ORO: El return del useEffect es suficiente para limpiar
     return () => {
-      if (unsub) unsub();
+      console.log("[Favorite] Limpiando suscripción");
+      unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.uid]); // ✅ Usamos user?.uid para que la referencia sea estable y no buclee
 
-  // Forzar login con popup (retorna user)
   const loginConPopup = async () => {
     if (auth.currentUser) return auth.currentUser;
     const res = await signInWithPopup(auth, googleProvider);
-    setUser(res.user);
+    // setUser(res.user); // No es estrictamente necesario, onAuthStateChanged lo hará por ti
     return res.user;
   };
 
-  // Agregar favorito (si no hay user, pedir login y usar el resultado)
   const agregarFavorito = async (producto) => {
     try {
       let currentUser = user || auth.currentUser;
       if (!currentUser) {
-        // login sin recargar y garantizando que despues podemos abrir modal
         currentUser = await loginConPopup();
       }
-      if (!currentUser || !currentUser.uid) {
-        console.warn("[Favorite] No se obtuvo uid tras login");
-        return;
-      }
+      if (!currentUser?.uid) return;
 
       const uid = currentUser.uid;
-      // guardamos el documento con id = producto.id para poder borrarlo fácilmente
       const ref = doc(db, "favoritos", uid, "items", String(producto.id));
 
       await setDoc(ref, {
@@ -96,29 +82,18 @@ export const FavoriteProvider = ({ children }) => {
         image: producto.image ?? producto.gallery?.[0] ?? "",
         addedAt: new Date().toISOString(),
       });
-
-      console.log(`[Favorite] agregado favorito ${producto.id} para uid ${uid}`);
-      // onSnapshot actualizará la lista
     } catch (error) {
       console.error("[Favorite] error agregarFavorito:", error);
-      throw error;
     }
   };
 
-  // Quitar favorito (espera productId que sea el id del doc o idProducto; document id es el que usamos)
   const quitarFavorito = async (productId) => {
     try {
-      const uid = auth.currentUser?.uid || user?.uid;
-      if (!uid) {
-        console.warn("[Favorite] no hay uid para quitar favorito");
-        return;
-      }
-      // El id del doc que almacenamos al crear fue String(producto.id) -> es el mismo que productId si pasamos f.id
+      const uid = user?.uid || auth.currentUser?.uid;
+      if (!uid) return;
       await deleteDoc(doc(db, "favoritos", uid, "items", String(productId)));
-      console.log(`[Favorite] eliminado favorito ${productId} para uid ${uid}`);
     } catch (error) {
       console.error("[Favorite] error quitarFavorito:", error);
-      throw error;
     }
   };
 
@@ -140,5 +115,3 @@ export const FavoriteProvider = ({ children }) => {
     </FavoriteContext.Provider>
   );
 };
-
-

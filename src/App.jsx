@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { CarritoProvider } from "./context/CarritoContext";
 import ScrollToTop from "./componentes/ScrollToTop";
-import FloatingPlayer from "./componentes/FloatingPlayer"; // <--- IMPORTAR REPRODUCTOR
+import FloatingPlayer from "./componentes/FloatingPlayer";
 
 // Páginas
 import Inicio from "./paginas/Inicio";
@@ -30,85 +30,64 @@ import ArticuloDetalle from "./descubre/ArticuloDetalle";
 // 🔒 Rutas protegidas
 import ProtectedRoute from "./componentes/ProtectedRoute";
 
-import "./App.css";
-
 function App() {
   return (
     <CarritoProvider>
-      <>
+      <div className="min-h-screen bg-white flex flex-col">
         <ScrollToTop />
-        
-        {/* 🎵 REPRODUCTOR GLOBAL FLOTANTE 🎵 */}
-        {/* Al ponerlo aquí, persiste en toda la navegación */}
+        <Navbar />
         <FloatingPlayer />
 
-        <div className="flex flex-col min-h-screen bg-gray-50">
-          {/* 🌸 Navbar */}
-          <Navbar />
+        <main className="flex-grow pt-16">
+          <Routes>
+            {/* Rutas Públicas */}
+            <Route path="/" element={<Inicio />} />
+            <Route path="/productos" element={<Productos />} />
+            <Route path="/producto/:id" element={<ProductoDetalle />} />
+            <Route path="/nosotros" element={<Nosotros />} />
+            <Route path="/contacto" element={<Contacto />} />
+            <Route path="/blog" element={<BlogInspiracion />} />
+            <Route path="/blog/:slug" element={<ArticuloDetalle />} />
+            <Route path="/suscripcion" element={<Suscripcion />} />
+            
+            {/* Páginas Legales */}
+            <Route path="/envios-y-devoluciones" element={<EnviosYDevoluciones />} />
+            <Route path="/terminos-y-condiciones" element={<TerminosYCondiciones />} />
+            <Route path="/politica-de-privacidad" element={<PoliticaPrivacidad />} />
 
-          {/* 🧭 Contenido principal */}
-          <main className="grow pt-[72px] bg-pink-100">
-            <Routes>
-              <Route path="/" element={<Inicio />} />
-              <Route path="/inicio" element={<Inicio />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/producto/:id" element={<ProductoDetalle />} />
-              <Route path="/nosotros" element={<Nosotros />} />
-              <Route path="/contacto" element={<Contacto />} />
-              <Route path="/envios-devoluciones" element={<EnviosYDevoluciones />} />
-              <Route path="/terminos-condiciones" element={<TerminosYCondiciones />} />
-              <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
+            {/* Rutas de Usuario/Auth */}
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/intranet" element={<Intranet />} />
+            <Route path="/adminblog" element={<AdminBlog />} />
 
-              <Route path="/inspiracion" element={<BlogInspiracion />} />
-              <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
+            {/* Rutas Protegidas */}
+            <Route
+              path="/carrito"
+              element={
+                <ProtectedRoute>
+                  <Carrito />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/confirmacion"
+              element={
+                <ProtectedRoute>
+                  <Confirmacion />
+                </ProtectedRoute>
+              }
+            />
 
-                <Route path="/adminblog" element={<AdminBlog />} />
-                <Route path="/suscripcion" element={<Suscripcion />} />
-                <Route path="/intranet" element={<Intranet />} />
+            {/* Si FavoritosModal es una página independiente, se queda aquí. 
+                Si es un modal que se abre sobre otras páginas, NO debe ser una Route */}
+            <Route path="/favoritos" element={<FavoritosModal />} />
+          </Routes>
+        </main>
 
-              <Route path="/logout" element={<Logout />} />
-              <Route path="/perfil" element={<Perfil />} />
-              
-              <Route
-                path="/carrito"
-                element={
-                  <ProtectedRoute>
-                    <Carrito />
-                  </ProtectedRoute>
-                }
-              />
-                <Route path="/logout" element={<Logout />} />
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/favoritosModal" element={<FavoritosModal />} />
-                
-
-
-                <Route
-                  path="/carrito"
-                  element={
-                    <ProtectedRoute>
-                      <Carrito />
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route
-                  path="/confirmacion"
-                  element={
-                    <ProtectedRoute>
-                      <Confirmacion />
-                    </ProtectedRoute>
-                  }
-                />
-
-
-              </Routes>
-            </main>
-
-            <Footer />
-          </div>
-        </>
-      </CarritoProvider>
+        <Footer />
+      </div>
+    </CarritoProvider>
   );
 }
 
