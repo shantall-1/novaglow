@@ -25,9 +25,10 @@ const Intranet = () => {
   
   const myRole = userData?.rol || 'usuario'; 
 
+  // --- LÓGICA DE PERMISOS ESTRICTA ---
   const isAdmin = myRole === 'admin';
   const isEditor = myRole === 'editor';
-  const canAccess = isAdmin || isEditor;
+  const canAccess = isAdmin || isEditor; // Solo Admin y Editor entran
 
   const renderFecha = (fecha) => {
     if (!fecha) return "Fecha no disponible";
@@ -39,8 +40,9 @@ const Intranet = () => {
 
   useEffect(() => {
     if (loading) return;
+    // Si es un "usuario" común, lo sacamos de la intranet
     if (!user || !canAccess) navigate('/');
-  }, [user, myRole, loading, navigate]);
+  }, [user, myRole, loading, navigate, canAccess]);
 
   useEffect(() => {
     if (!user || !canAccess) return;
@@ -48,7 +50,7 @@ const Intranet = () => {
       setUsersList(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
     });
     return () => unsubscribe();
-  }, [user, myRole]);
+  }, [user, canAccess]);
 
   const filteredUsers = usersList.filter(u => {
     const matchesSearch = u.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -64,6 +66,7 @@ const Intranet = () => {
   };
 
   const exportToCSV = () => {
+    if (!isAdmin) return; // Doble validación de seguridad
     const headers = "Nombre,Email,Rol,Telefono\n";
     const csvContent = usersList.map(u => 
       `${u.nombre},${u.email},${u.rol || 'usuario'},${u.telefono || 'N/A'}`
@@ -141,9 +144,12 @@ const Intranet = () => {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <button onClick={exportToCSV} className="flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-white/10 transition-all">
-              <Download size={16} /> EXPORTAR
-            </button>
+            {/* Solo Admin puede ver botón Exportar */}
+            {isAdmin && (
+              <button onClick={exportToCSV} className="flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-white/10 transition-all">
+                <Download size={16} /> EXPORTAR
+              </button>
+            )}
             <button onClick={() => signOut(auth)} className="flex items-center gap-2 bg-red-500/10 text-red-500 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-all">
               <LogOut size={16} /> SALIR
             </button>
@@ -152,7 +158,7 @@ const Intranet = () => {
 
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-linear-to-br from-blue-600/20 to-transparent border border-white/5 p-6 rounded-4xl">
+          <div className="bg-gradient-to-br from-blue-600/20 to-transparent border border-white/5 p-6 rounded-[2rem]">
             <Users className="text-blue-500 mb-2" size={20} />
             <p className="text-[10px] text-gray-500 uppercase font-black">Total Usuarios</p>
             <p className="text-3xl font-black text-white">{stats.total}</p>
@@ -215,6 +221,7 @@ const Intranet = () => {
                       </div>
                     </td>
                     <td className="p-6">
+                      {/* Solo Admin puede cambiar roles */}
                       {isAdmin ? (
                         <select value={u.rol || 'usuario'} onChange={(e) => handleRoleChange(u.id, e.target.value)} className="bg-black border border-gray-800 text-pink-500 text-[10px] font-black p-2 rounded-xl outline-none">
                           <option value="admin">ADMINISTRADOR</option>
@@ -232,6 +239,7 @@ const Intranet = () => {
                         <button onClick={() => fetchUserDetails(u)} className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition-all">
                           <Info size={18}/>
                         </button>
+                        {/* Solo Admin puede eliminar */}
                         {isAdmin && u.id !== user.uid && (
                           <button onClick={() => handleDeleteUser(u.id)} className="p-2.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
                             <Trash2 size={18}/>
@@ -256,7 +264,6 @@ const Intranet = () => {
               <button onClick={() => setSelectedUser(null)} className="absolute top-8 right-8 p-3 text-gray-400 hover:text-white bg-white/5 rounded-full transition-all hover:rotate-90"><X size={20}/></button>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {/* COLUMNA IZQUIERDA: PERFIL */}
                 <div className="lg:col-span-1 border-r border-white/5 pr-6">
                   <img src={selectedUser.foto || `https://ui-avatars.com/api/?name=${selectedUser.nombre}`} className="w-32 h-32 rounded-[2.5rem] mb-6 border-4 border-white/5 shadow-2xl object-cover" alt="profile" />
                   <h2 className="text-3xl font-black text-white mb-2 leading-none uppercase">{selectedUser.nombre}</h2>
@@ -271,7 +278,6 @@ const Intranet = () => {
                       </div>
                     </div>
 
-                    {/* TELEFONO CON WHATSAPP AL LADO */}
                     <div className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-2xl border border-white/5">
                       <Phone size={16} className="text-pink-500 flex-shrink-0"/>
                       <div className="flex-1">
@@ -279,41 +285,42 @@ const Intranet = () => {
                         <p className="text-xs text-gray-200">{selectedUser.telefono || 'N/A'}</p>
                       </div>
                       {selectedUser.telefono && (
-                        <a 
-                          href={`https://wa.me/${selectedUser.telefono.replace(/\s+/g, '')}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="p-2 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all"
-                        >
+                        <a href={`https://wa.me/${selectedUser.telefono.replace(/\s+/g, '')}`} target="_blank" rel="noreferrer" className="p-2 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all">
                           <Phone size={14} />
                         </a>
                       )}
                     </div>
 
-                    {/* NOTAS INTERNAS */}
+                    {/* SECCIÓN NOTAS CON VALIDACIÓN DE ROL */}
                     <div className="mt-8 p-5 bg-[#151510] border border-yellow-500/10 rounded-[2rem]">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
                         <p className="text-[10px] text-yellow-500 uppercase font-black tracking-widest">Notas Internas</p>
                       </div>
-                      <textarea 
-                        placeholder="Agregar observación..."
-                        className="w-full bg-transparent text-[11px] text-gray-400 outline-none resize-none h-24 custom-scrollbar leading-relaxed"
-                        onBlur={async (e) => {
-                          await updateDoc(doc(db, "usuarios", selectedUser.id), { notasInternas: e.target.value });
-                          Swal.fire({ title: 'Nota guardada', icon: 'success', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
-                        }}
-                        defaultValue={selectedUser.notasInternas || ""}
-                      />
+                      
+                      {isAdmin ? (
+                        <textarea 
+                          placeholder="Agregar observación..."
+                          className="w-full bg-transparent text-[11px] text-gray-400 outline-none resize-none h-24 custom-scrollbar leading-relaxed"
+                          onBlur={async (e) => {
+                            await updateDoc(doc(db, "usuarios", selectedUser.id), { notasInternas: e.target.value });
+                            Swal.fire({ title: 'Nota guardada', icon: 'success', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false });
+                          }}
+                          defaultValue={selectedUser.notasInternas || ""}
+                        />
+                      ) : (
+                        // El editor solo ve el texto, no puede editarlo
+                        <p className="text-[11px] text-gray-500 italic leading-relaxed h-24 overflow-y-auto custom-scrollbar">
+                          {selectedUser.notasInternas || "Sin observaciones registradas."}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* COLUMNA DERECHA: HISTORIAL Y WISHLIST */}
                 <div className="lg:col-span-2 space-y-8">
                   <div className="bg-white/[0.02] p-8 rounded-[2rem] border border-white/5">
                     <h3 className="text-white font-black text-sm uppercase flex items-center gap-3 mb-6"><ShoppingBag size={18} className="text-blue-500"/> Historial de Compras</h3>
-                    
                     {!selectedOrder ? (
                       <div className="space-y-3 max-h-64 overflow-y-auto pr-3 custom-scrollbar">
                         {extraInfo.pedidos.map(p => (
@@ -328,11 +335,10 @@ const Intranet = () => {
                             </div>
                           </div>
                         ))}
-                        {extraInfo.pedidos.length === 0 && <p className="text-center py-6 text-gray-600 text-xs italic">Sin pedidos registrados.</p>}
                       </div>
                     ) : (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-blue-500/[0.03] p-6 rounded-2xl border border-blue-500/20">
-                        <button onClick={() => setSelectedOrder(null)} className="text-[10px] text-blue-400 font-black mb-4 uppercase flex items-center gap-2">← Volver al listado</button>
+                        <button onClick={() => setSelectedOrder(null)} className="text-[10px] text-blue-400 font-black mb-4 uppercase">← Volver al listado</button>
                         <div className="space-y-3">
                           {selectedOrder.productos?.map((prod, i) => (
                             <div key={i} className="flex justify-between items-center text-xs p-2 bg-white/5 rounded-lg">
@@ -340,10 +346,6 @@ const Intranet = () => {
                               <span className="text-white font-bold">S/ {prod.precio}</span>
                             </div>
                           ))}
-                          <div className="pt-4 mt-2 border-t border-white/5 flex justify-between font-black text-green-400 px-2">
-                            <span className="text-xs uppercase">Total del Pedido</span>
-                            <span>S/ {selectedOrder.total}</span>
-                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -355,10 +357,9 @@ const Intranet = () => {
                       {extraInfo.favoritos.map(f => (
                         <div key={f.id} className="flex items-center gap-3 p-3 bg-pink-500/5 border border-pink-500/10 rounded-2xl">
                           <img src={f.image} className="w-10 h-10 rounded-xl object-cover" alt="fav" />
-                          <span className="text-[10px] text-pink-400 font-black uppercase max-w-[120px] truncate">{f.name}</span>
+                          <span className="text-[10px] text-pink-400 font-black uppercase truncate max-w-[120px]">{f.name}</span>
                         </div>
                       ))}
-                      {extraInfo.favoritos.length === 0 && <p className="text-gray-600 text-xs italic">Aún no tiene productos favoritos.</p>}
                     </div>
                   </div>
                 </div>
