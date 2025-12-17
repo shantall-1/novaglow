@@ -1,53 +1,68 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 
 export default function RelatedSidebar({ items }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-5 border border-gray-200">
+    <aside className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-xl border border-white/60 overflow-hidden">
       
-      <h2 className="text-xl font-extrabold mb-4 text-gray-800">
-        Artículos relacionados
-      </h2>
+      {/* HEADER */}
+      <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 text-fuchsia-600 mb-2">
+          <Sparkles size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest">
+            Descubre más
+          </span>
+        </div>
 
-      <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+        <h2 className="text-xl font-extrabold text-gray-900 leading-tight">
+          Artículos relacionados
+        </h2>
+      </div>
+
+      {/* LISTADO */}
+      <div className="px-4 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
         {items.map((art, index) => (
           <motion.div
             key={art.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.04 }}
           >
             <Link
               to={`/inspiracion/${art.slug}`}
-              className="group block rounded-2xl overflow-hidden bg-white shadow hover:shadow-lg transition"
+              className="group flex gap-3 items-center bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all duration-300"
             >
               {/* IMAGEN */}
               {art.imagenUrl && (
-                <img
-                  src={art.imagenUrl}
-                  alt={art.titulo}
-                  className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
+                  <img
+                    src={art.imagenUrl}
+                    alt={art.titulo}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
               )}
 
               {/* TEXTO */}
-              <div className="p-3">
-                <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">
+              <div className="flex flex-col min-w-0">
+                <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-fuchsia-600 transition-colors">
                   {art.titulo}
                 </h3>
 
-                <p className="text-xs text-fuchsia-600 mt-1">
-                  {art.categoria}
-                </p>
+                {art.categoria && (
+                  <span className="text-xs font-medium text-gray-400 mt-1">
+                    {art.categoria}
+                  </span>
+                )}
               </div>
             </Link>
           </motion.div>
         ))}
       </div>
-    </div>
+    </aside>
   );
 }
-  

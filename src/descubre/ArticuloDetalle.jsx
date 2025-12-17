@@ -56,19 +56,22 @@ export default function ArticuloDetalle() {
     cargarArticulo();
   }, [slug]);
 
+  // -------------------------
+  // BARRA DE PROGRESO
+  // -------------------------
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight =
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight;
-
       setProgress((scrollTop / docHeight) * 100);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   // -------------------------
   // ARTÍCULOS RELACIONADOS
   // -------------------------
@@ -102,15 +105,14 @@ export default function ArticuloDetalle() {
     );
 
   // -------------------------
-  // LIKE SEGURO
+  // LIKE
   // -------------------------
   const toggleLike = async () => {
     if (!usuario) return alert("Debes iniciar sesión para dar like");
 
     const articleRef = doc(db, "articulos", article.id);
     const likesArray = Array.isArray(article.likes) ? article.likes : [];
-    const hasLiked = (article.likes || []).includes(usuario.uid);
-
+    const hasLiked = likesArray.includes(usuario.uid);
 
     await updateDoc(articleRef, {
       likes: hasLiked ? arrayRemove(usuario.uid) : arrayUnion(usuario.uid),
@@ -125,7 +127,7 @@ export default function ArticuloDetalle() {
   };
 
   // -------------------------
-  // COMENTARIOS SEGUROS
+  // COMENTARIOS
   // -------------------------
   const enviarComentario = async () => {
     if (!usuario) return alert("Inicia sesión para comentar");
@@ -153,137 +155,160 @@ export default function ArticuloDetalle() {
   };
 
   // -------------------------
-  // INTERCALAR IMÁGENES
+  // RENDER
   // -------------------------
   const paragraphs = article.contenido ? article.contenido.split("\n\n") : [];
   const extraImages = Array.isArray(article.imagenes) ? article.imagenes : [];
-return (
-  <div className="max-w-7xl mx-auto px-6 py-10">
 
+return (
+  <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
     {/* BARRA DE PROGRESO */}
     <motion.div
-      className="fixed top-0 left-0 h-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 z-50"
+      className="fixed top-0 left-0 h-1 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 z-50"
       style={{ width: `${progress}%` }}
     />
 
     {/* BOTÓN VOLVER */}
     <button
       onClick={() => navigate("/inspiracion")}
-      className="px-4 py-2 bg-gray-200 rounded hover:bg-fuchsia-400 transition"
+      className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-fuchsia-600 transition mb-8"
     >
-      ← Regresar al Blog
+      ← Volver
     </button>
 
-    {/* GRID PRINCIPAL */}
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 mt-10">
+    {/* LAYOUT PRINCIPAL */}
+    <div className="flex gap-20 mt-16">
+      {/* ARTÍCULO */}
+      <div className="flex-1">
+        <motion.article
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-3xl mx-auto text-gray-900"
+        >
+          {/* TÍTULO */}
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+            {article.titulo}
+          </h1>
 
-      {/* ========= ARTÍCULO ========= */}
-      <motion.article
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
+          {/* SUBTÍTULO */}
+          {article.subtitulo && (
+            <h2 className="text-xl md:text-2xl font-medium text-fuchsia-600 mt-6">
+              {article.subtitulo}
+            </h2>
+          )}
 
-        {/* TÍTULO */}
-        <h1 className="text-5xl font-extrabold text-gray-900 leading-tight">
-          {article.titulo}
-        </h1>
+          {/* META */}
+          <p className="text-sm text-gray-500 mt-4">
+            {article.categoria} • {new Date(article.fecha).toLocaleDateString()}
+          </p>
 
-        {/* SUBTÍTULO */}
-        {article.subtitulo && (
-          <h2 className="text-2xl font-semibold text-fuchsia-700 mt-4">
-            {article.subtitulo}
-          </h2>
-        )}
+          {/* IMAGEN PRINCIPAL */}
+          {article.imagenUrl && (
+            <motion.img
+              src={article.imagenUrl}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="w-full rounded-2xl my-16"
+            />
+          )}
 
-        {/* META */}
-        <p className="text-gray-500 text-sm mt-2">
-          {article.categoria} • {new Date(article.fecha).toLocaleDateString()}
-        </p>
+          {/* CONTENIDO */}
+          <div
+            className="prose prose-lg max-w-none prose-gray prose-p:leading-relaxed prose-p:my-6 prose-img:my-16 prose-img:rounded-2xl prose-h2:mt-20 prose-h3:mt-14"
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                p: ({ node, children }) => {
+                  const isFirst = node?.position?.start?.line === 1;
+                  if (!isFirst) return <p>{children}</p>;
 
-        {/* IMAGEN PRINCIPAL */}
-        {article.imagenUrl && (
-          <motion.img
-            src={article.imagenUrl}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-h-[520px] object-cover rounded-3xl shadow-2xl my-10"
-          />
-        )}
+                  const text = children.toString();
+                  const firstLetter = text.charAt(0);
+                  const rest = text.slice(1);
 
-        {/* CONTENIDO */}
-        <div className="prose prose-lg max-w-none space-y-6">
-          {paragraphs.map((p, i) => (
-            <div key={i} className="space-y-4">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-              >
-                {p}
-              </ReactMarkdown>
+                  return (
+                    <p>
+                      <span className="float-left mr-3 text-6xl font-extrabold text-fuchsia-600 leading-none">
+                        {firstLetter}
+                      </span>
+                      {rest}
+                    </p>
+                  );
+                },
+              }}
+            >
+              {article.contenido}
+            </ReactMarkdown>
 
-              {extraImages[i] && (
-                <img
-                  src={extraImages[i]}
-                  className="w-2/3 mx-auto rounded-xl shadow-lg"
-                />
-              )}
+            {/* IMÁGENES INTERCALADAS */}
+            {extraImages.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                className="w-full my-16 rounded-2xl"
+              />
+            ))}
+          </div>
+
+          {/* LIKE */}
+          <button
+            onClick={toggleLike}
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-fuchsia-600 transition mt-12"
+          >
+            ❤️ {article.likes.length}
+          </button>
+
+          {/* COMENTARIOS */}
+          <div className="mt-20 pt-16 border-t">
+            <h3 className="text-xl font-bold mb-6">Comentarios</h3>
+
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="w-full p-4 border rounded-xl"
+              placeholder="Escribe un comentario…"
+            />
+
+            <button
+              onClick={enviarComentario}
+              className="mt-4 px-6 py-2 bg-fuchsia-500 text-white rounded-lg text-sm font-semibold"
+            >
+              Enviar
+            </button>
+
+            <div className="mt-8 space-y-6">
+              {article.comments.map((c) => (
+                <div key={c.id}>
+                  <p className="font-semibold">{c.autor}</p>
+                  <p className="text-gray-700">{c.texto}</p>
+                  <span className="text-xs text-gray-400">
+                    {new Date(c.fecha).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.article>
+      </div>
+
+      {/* SIDEBAR */}
+      <aside className="hidden lg:block w-72 sticky top-32 self-start">
+        <h4 className="text-sm font-semibold text-gray-500 mb-6">Relacionado</h4>
+        <div className="space-y-6">
+          {related.map((item) => (
+            <div key={item.id} className="cursor-pointer group">
+              <p className="text-sm font-medium leading-snug group-hover:text-fuchsia-600 transition">
+                {item.titulo}
+              </p>
+              <span className="text-xs text-gray-400">{item.categoria}</span>
             </div>
           ))}
         </div>
-
-        {/* LIKE */}
-        <button
-          onClick={toggleLike}
-          className={`mt-12 px-6 py-3 rounded-full text-lg font-semibold transition ${
-           article.likes?.includes(usuario?.uid)
-
-              ? "bg-fuchsia-500 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          ❤️ {article.likes.length}
-        </button>
-
-        {/* COMENTARIOS */}
-        <div className="mt-16">
-          <h3 className="text-2xl font-extrabold mb-4">Comentarios</h3>
-
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="w-full p-3 border rounded-lg"
-            placeholder="Escribe un comentario…"
-          />
-
-          <button
-            onClick={enviarComentario}
-            className="mt-3 px-5 py-2 bg-fuchsia-500 text-white rounded-lg"
-          >
-            Enviar
-          </button>
-
-          <div className="mt-6 space-y-4">
-            {article.comments.map((c) => (
-              <div key={c.id} className="bg-gray-100 p-4 rounded-xl">
-                <p className="font-semibold">{c.autor}</p>
-                <p>{c.texto}</p>
-                <span className="text-sm text-gray-500">
-                  {new Date(c.fecha).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
- 
-      </motion.article>
-
-     {/* ========= SIDEBAR ========= */}
-      <aside className="hidden lg:block sticky top-24 self-start">
-  <RelatedSidebar items={related} />
-</aside>
-
+      </aside>
     </div>
   </div>
 );
