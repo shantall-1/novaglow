@@ -39,7 +39,8 @@ export default function AdminBlog() {
 
   const [imagenes, setImagenes] = useState([]);
   const [loadingGuardar, setLoadingGuardar] = useState(false);
-  const [loadingEnviar, setLoadingEnviar] = useState(false);
+  const [loadingEnviarArt, setLoadingEnviarArt] = useState({});
+
 
   const [imagenesContenido, setImagenesContenido] = useState([]);
   const [imagenTemp, setImagenTemp] = useState("");
@@ -63,6 +64,16 @@ export default function AdminBlog() {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    const q = query(collection(db, "articulos"), orderBy("fecha", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setArticulos(data);
+    });
+    return () => unsub();
+  }, []);
+
 
   const limpiarForm = () => {
     setTitulo("");
@@ -185,25 +196,49 @@ export default function AdminBlog() {
   };
 
   const enviarArticulo = async (id) => {
-    setLoadingEnviar(true);
+    setLoadingEnviarArt((prev) => ({ ...prev, [id]: true }));
+    console.log("📤 Enviando artículo con id:", id);
+
+    const art = articulos.find((a) => a.id === id);
+    if (!art) {
+      alert("Artículo no encontrado");
+      setLoadingEnviarArt((prev) => ({ ...prev, [id]: false }));
+      return;
+    }
+
     try {
       const res = await fetch("http://localhost:3001/enviar-articulos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ articuloId: id }),
+        body: JSON.stringify({
+          articuloId: id,
+          titulo: art.titulo,
+          subtitulo: art.subtitulo,
+          contenido: art.contenido,
+        }),
       });
 
+      if (!res.ok) {
+        throw new Error(`Servidor respondió con status ${res.status}`);
+      }
+
       const data = await res.text();
-      alert(data);
+      alert(`✅ ${data}`);
       confetti({ particleCount: 100, spread: 70 });
     } catch (err) {
       console.error(err);
-      alert("Error enviando el artículo");
+      alert(
+        "❌ No se pudo enviar el artículo. Verifica que el backend esté corriendo."
+      );
+    } finally {
+      setLoadingEnviarArt((prev) => ({ ...prev, [id]: false }));
     }
-    setLoadingEnviar(false);
+
+
   };
 
-  
+
+
 
   return (
     <>
@@ -353,49 +388,7 @@ export default function AdminBlog() {
 
 
             {/* PREVIEW */}
-            <AnimatePresence>
-              {contenido && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="border rounded-2xl bg-white p-6 shadow-inner"
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      p: ({ children }) => {
-                        const soloImagenes =
-                          Array.isArray(children) &&
-                          children.every(
-                            (child) =>
-                              typeof child === "object" &&
-                              child?.type === "img"
-                          );
 
-                        if (soloImagenes) {
-                          return (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-6">
-                              {children}
-                            </div>
-                          );
-                        }
-
-                        return <p className="mb-4 leading-relaxed">{children}</p>;
-                      },
-                      img: ({ ...props }) => (
-                        <img
-                          {...props}
-                          className="w-full h-48 object-cover rounded-xl shadow-md"
-                        />
-                      ),
-                    }}
-                  >
-                    {contenido}
-                  </ReactMarkdown>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* CATEGORÍA */}
             <select
@@ -473,99 +466,102 @@ export default function AdminBlog() {
       shadow
       hover:scale-105 transition
       disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  📚 Ver artículos creados
-                </button>
-              </div>
+              >
+                📚 Ver artículos creados
+              </button>
+            </div>
 
-            </motion.div>
-
-      {/* LISTADO */}
-      <AnimatePresence>
-        {mostrarArticulos && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-hidden"
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-y-auto p-6"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-black text-pink-600">
-                  Artículos creados
-                </h2>
-                <button
-                  onClick={() => setMostrarArticulos(false)}
-                  className="text-gray-500 hover:text-gray-800 text-lg"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="grid gap-6">
-                {articulos.map((art) => (
-                  <motion.div
-                    key={art.id}
-                    whileHover={{ scale: 1.01 }}
-                    className="bg-white rounded-2xl shadow-md p-5 flex flex-col md:flex-row gap-4 items-center"
-                  >
-                    {art.imagenUrl && (
-                      <img
-                        src={art.imagenUrl}
-                        alt={art.titulo}
-                        className="w-full md:w-40 h-32 object-cover rounded-xl"
-                      />
-                    )}
-
-                    <div className="flex-1">
-                      <h3 className="text-xl font-black text-pink-600">
-                        {art.titulo}
-                      </h3>
-                      <p className="text-gray-500 text-sm">{art.slug}</p>
-                      <span className="inline-block mt-1 text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full">
-                        {art.categoria}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => cargarArticulo(art)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        onClick={() => borrarArticulo(art.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-                      >
-                        Borrar
-                      </button>
-
-                      <button
-                        onClick={() => enviarArticulo(art.id)}
-                        disabled={loadingEnviar}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-                      >
-                        {loadingEnviar ? "Enviando…" : "Enviar Gmail"}
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
           </motion.div>
-        )}
 
-      </AnimatePresence>
-    </div >
+          {/* LISTADO */}
+          <AnimatePresence>
+            {mostrarArticulos && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                  onClick={() => setMostrarArticulos(false)}   // 👈 AQUÍ
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-hidden"
+              >
+                <motion.div
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 40, opacity: 0 }}
+                    onClick={(e) => e.stopPropagation()}    
+                  className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-y-auto p-6"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-black text-pink-600">
+                      Artículos creados
+                    </h2>
+                    <button
+                      onClick={() => setMostrarArticulos(false)}
+                      className="text-gray-500 hover:text-gray-800 text-lg"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {articulos.map((art) => (
+                      <motion.div
+                        key={art.id}
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-2xl shadow-md p-5 flex flex-col md:flex-row gap-4 items-center"
+                      >
+                        {art.imagenUrl && (
+                          <img
+                            src={art.imagenUrl}
+                            alt={art.titulo}
+                            className="w-full md:w-40 h-32 object-cover rounded-xl"
+                          />
+                        )}
+
+                        <div className="flex-1">
+                          <h3 className="text-xl font-black text-pink-600">
+                            {art.titulo}
+                          </h3>
+                          <p className="text-gray-500 text-sm">{art.slug}</p>
+                          <span className="inline-block mt-1 text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full">
+                            {art.categoria}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => cargarArticulo(art)}
+                            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
+                          >
+                            Editar
+                          </button>
+
+                          <button
+                            onClick={() => borrarArticulo(art.id)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                          >
+                            Borrar
+                          </button>
+
+                          <button
+                            onClick={() => enviarArticulo(art.id)}
+                            disabled={loadingEnviarArt[art.id]}
+                            className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg"
+                          >
+                            {loadingEnviarArt[art.id] ? "Enviando…" : "Enviar Gmail"}
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div >
       </div >
     </>
   );
 }
-    
+
+
