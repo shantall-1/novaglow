@@ -42,6 +42,7 @@ function App() {
           <Routes>
             {/* Rutas Públicas */}
             <Route path="/" element={<Inicio />} />
+            <Route path="/inicio" element={<Inicio />} />
             <Route path="/productos" element={<Productos />} />
             <Route path="/producto/:id" element={<ProductoDetalle />} />
             <Route path="/nosotros" element={<Nosotros />} />
@@ -79,8 +80,6 @@ function App() {
               }
             />
 
-            {/* Si FavoritosModal es una página independiente, se queda aquí. 
-                Si es un modal que se abre sobre otras páginas, NO debe ser una Route */}
             <Route path="/favoritos" element={<FavoritosModal />} />
           </Routes>
         </main>
