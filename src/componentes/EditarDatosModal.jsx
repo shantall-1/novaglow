@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, MapPin, CreditCard, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { X, Mail, MapPin, CreditCard, Save, CheckCircle, AlertCircle, Phone } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import confetti from "canvas-confetti";
 

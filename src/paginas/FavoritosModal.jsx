@@ -20,23 +20,27 @@ export default function FavoritosModal({ isOpen, onClose }) {
     setTalla("");
   };
 
-  // Bloquear scroll de forma segura
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
+
+    // 🔥 LIMPIEZA OBLIGATORIA
     return () => {
       document.body.style.overflow = "auto";
     };
   }, [isOpen]);
 
+  if (!isOpen) return null;
+
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Fondo oscuro */}
+          {/* BACKDROP */}
           <motion.div
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998]"
             initial={{ opacity: 0 }}
@@ -45,42 +49,55 @@ export default function FavoritosModal({ isOpen, onClose }) {
             onClick={onClose}
           />
 
-          {/* Panel lateral - AÑADIDO 'relative' para evitar advertencia de Framer */}
+          {/* PANEL LATERAL */}
           <motion.div
-            className="fixed top-0 right-0 h-full w-[90%] sm:w-[450px] bg-white z-[9999] shadow-2xl border-l border-pink-100 p-6 overflow-y-auto relative"
+            className="
+              fixed top-0 right-0
+              h-screen
+              w-[90%] sm:w-[450px]
+              bg-white
+              z-[9999]
+              shadow-2xl
+              border-l border-pink-100
+              p-6
+              overflow-y-auto
+            "
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 200, damping: 26 }}
+            transition={{ type: "spring", stiffness: 220, damping: 28 }}
           >
-            {/* Título */}
-            <div className="flex justify-between items-center mb-6 sticky top-0 bg-white pb-4 z-[10]">
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-6 sticky top-0 bg-white pb-4 z-10">
               <h2 className="text-xl font-extrabold text-pink-600 flex items-center gap-2">
-                <Heart size={22} className="text-pink-500" /> Mis Favoritos
+                <Heart size={22} className="text-pink-500" />
+                Mis Favoritos
               </h2>
+
               <button
-                className="p-2 rounded-full hover:bg-pink-50 transition"
                 onClick={onClose}
+                className="p-2 rounded-full hover:bg-pink-50 transition"
               >
                 <X size={20} className="text-gray-600" />
               </button>
             </div>
 
-            {/* Lista */}
+            {/* CONTENIDO */}
             {favoritos.length === 0 ? (
               <p className="text-gray-500 text-center mt-20">
                 No tienes productos en favoritos.
               </p>
             ) : (
-              <div className="space-y-5 pb-8 relative">
+              <div className="space-y-5 pb-8">
                 {favoritos.map((item) => (
                   <motion.div
                     key={item.id}
-                    layout // Añadido para animaciones suaves al borrar
-                    className="flex gap-4 p-3 bg-white rounded-xl shadow-sm border border-pink-100 hover:shadow-md transition cursor-pointer relative"
+                    layout
                     whileHover={{ scale: 1.015 }}
+                    className="flex gap-4 p-3 bg-white rounded-xl shadow-sm border border-pink-100 hover:shadow-md transition cursor-pointer"
                     onClick={() =>
-                      item.category === "ropa" && setProductoSeleccionado(item)
+                      item.category === "ropa" &&
+                      setProductoSeleccionado(item)
                     }
                   >
                     <img
@@ -91,8 +108,12 @@ export default function FavoritosModal({ isOpen, onClose }) {
 
                     <div className="flex flex-col justify-between flex-1">
                       <div>
-                        <p className="font-semibold text-gray-800">{item.name}</p>
-                        <p className="text-pink-600 font-bold text-sm">S/ {item.price}</p>
+                        <p className="font-semibold text-gray-800">
+                          {item.name}
+                        </p>
+                        <p className="text-pink-600 font-bold text-sm">
+                          S/ {item.price}
+                        </p>
                       </div>
 
                       <div className="flex items-center justify-between mt-2">
@@ -100,11 +121,13 @@ export default function FavoritosModal({ isOpen, onClose }) {
                           className="flex items-center gap-2 text-sm bg-pink-500 text-white px-3 py-1.5 rounded-lg hover:bg-pink-600 transition"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (item.category === "ropa") return setProductoSeleccionado(item);
+                            if (item.category === "ropa")
+                              return setProductoSeleccionado(item);
                             agregarAlCarrito(item);
                           }}
                         >
-                          <ShoppingBag size={16} /> Agregar
+                          <ShoppingBag size={16} />
+                          Agregar
                         </button>
 
                         <button
@@ -134,14 +157,15 @@ export default function FavoritosModal({ isOpen, onClose }) {
                 exit={{ opacity: 0 }}
               >
                 <motion.div
-                  className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md border border-pink-100 relative"
-                  initial={{ scale: 0.8 }}
+                  className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md border border-pink-100"
+                  initial={{ scale: 0.85 }}
                   animate={{ scale: 1 }}
-                  exit={{ scale: 0.85 }}
+                  exit={{ scale: 0.9 }}
                 >
-                  <h3 className="text-xl font-bold text-pink-600 mb-3 text-center">
+                  <h3 className="text-xl font-bold text-pink-600 mb-4 text-center">
                     Seleccionar talla
                   </h3>
+
                   <div className="flex gap-2 flex-wrap justify-center mb-4">
                     {tallasDisponibles.map((t) => (
                       <button
@@ -157,12 +181,14 @@ export default function FavoritosModal({ isOpen, onClose }) {
                       </button>
                     ))}
                   </div>
+
                   <button
                     onClick={agregarConTalla}
                     className="w-full bg-pink-500 text-white py-3 rounded-lg font-bold hover:bg-pink-600 transition"
                   >
                     Agregar al carrito
                   </button>
+
                   <button
                     onClick={() => {
                       setProductoSeleccionado(null);

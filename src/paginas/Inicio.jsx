@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Star, Instagram, Sparkles, Play } from 'lucide-react'; 
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import CuponNovaGlow from '../layouts/Cupon';
+import SorteoPopup from "../componentes/SorteoPopup";
 
 // 1. IMPORTACIONES DE FIREBASE
 import { db } from "../lib/firebase"; 
@@ -24,10 +25,13 @@ const staggerContainer = {
 
 const Inicio = () => {
   const [mostrarCupon, setMostrarCupon] = useState(false);
+    const [showSorteoPopup, setShowSorteoPopup] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const targetRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: targetRef, offset: ["start start", "end start"] });
-  
+    
+
+
   // Nuevo estado para almacenar los productos de Firebase
   const [productosTrending, setProductosTrending] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -53,6 +57,16 @@ const Inicio = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+//BANNER SORTEO BAD BUNNY
+useEffect(() => {
+  if (!sessionStorage.getItem("sorteoSeen")) {
+    setTimeout(() => {
+      setShowSorteoPopup(true);
+      sessionStorage.setItem("sorteoSeen", "true");
+    }, 2500);
+  }
+}, []);
+
 
   // --- Lógica de Carga de Productos de Firebase ---
   useEffect(() => {
@@ -329,13 +343,58 @@ const Inicio = () => {
                  <div className="inline-flex items-center gap-2 text-rose-500 font-bold tracking-widest uppercase text-xs mb-6">
                      <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span> Limited Edition
                  </div>
+                 <div className="inline-flex items-center gap-3 bg-rose-600 text-white px-6 py-2 rounded-full text-xs font-bold tracking-widest mb-6 shadow-lg">
+  🎟️ SORTEO ACTIVO — 3 ENTRADAS DOBLES PARA BAD BUNNY
+</div>
+
                  <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.9]">
                      MIDNIGHT <br/> <span className="italic font-serif font-light text-white/40">VELVET</span>
                  </h2>
                  <p className="text-gray-400 text-lg mb-10 max-w-md leading-relaxed font-light">
                      Una colección cápsula para las noches inolvidables. Texturas suaves y elegancia oscura.
                  </p>
+                 {/* 🎟️ SORTEO BAD BUNNY */}
                  
+
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+  className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8 max-w-md"
+>
+  <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-widest text-xs mb-3">
+    <Sparkles size={14} /> Sorteo exclusivo
+  </div>
+
+  <h3 className="text-3xl font-black mb-3">
+    🎤 Bad Bunny <span className="italic font-serif text-white/50">World Tour</span>
+  </h3>
+
+  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+    Estamos sorteando <strong>3 entradas dobles</strong> 🎟️
+    <br />
+    Por cada compra en <strong>NovaGlow x Euphoria</strong> ya estas
+    <span className="text-rose-400 font-semibold"> Participando!</span>.
+  </p>
+
+  <ul className="text-gray-400 text-xs space-y-1 mb-5">
+    <li>📅 Inicio: 15 de diciembre</li>
+    <li>⏰ Fin: 06 de enero</li>
+    <li>🏆 Anuncio: 12 de enero</li>
+  </ul>
+
+  <Link
+    to="/productos"
+    className="inline-block bg-rose-500 text-white font-bold px-6 py-3 rounded-full text-sm hover:bg-rose-600 transition"
+  >
+    Comprar y participar 🎟️
+  </Link>
+
+  <p className="text-[10px] text-gray-500 mt-3">
+    Mientras más compras, más oportunidades de ganar.
+  </p>
+</motion.div>
+
                  {/* Timer Minimalista */}
                  <div className="flex gap-10 mb-12 border-t border-white/10 pt-8">
                      {Object.entries(timeLeft).map(([label, value]) => (
@@ -438,6 +497,11 @@ const Inicio = () => {
             <CuponNovaGlow onClose={handleCerrarCupon} onClaim={handleCerrarCupon} />
         )}
       </AnimatePresence>
+      
+<SorteoPopup
+  isOpen={showSorteoPopup}
+  onClose={() => setShowSorteoPopup(false)}
+/>
     </div>
   );
 };

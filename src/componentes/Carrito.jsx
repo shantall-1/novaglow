@@ -3,6 +3,8 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { registrarParticipaciones } from "../lib/registrarParticipaciones";
+
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard, User, MapPin, Mail, Phone } from "lucide-react";
 
 export default function Carrito() {
@@ -88,8 +90,16 @@ export default function Carrito() {
 
       console.log("🔥 Guardando pedido:", pedidoFinal);
       await guardarDatosPedido(pedidoFinal);
-      vaciarCarrito();
-      navigate("/confirmacion");
+
+// 🔥 REGISTRAR PARTICIPACIONES DEL SORTEO
+await registrarParticipaciones(carrito, usuario);
+
+// 🧹 limpiar carrito
+vaciarCarrito();
+
+// ✅ ir a confirmación
+navigate("/confirmacion");
+
     } catch (err) {
       console.error("❌ Error al guardar pedido:", err);
       alert("Error al guardar el pedido: " + err.message);

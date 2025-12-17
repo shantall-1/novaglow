@@ -15,6 +15,22 @@ export default function Confirmacion() {
   const [showFavoritos, setShowFavoritos] = useState(false);
 
   useEffect(() => {
+  // 🔥 FUERZA LIBERACIÓN TOTAL DEL SCROLL
+  document.body.style.overflow = "auto";
+  document.documentElement.style.overflow = "auto";
+
+  return () => {
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
+  };
+}, []);
+
+  useEffect(() => {
+  document.body.style.overflow = "auto";
+}, []);
+
+
+  useEffect(() => {
     const duration = 3000;
     const end = Date.now() + duration;
 
@@ -41,7 +57,7 @@ export default function Confirmacion() {
   }, []);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 font-sans overflow-hidden bg-white selection:bg-rose-200 selection:text-rose-900">
+     <div className="min-h-screen relative flex items-center justify-center p-4 font-sans bg-white selection:text-rose-900">
 
       {/* Fondo animado */}
       <div className="absolute inset-0 pointer-events-none z-0">
