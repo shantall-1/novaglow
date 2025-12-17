@@ -24,7 +24,7 @@ import MisPedidosModal from "../componentes/MisPedidosModal";
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const { usuario, logout, cargando, updateUserProfile } = useAuth();
   const { userData } = useUserData();
 
@@ -33,7 +33,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
   const [showFavoritos, setShowFavoritos] = useState(false);
- 
+
 
   // Estados de Modales y Menús
   const [menuUsuario, setMenuUsuario] = useState(false);
@@ -131,12 +131,11 @@ const Navbar = () => {
   return (
     <>
 
-      <nav 
-        className={`fixed top-0 left-0 w-full z-500 transition-all duration-300 border-b ${
-          scrolled 
-            ? "bg-white/80 backdrop-blur-xl border-pink-100 py-2 shadow-sm" 
+      <nav
+        className={`fixed top-0 left-0 w-full z-500 transition-all duration-300 border-b ${scrolled
+            ? "bg-white/80 backdrop-blur-xl border-pink-100 py-2 shadow-sm"
             : "bg-white/60 backdrop-blur-md border-transparent py-4"
-        }`}
+          }`}
       >
         <div className="container mx-auto flex justify-between items-center px-6">
 
@@ -145,7 +144,7 @@ const Navbar = () => {
             <span className="text-3xl md:text-4xl font-bold font-[Dancing Script] bg-linear-to-r from-pink-500 via-rose-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm transition-all group-hover:scale-105">
               NovaGlow
             </span>
-            <motion.span 
+            <motion.span
               className="absolute -top-1 -right-2 text-yellow-400"
               animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -160,15 +159,15 @@ const Navbar = () => {
             <NavLink to="/productos">Productos</NavLink>
             <BlogDropdown />
             <NavLink to="/contacto">Contacto</NavLink>
-          
+
             {puedeVerIntranet && (
-                <Link 
-                  to="/intranet" 
-                  className="group flex items-center gap-2 bg-linear-to-r from-rose-50 to-pink-50 text-pink-700 text-xs font-bold px-4 py-1.5 rounded-full border border-pink-200 hover:border-pink-400 hover:shadow-md transition-all duration-300"
-                >
-                  <Shield size={14} className="group-hover:rotate-12 transition-transform" />
-                  INTRANET
-                </Link>
+              <Link
+                to="/intranet"
+                className="group flex items-center gap-2 bg-linear-to-r from-rose-50 to-pink-50 text-pink-700 text-xs font-bold px-4 py-1.5 rounded-full border border-pink-200 hover:border-pink-400 hover:shadow-md transition-all duration-300"
+              >
+                <Shield size={14} className="group-hover:rotate-12 transition-transform" />
+                INTRANET
+              </Link>
             )}
           </div>
 
@@ -180,16 +179,16 @@ const Navbar = () => {
                 setShowCuenta(true);
               }}
             />
-           {/* ❤️ Favoritos */}
-<button
-  onClick={() => setShowFavoritos(true)}
-  className="relative p-2 rounded-full hover:bg-pink-50 transition"
-  title="Mis Favoritos"
->
-  <Heart
-    size={26}
-    className="text-pink-500 cursor-pointer hover:scale-110 transition"
-  />
+            {/* ❤️ Favoritos */}
+            <button
+              onClick={() => setShowFavoritos(true)}
+              className="relative p-2 rounded-full hover:bg-pink-50 transition"
+              title="Mis Favoritos"
+            >
+              <Heart
+                size={26}
+                className="text-pink-500 cursor-pointer hover:scale-110 transition"
+              />
             </button>
 
             {/* Separador */}
@@ -199,7 +198,7 @@ const Navbar = () => {
             {usuario ? (
               // 🟢 USUARIO LOGUEADO
               <div className="relative flex items-center space-x-3">
-                <div 
+                <div
                   onClick={() => setMenuUsuario(!menuUsuario)}
                   className="flex items-center gap-3 cursor-pointer p-1 pr-3 rounded-full hover:bg-pink-50 transition-colors border border-transparent hover:border-pink-100 group select-none"
                 >
@@ -214,7 +213,7 @@ const Navbar = () => {
                       {usuario.displayName?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                   )}
-                  
+
                   <div className="hidden lg:flex flex-col items-start leading-none">
                     <span className="text-xs text-gray-400 font-medium">Hola,</span>
                     <span className="text-sm font-semibold text-gray-700 group-hover:text-pink-600 transition-colors">
@@ -237,18 +236,18 @@ const Navbar = () => {
                       <div className="flex justify-between items-start mb-4">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Mi Perfil</h3>
                         <button onClick={() => setMenuUsuario(false)} className="text-gray-400 hover:text-pink-600">
-                           <X size={18} />
+                          <X size={18} />
                         </button>
                       </div>
 
                       <div className="flex flex-col items-center mb-5">
                         <div className="relative group">
-                            <img src={previewFoto || fotoNavbar} alt="Perfil" className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover"/>
-                            {!previewFoto && (
-                                <button onClick={() => setPreviewFoto(fotoNavbar)} className="absolute bottom-0 right-0 bg-pink-500 text-white p-1.5 rounded-full shadow-sm hover:scale-110 transition">
-                                    <Edit2 size={12} />
-                                </button>
-                            )}
+                          <img src={previewFoto || fotoNavbar} alt="Perfil" className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover" />
+                          {!previewFoto && (
+                            <button onClick={() => setPreviewFoto(fotoNavbar)} className="absolute bottom-0 right-0 bg-pink-500 text-white p-1.5 rounded-full shadow-sm hover:scale-110 transition">
+                              <Edit2 size={12} />
+                            </button>
+                          )}
                         </div>
                         <p className="text-lg font-bold text-gray-800 mt-2">{usuario.displayName}</p>
                         <p className="text-xs text-gray-500">{usuario.email}</p>
@@ -257,49 +256,49 @@ const Navbar = () => {
                       <div className="space-y-2">
                         {/* Editar Nombre */}
                         <div className="bg-pink-50/50 rounded-xl p-3 transition-all">
-                            <button onClick={() => setEditandoNombre(!editandoNombre)} className="w-full flex items-center justify-between text-pink-700 font-medium text-sm hover:text-pink-800">
-                                <span className="flex items-center gap-2"><User size={16}/> Cambiar Nombre</span>
-                                <ChevronRight size={14} className={`transform transition ${editandoNombre ? 'rotate-90' : ''}`}/>
-                            </button>
-                            <AnimatePresence>
-                                {editandoNombre && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                                    <div className="mt-3 flex flex-col gap-2">
-                                    <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} className="w-full px-3 py-2 text-sm border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white" placeholder="Nuevo nombre"/>
-                                    <button onClick={guardarNombre} disabled={subiendo} className="w-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold py-2 rounded-lg transition">{subiendo ? "Guardando..." : "Guardar Cambios"}</button>
-                                    </div>
-                                </motion.div>
-                                )}
-                            </AnimatePresence>
+                          <button onClick={() => setEditandoNombre(!editandoNombre)} className="w-full flex items-center justify-between text-pink-700 font-medium text-sm hover:text-pink-800">
+                            <span className="flex items-center gap-2"><User size={16} /> Cambiar Nombre</span>
+                            <ChevronRight size={14} className={`transform transition ${editandoNombre ? 'rotate-90' : ''}`} />
+                          </button>
+                          <AnimatePresence>
+                            {editandoNombre && (
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                <div className="mt-3 flex flex-col gap-2">
+                                  <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} className="w-full px-3 py-2 text-sm border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white" placeholder="Nuevo nombre" />
+                                  <button onClick={guardarNombre} disabled={subiendo} className="w-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold py-2 rounded-lg transition">{subiendo ? "Guardando..." : "Guardar Cambios"}</button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                        
+
                         {/* Editar Foto */}
                         <div className="bg-pink-50/50 rounded-xl p-3 transition-all">
-                             <button onClick={() => setPreviewFoto(previewFoto ? null : fotoNavbar)} className="w-full flex items-center justify-between text-pink-700 font-medium text-sm hover:text-pink-800">
-                                <span className="flex items-center gap-2"><Edit2 size={16}/> Cambiar Foto (URL)</span>
-                                <ChevronRight size={14} className={`transform transition ${previewFoto && !editandoNombre ? 'rotate-90' : ''}`}/>
-                            </button>
-                            <AnimatePresence>
-                                {previewFoto && !editandoNombre && (
-                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                                        <div className="mt-3 flex flex-col gap-2">
-                                            <input type="text" placeholder="Pega URL de la imagen" value={nuevaFotoURL} onChange={(e) => { setNuevaFotoURL(e.target.value); if(e.target.value) setPreviewFoto(e.target.value); }} className="w-full px-3 py-2 text-sm border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"/>
-                                            <button onClick={guardarFoto} disabled={subiendo} className="w-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold py-2 rounded-lg transition">Actualizar Foto</button>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                          <button onClick={() => setPreviewFoto(previewFoto ? null : fotoNavbar)} className="w-full flex items-center justify-between text-pink-700 font-medium text-sm hover:text-pink-800">
+                            <span className="flex items-center gap-2"><Edit2 size={16} /> Cambiar Foto (URL)</span>
+                            <ChevronRight size={14} className={`transform transition ${previewFoto && !editandoNombre ? 'rotate-90' : ''}`} />
+                          </button>
+                          <AnimatePresence>
+                            {previewFoto && !editandoNombre && (
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                <div className="mt-3 flex flex-col gap-2">
+                                  <input type="text" placeholder="Pega URL de la imagen" value={nuevaFotoURL} onChange={(e) => { setNuevaFotoURL(e.target.value); if (e.target.value) setPreviewFoto(e.target.value); }} className="w-full px-3 py-2 text-sm border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white" />
+                                  <button onClick={guardarFoto} disabled={subiendo} className="w-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold py-2 rounded-lg transition">Actualizar Foto</button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         <button onClick={() => { setShowMisPedidos(true); setMenuUsuario(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition font-medium text-sm">
-                            <ShoppingBag size={18} /> Mis Pedidos
+                          <ShoppingBag size={18} /> Mis Pedidos
                         </button>
                         <button onClick={() => { setShowEditarDatos(true); setMenuUsuario(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition font-medium text-sm">
-                            <Shield size={18} /> Datos de Cuenta
+                          <Shield size={18} /> Datos de Cuenta
                         </button>
                         <div className="h-px bg-gray-100 my-2"></div>
                         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 text-rose-500 hover:bg-rose-50 rounded-lg transition font-bold text-sm">
-                            <LogOut size={18} /> Cerrar Sesión
+                          <LogOut size={18} /> Cerrar Sesión
                         </button>
                       </div>
                     </motion.div>
@@ -310,12 +309,12 @@ const Navbar = () => {
             ) : (
               // ⚪ MODO INVITADO (AQUÍ ESTÁ EL CAMBIO)
               <button
-  onClick={() => setShowCuenta(true)}
-  className="flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-all border border-transparent hover:border-pink-200"
-  title="Iniciar Sesión / Registrarse"
->
-  <User size={24} />
-</button>
+                onClick={() => setShowCuenta(true)}
+                className="flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-all border border-transparent hover:border-pink-200"
+                title="Iniciar Sesión / Registrarse"
+              >
+                <User size={24} />
+              </button>
 
             )}
 
@@ -329,69 +328,69 @@ const Navbar = () => {
 
           </div>
         </div>
-      
+
         {/* 🚪 Menú móvil (Sin cambios mayores) */}
         <AnimatePresence>
           {menuAbierto && (
             <>
-              <motion.div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-400 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMenuAbierto(false)} />
+              <motion.div className="fixed inset-0 bg-black-200 backdrop-blur-sm z-400 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMenuAbierto(false)} />
               <motion.div className="fixed top-0 right-0 h-full w-[80%] max-w-sm bg-white shadow-2xl z-450 p-6 flex flex-col" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}>
                 <div className="flex justify-between items-center mb-8">
                   <span className="text-2xl font-bold font-[Dancing Script] text-pink-600">NovaGlow</span>
                   <button onClick={() => setMenuAbierto(false)} className="p-2 bg-gray-100 rounded-full hover:bg-pink-100 transition"><X size={20} className="text-gray-600" /></button>
                 </div>
 
-                 {usuario && (
-    <div className="space-y-3">
-      
-      {/* Usuario logueado */}
-      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-        {fotoNavbar ? (
-          <img
-            src={fotoNavbar}
-            alt="User"
-            className="w-10 h-10 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold">
-            {usuario.displayName?.charAt(0)}
-          </div>
-        )}
+                {usuario && (
+                  <div className="space-y-3">
 
-        <div>
-          <p className="font-bold text-gray-800">{usuario.displayName}</p>
-          <p className="text-xs text-gray-500">Sesión iniciada</p>
-        </div>
-      </div>
+                    {/* Usuario logueado */}
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      {fotoNavbar ? (
+                        <img
+                          src={fotoNavbar}
+                          alt="User"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold">
+                          {usuario.displayName?.charAt(0)}
+                        </div>
+                      )}
 
-    </div>
-  )}
+                      <div>
+                        <p className="font-bold text-gray-800">{usuario.displayName}</p>
+                        <p className="text-xs text-gray-500">Sesión iniciada</p>
+                      </div>
+                    </div>
 
-                 <nav className="flex flex-col gap-4 mt-4 text-lg">
-                <div className="flex flex-col space-y-2 overflow-y-auto flex-1">
-                  <MobileLink to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</MobileLink>
-                  <MobileLink to="/productos" onClick={() => setMenuAbierto(false)}>Productos</MobileLink>
-                  <div className="py-2 border-b border-gray-50"><BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} /></div>
-                  <MobileLink to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</MobileLink>
-                  {puedeVerIntranet && (<Link to="/intranet" onClick={() => setMenuAbierto(false)} className="flex items-center justify-between p-3 mt-2 bg-pink-50 rounded-xl text-pink-700 font-bold border border-pink-100"><span className="flex items-center gap-2"><Shield size={16}/> Intranet</span><ChevronRight size={16} /></Link>)}
-                </div>
-                   </nav>
-                
-  
-){"}"}  
+                  </div>
+                )}
 
-{usuario && (
-  <div className="mt-auto pt-6 border-t border-gray-100">
-    <button
-      onClick={handleLogout}
-      className="w-full flex items-center justify-center gap-2 text-rose-500 font-semibold p-3 hover:bg-rose-50 rounded-xl transition"
-    >
-      <LogOut size={18} /> Cerrar Sesión
-    </button>
-  </div>
+                <nav className="flex flex-col gap-4 mt-4 text-lg">
+                  <div className="flex flex-col space-y-2 overflow-y-auto flex-1">
+                    <MobileLink to="/inicio" onClick={() => setMenuAbierto(false)}>Inicio</MobileLink>
+                    <MobileLink to="/productos" onClick={() => setMenuAbierto(false)}>Productos</MobileLink>
+                    <div className="py-2 border-b border-gray-50"><BlogDropdownMobile closeMenu={() => setMenuAbierto(false)} /></div>
+                    <MobileLink to="/contacto" onClick={() => setMenuAbierto(false)}>Contacto</MobileLink>
+                    {puedeVerIntranet && (<Link to="/intranet" onClick={() => setMenuAbierto(false)} className="flex items-center justify-between p-3 mt-2 bg-pink-50 rounded-xl text-pink-700 font-bold border border-pink-100"><span className="flex items-center gap-2"><Shield size={16} /> Intranet</span><ChevronRight size={16} /></Link>)}
+                  </div>
+                </nav>
 
-  
-)}
+
+                ){"}"}
+
+                {usuario && (
+                  <div className="mt-auto pt-6 border-t border-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center gap-2 text-rose-500 font-semibold p-3 hover:bg-rose-50 rounded-xl transition"
+                    >
+                      <LogOut size={18} /> Cerrar Sesión
+                    </button>
+                  </div>
+
+
+                )}
 
               </motion.div>
             </>
@@ -404,24 +403,24 @@ const Navbar = () => {
       <EditarDatosModal isOpen={showEditarDatos} onClose={() => setShowEditarDatos(false)} />
       <MisPedidosModal isOpen={showMisPedidos} onClose={() => setShowMisPedidos(false)} />
 
-{/* MODAL FAVORITOS */}
-{showFavoritos && (
-  <FavoritosModal
-    isOpen={showFavoritos}
-    onClose={() => setShowFavoritos(false)}
-  />
-)}
+      {/* MODAL FAVORITOS */}
+      {showFavoritos && (
+        <FavoritosModal
+          isOpen={showFavoritos}
+          onClose={() => setShowFavoritos(false)}
+        />
+      )}
 
 
       {/* LOADER */}
       <AnimatePresence>
         {(cargando || globalLoading) && (
           <motion.div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-9999" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-             <div className="relative">
-                <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center font-[Dancing Script] text-pink-600 font-bold">N</div>
-             </div>
-             <p className="mt-4 text-gray-500 font-medium animate-pulse">Cargando...</p>
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center font-[Dancing Script] text-pink-600 font-bold">N</div>
+            </div>
+            <p className="mt-4 text-gray-500 font-medium animate-pulse">Cargando...</p>
           </motion.div>
         )}
       </AnimatePresence>
