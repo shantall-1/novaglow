@@ -205,7 +205,9 @@ export default function ProductoDetalles() {
   const [tallaSeleccionada, setTallaSeleccionada] = useState("");
   const [cantidad, setCantidad] = useState(1);
   const [review, setReview] = useState("");
-  const [reviews, setReviews] = useState([]);
+  const [respondiendoA, setRespondiendoA] = useState(null);
+  const [respuestaTexto, setRespuestaTexto] = useState("");
+
 
   // MOOD BOOSTER 
 const [frases, setFrases] = useState([]);
@@ -279,9 +281,13 @@ const [nuevaFrase, setNuevaFrase] = useState("");
   comentarios,
   escucharComentarios,
   agregarComentario,
+  responderComentario, // 👈
   editarComentario,
   borrarComentario,
 } = useComentarios();
+
+const reviews = comentarios.filter(c => c.productoId === id);
+
 
   // 🔹 useEffect para escuchar comentarios
 useEffect(() => {
@@ -293,10 +299,6 @@ useEffect(() => {
 }, [id, escucharComentarios]);
 
 // 🔹 useEffect para filtrar reviews
-useEffect(() => {
-  setReviews(comentarios.filter(c => c.productoId === id));
-}, [comentarios, id]);
-
 
 useEffect(() => {
   const q = collection(db, "frasesMood");
@@ -853,14 +855,25 @@ if (!producto) {
                       </h4>
                       <p className="text-gray-600 mt-2 italic">"{r.texto}"</p>
 
+                    {reviews
+  .filter(x => x.respuestaA === r.id)
+  .map(resp => (
+    <div
+      key={resp.id}
+      className="ml-8 mt-2 bg-rose-50 p-3 rounded-xl text-sm"
+    >
+      <strong>{resp.userName || "Anónimo"}:</strong> {resp.texto}
+    </div>
+  ))}
+
                   
-<div className="flex gap-3 mt-3 text-xs font-bold text-gray-400">
+    <div className="flex gap-4 mt-4 text-xs font-semibold">
   <button
     onClick={() => {
       const nuevo = prompt("Editar comentario:", r.texto);
       if (nuevo) editarComentario(r.id, nuevo);
     }}
-    className="hover:text-gray-900"
+    className="text-gray-400 hover:text-gray-900 transition"
   >
     Editar
   </button>
@@ -869,34 +882,59 @@ if (!producto) {
     onClick={() => {
       if (confirm("¿Eliminar comentario?")) borrarComentario(r.id);
     }}
-    className="hover:text-red-500"
+    className="text-gray-400 hover:text-red-500 transition"
   >
     Eliminar
   </button>
 
   <button
-    onClick={() => {
-      const resp = prompt("Responder comentario:");
-      if (resp) responderComentario(id, r.id, resp);
-    }}
-    className="hover:text-rose-500"
+    onClick={() => setRespondiendoA(r.id)}
+    className="text-rose-400 hover:text-rose-600 transition"
   >
     Responder
   </button>
 </div>
 
 
+      {respondiendoA === r.id && (
+  <motion.div
+    initial={{ opacity: 0, y: -5 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mt-4 ml-8 bg-rose-50 rounded-2xl p-4 shadow-inner"
+  >
+    <textarea
+      value={respuestaTexto}
+      onChange={(e) => setRespuestaTexto(e.target.value)}
+      placeholder="Escribe una respuesta ✨"
+      rows={2}
+      className="w-full bg-white border border-rose-100 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+    />
 
-                        {reviews
-  .filter((x) => x.respuestaA === r.id)
-  .map((resp) => (
-    <div
-      key={resp.id}
-      className="ml-10 mt-3 bg-rose-50 p-3 rounded-xl text-sm"
-    >
-      <strong>{resp.userName}:</strong> {resp.texto}
+    <div className="flex justify-end gap-3 mt-3">
+      <button
+        onClick={() => {
+          setRespondiendoA(null);
+          setRespuestaTexto("");
+        }}
+        className="text-xs text-gray-400 hover:text-gray-600"
+      >
+        Cancelar
+      </button>
+
+      <button
+        onClick={() => {
+          responderComentario(id, r.id, respuestaTexto);
+          setRespuestaTexto("");
+          setRespondiendoA(null);
+        }}
+        className="bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-rose-600 transition"
+      >
+        Responder
+      </button>
     </div>
-  ))}
+  </motion.div>
+)}
+
 
 
                     </div>

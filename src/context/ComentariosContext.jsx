@@ -12,14 +12,14 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { useAuth } from "./AuthContext";
+import { auth } from "../lib/firebase";
 
 const ComentariosContext = createContext();
 
 export const useComentarios = () => useContext(ComentariosContext);
 
 export const ComentariosProvider = ({ children }) => {
-  const { user } = useAuth();
+ 
   const [comentarios, setComentarios] = useState([]);
 
   // 👂 ESCUCHAR COMENTARIOS DEL PRODUCTO
@@ -45,22 +45,44 @@ export const ComentariosProvider = ({ children }) => {
   };
 
   // ➕ AGREGAR COMENTARIO (SEGURO)
+
   const agregarComentario = async (productoId, texto) => {
-    if (!texto || !texto.trim()) return;
+  if (!texto || !texto.trim()) return;
 
-    if (!user) {
-      console.warn("Usuario no autenticado, no se puede comentar");
-      return;
-    }
+  const user = auth.currentUser;
 
-    await addDoc(collection(db, "comentarios"), {
-      productoId,
-      texto: texto.trim(),
-      userId: user.uid,
-      userEmail: user.email,
-      createdAt: serverTimestamp(),
-    });
-  };
+  if (!user) {
+    console.warn("Usuario no autenticado, no se puede comentar");
+    return;
+  }
+
+  await addDoc(collection(db, "comentarios"), {
+    productoId,
+    texto: texto.trim(),
+    userId: user.uid,
+    userEmail: user.email,
+    userName: user.displayName || "Anónimo",
+    createdAt: serverTimestamp(),
+  });
+};
+
+
+  // 💬 RESPONDER COMENTARIO
+const responderComentario = async (productoId, comentarioId, texto) => {
+  if (!texto || !texto.trim()) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await addDoc(collection(db, "comentarios"), {
+    productoId,
+    texto: texto.trim(),
+    respuestaA: comentarioId, // 🔥 CLAVE
+    userId: user.uid,
+    userName: user.displayName || "Anónimo",
+    createdAt: serverTimestamp(),
+  });
+};
 
   // ✏️ EDITAR COMENTARIO
   const editarComentario = async (id, texto) => {
@@ -78,14 +100,16 @@ export const ComentariosProvider = ({ children }) => {
 
   return (
     <ComentariosContext.Provider
-      value={{
-        comentarios,
-        escucharComentarios,
-        agregarComentario,
-        editarComentario,
-        borrarComentario,
-      }}
-    >
+  value={{
+    comentarios,
+    escucharComentarios,
+    agregarComentario,
+    responderComentario, // 👈 AQUÍ
+    editarComentario,
+    borrarComentario,
+  }}
+>
+
       {children}
     </ComentariosContext.Provider>
   );
