@@ -152,7 +152,7 @@ const Intranet = () => {
 
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-gradient-to-br from-blue-600/20 to-transparent border border-white/5 p-6 rounded-[2rem]">
+          <div className="bg-linear-to-br from-blue-600/20 to-transparent border border-white/5 p-6 rounded-4xl">
             <Users className="text-blue-500 mb-2" size={20} />
             <p className="text-[10px] text-gray-500 uppercase font-black">Total Usuarios</p>
             <p className="text-3xl font-black text-white">{stats.total}</p>
