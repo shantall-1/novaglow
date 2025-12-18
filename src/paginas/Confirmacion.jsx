@@ -5,9 +5,13 @@ import confetti from "canvas-confetti";
 import { CheckCircle, ArrowLeft, Heart } from "lucide-react";
 import FavoritosModal from "../paginas/FavoritosModal";
 import { useAuth } from "../context/AuthContext";
+import { useLocation } from "react-router-dom";
+
 
 export default function Confirmacion() {
   const { usuario } = useAuth();
+  const location = useLocation();
+  const participaSorteo = location.state?.participaSorteo;
 
   const nombreUsuario = usuario?.displayName?.split(" ")[0] || "Bella";
 
