@@ -14,9 +14,7 @@ import {
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
+
 
 // Animaciones
 const fadeInUp = {
@@ -73,6 +71,18 @@ export default function AdminBlog() {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+  if (mostrarArticulos) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [mostrarArticulos]);
 
 
   const limpiarForm = () => {
@@ -241,9 +251,10 @@ export default function AdminBlog() {
 
 
   return (
-    <>
+    <><div className="relative min-h-screen pb-56">
       {/* FONDO CON VIDEO */}
-      <div className="relative min-h-screen overflow-hidden">
+      
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -267,10 +278,11 @@ export default function AdminBlog() {
         </motion.div>
 
         {/* CONTENIDO */}
-        <div className="bg-transparent relative z-10 min-h-screen pt-28 px-6 md:px-12">
+         <div className="bg-transparent relative z-10 min-h-screen pt-28 px-6 md:px-12 pb-48">
+
           <h1 className="text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.9] mb-16 drop-shadow-2xl">
             Panel <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600 italic font-serif">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 italic font-serif">
               de Administración
             </span>
           </h1>
@@ -427,7 +439,7 @@ export default function AdminBlog() {
       text-sm
       leading-none
       rounded-lg
-      bg-gradient-to-r from-pink-500 to-rose-600
+      bg-linear-to-r from-pink-500 to-rose-600
       text-white font-medium
       shadow
       hover:scale-105 transition
@@ -461,7 +473,7 @@ export default function AdminBlog() {
                 className="px-10 py-4 text-sm
       leading-none
       rounded-lg
-      bg-gradient-to-r from-pink-500 to-rose-400
+      bg-linear-to-r from-pink-500 to-rose-400
       text-white font-medium
       shadow
       hover:scale-105 transition
@@ -480,16 +492,27 @@ export default function AdminBlog() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                  onClick={() => setMostrarArticulos(false)}   // 👈 AQUÍ
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-hidden"
+                onClick={() => setMostrarArticulos(false)}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
               >
                 <motion.div
                   initial={{ y: 40, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 40, opacity: 0 }}
-                    onClick={(e) => e.stopPropagation()}    
-                  className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-y-auto p-6"
+                  onClick={(e) => e.stopPropagation()}
+                  className="
+    relative
+    bg-white
+    rounded-3xl
+    shadow-2xl
+    max-w-5xl
+    w-full
+    max-h-[85vh]
+    overflow-y-auto
+    p-6
+  "
                 >
+
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-black text-pink-600">
                       Artículos creados
@@ -556,10 +579,10 @@ export default function AdminBlog() {
                 </motion.div>
               </motion.div>
             )}
-
           </AnimatePresence>
-        </div >
+        </div>
       </div >
+    
     </>
   );
 }

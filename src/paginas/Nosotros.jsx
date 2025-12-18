@@ -136,7 +136,7 @@ export default function Nosotros() {
                       <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 italic font-serif pr-2">NOVA GLOW</span>
                   </h1>
 
-                  <p className="text-xl md:text-2xl text-gray-500 font-light max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-xl md:text-2xl text-gray-800 font-light max-w-2xl mx-auto leading-relaxed">
                       Donde la alta costura se encuentra con la <span className="font-bold text-gray-800">confianza radical</span>. 
                       No solo vendemos vestidos, diseñamos momentos.
                   </p>

@@ -147,7 +147,7 @@ export default function BlogInspiracion() {
             <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600 italic font-serif pr-2">GLOW</span>
           </h1>
           
-          <p className="text-xl text-gray-500 font-light max-w-2xl mx-auto">
+          <p className="text-xl text-gray-200 font-light max-w-2xl mx-auto">
             Tu dosis diaria de inspiración. Desde las últimas tendencias hasta secretos de estilo que empoderan.
           </p>
         </motion.header>
