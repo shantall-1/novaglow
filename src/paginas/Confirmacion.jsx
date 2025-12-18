@@ -100,9 +100,14 @@ export default function Confirmacion() {
             </span>! 💖
           </p>
 
-          <p className="text-gray-400 text-sm max-w-xs mx-auto mb-10">
-            Tu pedido está siendo procesado con mucho amor. Te enviaremos los detalles a tu correo pronto.
-          </p>
+          <div className="text-gray-400 text-sm max-w-xs mx-auto mb-10 space-y-2">
+  <p>
+    Tu pedido está siendo procesado con mucho amor. Te enviaremos los detalles a tu correo pronto.
+  </p>
+  <p>
+    <span className="font-bold text-red-500">¡YA ESTÁS PARTICIPANDO!</span> en el sorteo. ¡Mucha suerte!
+  </p>
+</div>
 
           {/* Botones */}
           <div className="flex flex-col gap-3 w-full">

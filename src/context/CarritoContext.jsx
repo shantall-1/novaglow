@@ -7,49 +7,69 @@ const CarritoContext = createContext();
 
 export function CarritoProvider({ children }) {
   const { usuario } = useAuth();
-  const [carrito, setCarrito] = useState([]);
 
-  // 1️⃣ Cargar carrito desde Firebase
+  // 🔹 Inicializar carrito desde localStorage
+  const [carrito, setCarrito] = useState(() => {
+    try {
+      const saved = localStorage.getItem("carrito");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // 🔹 Guardar carrito en localStorage cada vez que cambie
   useEffect(() => {
-    const cargarCarrito = async () => {
-      if (!usuario) {
-        setCarrito([]);
-        return;
-      }
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+  }, [carrito]);
+
+  // 🔹 Cargar carrito desde Firebase si hay usuario
+  useEffect(() => {
+    const cargarCarritoFirebase = async () => {
+      if (!usuario) return;
 
       try {
         const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
-          const items = snap.data().items || [];
-          setCarrito(items);
+          const itemsFirebase = snap.data().items || [];
+          // 🔹 Combinar localStorage y Firebase, evitando duplicados
+          setCarrito((prev) => {
+            const combinado = [...prev];
+            itemsFirebase.forEach((item) => {
+              const existe = combinado.find((p) => p.id === item.id);
+              existe
+                ? (existe.cantidad = Math.max(existe.cantidad, item.cantidad))
+                : combinado.push(item);
+            });
+            return combinado;
+          });
         }
       } catch (error) {
-        console.error("Error al cargar carrito:", error);
+        console.error("Error al cargar carrito de Firebase:", error);
       }
     };
 
-    cargarCarrito();
+    cargarCarritoFirebase();
   }, [usuario?.uid]);
 
-  // 2️⃣ Guardar carrito en Firebase (ÚNICO lugar)
+  // 🔹 Guardar carrito en Firebase si hay usuario
   const guardarCarritoFirebase = async (items) => {
     if (!usuario) return;
     try {
       const ref = doc(db, "usuarios", usuario.uid, "carrito", "actual");
       await setDoc(ref, { items, últimaActualización: new Date() });
     } catch (error) {
-      console.error("Error al guardar en Firebase:", error);
+      console.error("Error al guardar carrito en Firebase:", error);
     }
   };
 
   useEffect(() => {
-    if (!usuario) return;
-    guardarCarritoFirebase(carrito);
+    if (usuario) guardarCarritoFirebase(carrito);
   }, [carrito, usuario?.uid]);
 
-  // 3️⃣ Acciones del carrito (PUROS, sin efectos secundarios)
+  // 🔹 Acciones del carrito
   const agregarAlCarrito = (producto, cantidad = 1) => {
     setCarrito((prev) => {
       const existente = prev.find((item) => item.id === producto.id);
@@ -127,8 +147,7 @@ export function CarritoProvider({ children }) {
 
 export const useCarrito = () => {
   const context = useContext(CarritoContext);
-  if (!context) {
+  if (!context)
     throw new Error("useCarrito debe usarse dentro de un CarritoProvider");
-  }
   return context;
 };
