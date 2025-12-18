@@ -377,7 +377,7 @@ const Navbar = () => {
                 </nav>
 
 
-                ){"}"}
+                {"}"}
 
                 {usuario && (
                   <div className="mt-auto pt-6 border-t border-gray-100">

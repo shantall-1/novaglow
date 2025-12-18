@@ -13,11 +13,9 @@ import {
 } from "firebase/firestore";
 
 import { useAuth } from "../context/AuthContext";
-
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import RelatedSidebar from "../componen/RelatedSidebar";
+
+
 import { motion } from "framer-motion";
 
 export default function ArticuloDetalle() {
@@ -29,7 +27,11 @@ export default function ArticuloDetalle() {
   const [related, setRelated] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [progress, setProgress] = useState(0);
+  const [modoOscuro, setModoOscuro] = useState(false);
+  const [liking, setLiking] = useState(false);
 
+  const palabras = article?.contenido?.split(" ").length || 0;
+  const minutosLectura = Math.max(1, Math.ceil(palabras / 200));
   // -------------------------
   // CARGAR EL ARTÍCULO
   // -------------------------
@@ -104,26 +106,43 @@ export default function ArticuloDetalle() {
       </p>
     );
 
+
+
+
   // -------------------------
   // LIKE
   // -------------------------
   const toggleLike = async () => {
-    if (!usuario) return alert("Debes iniciar sesión para dar like");
+    if (!usuario) {
+      alert("Inicia sesión para dar me gusta");
+      return;
+    }
 
-    const articleRef = doc(db, "articulos", article.id);
-    const likesArray = Array.isArray(article.likes) ? article.likes : [];
-    const hasLiked = likesArray.includes(usuario.uid);
+    if (liking) return;
 
-    await updateDoc(articleRef, {
-      likes: hasLiked ? arrayRemove(usuario.uid) : arrayUnion(usuario.uid),
-    });
+    try {
+      setLiking(true);
 
-    setArticle((prev) => ({
-      ...prev,
-      likes: hasLiked
-        ? likesArray.filter((id) => id !== usuario.uid)
-        : [...likesArray, usuario.uid],
-    }));
+      const articleRef = doc(db, "articulos", article.id);
+      const hasLiked = article.likes.includes(usuario.uid);
+
+      await updateDoc(articleRef, {
+        likes: hasLiked
+          ? arrayRemove(usuario.uid)
+          : arrayUnion(usuario.uid),
+      });
+
+      setArticle((prev) => ({
+        ...prev,
+        likes: hasLiked
+          ? prev.likes.filter((id) => id !== usuario.uid)
+          : [...prev.likes, usuario.uid],
+      }));
+    } catch (error) {
+      console.error("Error al dar like:", error);
+    } finally {
+      setLiking(false);
+    }
   };
 
   // -------------------------
@@ -156,111 +175,148 @@ export default function ArticuloDetalle() {
 
   // -------------------------
   // RENDER
-  // -------------------------
-  const paragraphs = article.contenido ? article.contenido.split("\n\n") : [];
-  const extraImages = Array.isArray(article.imagenes) ? article.imagenes : [];
+  ;
+  const hasLiked = article.likes.includes(usuario?.uid);
 
-return (
-  <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
-    {/* BARRA DE PROGRESO */}
-    <motion.div
-      className="fixed top-0 left-0 h-1 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 z-50"
-      style={{ width: `${progress}%` }}
-    />
 
-    {/* BOTÓN VOLVER */}
-    <button
-      onClick={() => navigate("/inspiracion")}
-      className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-fuchsia-600 transition mb-8"
-    >
-      ← Volver
-    </button>
+  return (
+    <div className="relative min-h-screen bg-white">
 
-    {/* LAYOUT PRINCIPAL */}
-    <div className="flex gap-20 mt-16">
-      {/* ARTÍCULO */}
-      <div className="flex-1">
+      {/* BARRA PROGRESO */}
+      <motion.div
+        className="fixed top-0 left-0 h-[3px] bg-linear-to-r from-pink-500 via-fuchsia-500 to-purple-500 z-50"
+        style={{ width: `${progress}%` }}
+      />
+
+      {/* VOLVER */}
+      <div className="max-w-7xl mx-auto px-6 pt-10">
+        <button
+          onClick={() => navigate("/inspiracion")}
+          className="text-sm text-gray-500 hover:text-fuchsia-600"
+        >
+          ← Volver
+        </button>
+      </div>
+
+      {/* HEADER */}
+      <div className="max-w-3xl mx-auto px-6 mt-8 flex justify-between items-center">
+        <p className="text-xs text-gray-400">
+          ⏱️ {minutosLectura} min de lectura
+        </p>
+
+        <button
+          onClick={() => setModoOscuro(!modoOscuro)}
+          className="text-xs px-4 py-2 rounded-full border"
+        >
+          {modoOscuro ? "☀️ Modo claro" : "🌙 Modo lectura"}
+        </button>
+      </div>
+
+      {/* GRID */}
+      <div
+        className={`
+        max-w-7xl mx-auto px-6 py-20
+        grid grid-cols-1 lg:grid-cols-[1fr_280px]
+        gap-16
+        ${modoOscuro ? "bg-[#0e0e11] text-gray-100" : ""}
+      `}
+      >
+
+        {/* ARTÍCULO */}
         <motion.article
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto text-gray-900"
-        >
-          {/* TÍTULO */}
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+          className={`
+  prose prose-lg
+  max-w-[680px]
+  mx-auto
+  leading-[1.75]
+  prose-p:text-gray-700
+  prose-h2:tracking-tight
+  prose-h3:text-gray-800
+  ${modoOscuro ? "prose-invert" : ""}
+`}>
+          <h1 className="text-5xl font-serif italic text-transparent bg-clip-text bg-linear-to-r from-gray-800 to-rose-600">
             {article.titulo}
           </h1>
 
-          {/* SUBTÍTULO */}
           {article.subtitulo && (
-            <h2 className="text-xl md:text-2xl font-medium text-fuchsia-600 mt-6">
+            <h2 className="text-2xl text-fuchsia-600 mt-6">
               {article.subtitulo}
             </h2>
           )}
 
-          {/* META */}
-          <p className="text-sm text-gray-500 mt-4">
-            {article.categoria} • {new Date(article.fecha).toLocaleDateString()}
+          <p className="text-xs uppercase tracking-widest text-gray-400">
+            {article.categoria} · {minutosLectura} min lectura
           </p>
 
-          {/* IMAGEN PRINCIPAL */}
           {article.imagenUrl && (
-            <motion.img
+            <img
               src={article.imagenUrl}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
               className="w-full rounded-2xl my-16"
             />
           )}
 
-          {/* CONTENIDO */}
-          <div
-            className="prose prose-lg max-w-none prose-gray prose-p:leading-relaxed prose-p:my-6 prose-img:my-16 prose-img:rounded-2xl prose-h2:mt-20 prose-h3:mt-14"
+          <ReactMarkdown
+            components={{
+              p: ({ node, children }) => {
+                const isFirst = node?.position?.start?.line === 1;
+                if (!isFirst) return <p>{children}</p>;
+
+                const text = children.toString();
+                return (
+                  <p>
+                    <span className="float-left mr-3 text-6xl font-serif text-fuchsia-600 leading-none">
+                      {text[0]}
+                    </span>
+                    {text.slice(1)}
+                  </p>
+                );
+              },
+            }}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                p: ({ node, children }) => {
-                  const isFirst = node?.position?.start?.line === 1;
-                  if (!isFirst) return <p>{children}</p>;
+            {article.contenido}
+          </ReactMarkdown>
 
-                  const text = children.toString();
-                  const firstLetter = text.charAt(0);
-                  const rest = text.slice(1);
-
-                  return (
-                    <p>
-                      <span className="float-left mr-3 text-6xl font-extrabold text-fuchsia-600 leading-none">
-                        {firstLetter}
-                      </span>
-                      {rest}
-                    </p>
-                  );
-                },
-              }}
-            >
-              {article.contenido}
-            </ReactMarkdown>
-
-            {/* IMÁGENES INTERCALADAS */}
-            {extraImages.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                className="w-full my-16 rounded-2xl"
-              />
-            ))}
-          </div>
+          {/* IMÁGENES EXTRA */}
+          {article.imagenes?.map((img, idx) => (
+            <img
+              key={idx}
+              src={img}
+              className="w-full my-24 rounded-3xl shadow-sm"
+            />
+          ))}
 
           {/* LIKE */}
           <button
             onClick={toggleLike}
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-fuchsia-600 transition mt-12"
+            disabled={liking}
+            className={`
+    inline-flex items-center gap-2 mt-20
+    text-xs font-medium transition
+    ${hasLiked
+                ? "text-fuchsia-600"
+                : "text-gray-400 hover:text-fuchsia-600"}
+    ${liking ? "opacity-50 cursor-not-allowed" : ""}
+  `}
           >
-            ❤️ {article.likes.length}
+            <img
+              src={
+                hasLiked
+                  ? "https://img.icons8.com/?size=100&id=w0wAxnBWQKQs&format=png&color=D946EF"
+                  : "https://img.icons8.com/?size=100&id=w0wAxnBWQKQs&format=png&color=9CA3AF"
+              }
+              alt="Me gusta"
+              className="w-4 h-4 transition-transform duration-200"
+            />
+
+            <span>{article.likes.length}</span>
+
+            <span className="hidden sm:inline">
+              {hasLiked ? "Te gusta" : "Me gusta"}
+            </span>
           </button>
+
 
           {/* COMENTARIOS */}
           <div className="mt-20 pt-16 border-t">
@@ -275,41 +331,59 @@ return (
 
             <button
               onClick={enviarComentario}
-              className="mt-4 px-6 py-2 bg-fuchsia-500 text-white rounded-lg text-sm font-semibold"
+              className="mt-4 px-6 py-2 bg-fuchsia-500 text-white rounded-lg"
             >
               Enviar
             </button>
-
-            <div className="mt-8 space-y-6">
-              {article.comments.map((c) => (
-                <div key={c.id}>
-                  <p className="font-semibold">{c.autor}</p>
-                  <p className="text-gray-700">{c.texto}</p>
-                  <span className="text-xs text-gray-400">
-                    {new Date(c.fecha).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
-        </motion.article>
-      </div>
 
-      {/* SIDEBAR */}
-      <aside className="hidden lg:block w-72 sticky top-32 self-start">
-        <h4 className="text-sm font-semibold text-gray-500 mb-6">Relacionado</h4>
-        <div className="space-y-6">
-          {related.map((item) => (
-            <div key={item.id} className="cursor-pointer group">
-              <p className="text-sm font-medium leading-snug group-hover:text-fuchsia-600 transition">
-                {item.titulo}
-              </p>
-              <span className="text-xs text-gray-400">{item.categoria}</span>
-            </div>
-          ))}
-        </div>
-      </aside>
-    </div>
-  </div>
-);
+          <div className="mt-40 pt-20 border-t text-center max-w-xl mx-auto">
+            <p className="text-gray-500 text-sm mb-10">
+              Gracias por leer.
+              Explora más ideas que inspiran ✨
+            </p>
+
+            <button
+              onClick={() => navigate("/inspiracion")}
+              className="
+      inline-flex items-center gap-3
+      px-10 py-4 rounded-full
+      bg-linear-to-r from-pink-500 to-fuchsia-600
+      text-white text-sm font-medium
+      shadow-xl hover:scale-105 transition
+    "
+            >
+              ← Volver a inspiración
+            </button>
+          </div>
+
+        </motion.article>
+
+        {/* SIDEBAR */}
+        <aside className="hidden lg:block sticky top-32">
+          <h4 className="text-sm font-semibold text-gray-500 mb-6">
+            Relacionado
+          </h4>
+
+          <div className="space-y-6">
+            {related.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => navigate(`/articulo/${item.slug}`)}
+                className="cursor-pointer group border-l-2 border-transparent hover:border-fuchsia-500 pl-4 transition"
+              >
+                <p className="text-sm font-medium leading-snug text-gray-700 group-hover:text-fuchsia-600">
+                  {item.titulo}
+                </p>
+                <span className="text-xs text-gray-400">
+                  {item.categoria}
+                </span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+      </div>
+    </div >
+  );
 }

@@ -8,7 +8,7 @@ export default function RelatedSidebar({ items }) {
 
   return (
     <aside className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-xl border border-white/60 overflow-hidden">
-      
+
       {/* HEADER */}
       <div className="px-6 pt-6 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-2 text-fuchsia-600 mb-2">
@@ -33,8 +33,8 @@ export default function RelatedSidebar({ items }) {
             transition={{ duration: 0.3, delay: index * 0.04 }}
           >
             <Link
-              to={`/inspiracion/${art.slug}`}
-              className="group flex gap-3 items-center bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all duration-300"
+              to={`/articulo/${art.slug}`}
+              state={{ from: "related" }}
             >
               {/* IMAGEN */}
               {art.imagenUrl && (

@@ -47,9 +47,12 @@ function App() {
             <Route path="/producto/:id" element={<ProductoDetalle />} />
             <Route path="/nosotros" element={<Nosotros />} />
             <Route path="/contacto" element={<Contacto />} />
-            <Route path="/blog" element={<BlogInspiracion />} />
-            <Route path="/blog/:slug" element={<ArticuloDetalle />} />
+           <Route path="/inspiracion" element={<BlogInspiracion />} />
+            <Route path="/inspiracion/:slug" element={<ArticuloDetalle />} />
+            <Route path="/articulo/:slug" element={<ArticuloDetalle />} />
+            <Route path="/adminblog" element={<AdminBlog />} />
             <Route path="/suscripcion" element={<Suscripcion />} />
+
             
             {/* Páginas Legales */}
             <Route path="/envios-y-devoluciones" element={<EnviosYDevoluciones />} />
@@ -60,7 +63,7 @@ function App() {
             <Route path="/logout" element={<Logout />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/intranet" element={<Intranet />} />
-            <Route path="/adminblog" element={<AdminBlog />} />
+            <Route path="/inspiracion" element={<AdminBlog />} />
 
             {/* Rutas Protegidas */}
             <Route

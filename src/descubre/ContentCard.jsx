@@ -11,7 +11,7 @@ export default function ContentCard({ article }) {
       : contenido;
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full flex flex-col">
+    <div className="bg-white/80 rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full flex flex-col">
       
       {/* Imagen */}
       <Link to={`/inspiracion/${slug}`}>
@@ -26,13 +26,13 @@ export default function ContentCard({ article }) {
       <div className="p-6 flex flex-col grow space-y-4">
         
         {categoria && (
-          <span className="inline-block bg-fuchsia-100 text-fuchsia-600 text-sm font-semibold px-3 py-1 rounded-full w-fit">
+          <span className="inline-block bg-fuchsia-100 text-pink-600 text-sm font-semibold px-3 py-1 rounded-full w-fit">
             {categoria}
           </span>
         )}
 
         <Link to={`/inspiracion/${slug}`}>
-          <h2 className="text-2xl font-bold text-gray-800 hover:text-fuchsia-600 transition">
+          <h2 className="text-2xl font-bold text-gray-800 hover:text-pink-800 transition">
             {titulo}
           </h2>
         </Link>
@@ -45,7 +45,7 @@ export default function ContentCard({ article }) {
         <div className="pt-4 mt-auto">
           <Link
             to={`/inspiracion/${slug}`}
-            className="inline-block bg-fuchsia-600 text-white px-5 py-2 rounded-full font-medium hover:bg-fuchsia-700 transition-all shadow-md"
+            className="inline-block bg-linear-to-r from-pink-500 to-rose-600 text-white px-5 py-2 rounded-full font-medium hover:bg-fuchsia-700 transition-all shadow-md"
           >
             Leer más
           </Link>
