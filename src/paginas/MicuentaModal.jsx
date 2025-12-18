@@ -281,7 +281,7 @@ export default function MiCuentaModal({ cerrar }) {
                                 </div>
                                 <input type="checkbox" checked={terminos} onChange={(e) => setTerminos(e.target.checked)} className="hidden" />
                                 <span className="text-xs text-gray-500">
-                                    Acepto los <Link to="/terminos" onClick={cerrar} className="text-rose-500 font-bold hover:underline">términos y condiciones</Link>
+                                    Acepto los <Link to="/terminos-y-condiciones" onClick={cerrar} className="text-rose-500 font-bold hover:underline">términos y condiciones</Link>
                                 </span>
                             </label>
 

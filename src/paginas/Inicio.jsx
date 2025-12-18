@@ -330,99 +330,107 @@ useEffect(() => {
       </section>
 
       {/* ==========================================================================
-          6. DROP COUNTDOWN (Fondo Negro Elegante)
+          6. COUNTDOWN SALE BANNER (Rosa Vibrante)
       ========================================================================== */}
-      {/* ... (Todo el resto de tu código permanece igual) ... */}
-      <section className="py-32 bg-black text-white relative overflow-hidden">
-           {/* Brillos rosados sutiles */}
-           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-rose-600/20 rounded-full blur-[150px] pointer-events-none"></div>
-           <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[150px] pointer-events-none"></div>
-           
-           <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center relative z-10">
-             <div>
-                 <div className="inline-flex items-center gap-2 text-rose-500 font-bold tracking-widest uppercase text-xs mb-6">
-                     <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span> Limited Edition
-                 </div>
-                 <div className="inline-flex items-center gap-3 bg-rose-600 text-white px-6 py-2 rounded-full text-xs font-bold tracking-widest mb-6 shadow-lg">
-  🎟️ SORTEO ACTIVO — 3 ENTRADAS DOBLES PARA BAD BUNNY
-</div>
+      {/* ==========================================================================
+    6. SECCIÓN ESPECIAL: NIGHT GLOW x EUPHORIA (SORTEO BAD BUNNY)
+========================================================================== */}
+<section className="py-32 bg-black text-white relative overflow-hidden">
+  {/* Glows de fondo con los colores de NovaGlow */}
+  <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-[#ff0080]/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-                 <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.9]">
-                     MIDNIGHT <br/> <span className="italic font-serif font-light text-white/40">VELVET</span>
-                 </h2>
-                 <p className="text-gray-400 text-lg mb-10 max-w-md leading-relaxed font-light">
-                     Una colección cápsula para las noches inolvidables. Texturas suaves y elegancia oscura.
-                 </p>
-                 {/* 🎟️ SORTEO BAD BUNNY */}
-                 
+  <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+    
+    {/* COLUMNA IZQUIERDA: EL SORTEO PROTAGONISTA */}
+    <div className="flex flex-col">
+      <div className="inline-flex items-center gap-2 text-[#ff0080] font-bold tracking-[0.4em] uppercase text-[11px] mb-6">
+        <span className="w-2 h-2 bg-[#ff0080] rounded-full animate-ping"></span>
+        Sorteo Exclusivo NovaGlow
+      </div>
 
-<motion.div
-  initial={{ opacity: 0, y: 20 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.6 }}
-  className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8 max-w-md"
->
-  <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-widest text-xs mb-3">
-    <Sparkles size={14} /> Sorteo exclusivo
+      <h2 className="text-6xl md:text-7xl font-black tracking-tighter mb-8 leading-[0.85]">
+        NIGHT GLOW <br /> 
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-[#ff0080] italic font-serif">X EUPHORIA</span>
+      </h2>
+
+      {/* TICKET DE SORTEO VIP */}
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        whileInView={{ scale: 1, opacity: 1 }}
+        className="relative p-[1px] rounded-[2rem] bg-gradient-to-br from-[#ff0080] to-purple-600 overflow-hidden mb-10 shadow-[0_0_50px_rgba(255,0,128,0.2)]"
+      >
+        <div className="bg-black/90 backdrop-blur-xl rounded-[2rem] p-8">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <p className="text-[#ff0080] text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Gana Entradas Para</p>
+              <h3 className="text-4xl font-black tracking-tight">BAD BUNNY 🎤</h3>
+            </div>
+            <div className="bg-[#ff0080] text-white text-[10px] font-black px-4 py-2 rounded-full uppercase">
+              3 Entradas Dobles
+            </div>
+          </div>
+
+          <p className="text-gray-300 text-sm leading-relaxed mb-8">
+            ¡Es tu oportunidad de brillar! Por la compra de cualquier prenda de la colección 
+            <span className="text-white font-bold italic"> "Night Glow x Euphoria"</span>, como el exclusivo <strong>Conjunto SOFT MADDY</strong>, ya estás participando.
+          </p>
+
+          {/* BOTÓN CON FILTRO DIRECTO A LA CATEGORÍA */}
+          <Link
+            to="/productos?collection=Night Glow x Euphoria"
+            className="group flex items-center justify-center gap-3 bg-white text-black font-black px-10 py-5 rounded-2xl transition-all duration-300 hover:bg-[#ff0080] hover:text-white"
+          >
+            COMPRAR COLECCIÓN Y PARTICIPAR 🎟️
+            <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+          </Link>
+        </div>
+      </motion.div>
+
+      {/* CONTADOR DE TIEMPO */}
+      <div className="flex gap-10 border-t border-white/10 pt-8">
+        {Object.entries(timeLeft).map(([label, value]) => (
+          <div key={label}>
+            <div className="text-4xl font-mono font-bold text-white leading-none">
+              {String(value).padStart(2, '0')}
+            </div>
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* COLUMNA DERECHA: IMAGEN DE FIREBASE (SOFT MADDY) */}
+    <div className="relative group">
+      <div className="absolute -inset-4 bg-[#ff0080]/20 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      
+      <div className="relative rounded-[2.5rem] overflow-hidden aspect-[4/5] border border-white/10 shadow-2xl">
+        <img 
+          src="https://i.pinimg.com/736x/56/6a/a2/566aa246e9df80cc4ed72c7a0ac4fc6b.jpg" 
+          alt="Conjunto SOFT MADDY" 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+        />
+        {/* Overlay con datos reales de la base de datos */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+        <div className="absolute bottom-8 left-8 right-8">
+          <div className="bg-black/60 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-tighter text-[#ff0080]">Best Seller</p>
+                <p className="text-xl font-bold text-white">Conjunto SOFT MADDY</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 line-through">S/68.00</p>
+                <p className="text-xl font-black text-white">S/61.20</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <h3 className="text-3xl font-black mb-3">
-    🎤 Bad Bunny <span className="italic font-serif text-white/50">World Tour</span>
-  </h3>
-
-  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-    Estamos sorteando <strong>3 entradas dobles</strong> 🎟️
-    <br />
-    Por cada compra en <strong>NovaGlow x Euphoria</strong> ya estas
-    <span className="text-rose-400 font-semibold"> Participando!</span>.
-  </p>
-
-  <ul className="text-gray-400 text-xs space-y-1 mb-5">
-    <li>📅 Inicio: 15 de diciembre</li>
-    <li>⏰ Fin: 06 de enero</li>
-    <li>🏆 Anuncio: 12 de enero</li>
-  </ul>
-
-  <Link
-    to="/productos"
-    className="inline-block bg-rose-500 text-white font-bold px-6 py-3 rounded-full text-sm hover:bg-rose-600 transition"
-  >
-    Comprar y participar 🎟️
-  </Link>
-
-  <p className="text-[10px] text-gray-500 mt-3">
-    Mientras más compras, más oportunidades de ganar.
-  </p>
-</motion.div>
-
-                 {/* Timer Minimalista */}
-                 <div className="flex gap-10 mb-12 border-t border-white/10 pt-8">
-                     {Object.entries(timeLeft).map(([label, value]) => (
-                         <div key={label} className="text-center">
-                             <div className="text-3xl md:text-4xl font-black font-mono text-white tabular-nums">
-                                 {String(value).padStart(2, '0')}
-                             </div>
-                             <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em]">{label}</span>
-                         </div>
-                     ))}
-                 </div>
-
-                 <button className="bg-white text-black font-bold py-4 px-12 rounded-full hover:bg-rose-500 hover:text-white transition-all duration-300">
-                     Unirme a la Lista
-                 </button>
-             </div>
-
-             <div className="relative hidden md:block h-[600px]">
-                 <div className="relative rounded-[10rem] overflow-hidden h-full w-full bg-gray-900 shadow-2xl group border border-white/5">
-                     <img src="img/conjunto1.jpg" alt="Next Drop" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 group-hover:scale-105" />
-                     <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
-                     <div className="absolute bottom-12 w-full text-center">
-                         <p className="text-white font-serif italic text-2xl tracking-tight">Coming Soon...</p>
-                     </div>
-                 </div>
-             </div>
-           </div>
-      </section>
+</section>
 
       {/* ==========================================================================
           7. SOCIAL PROOF (Limpio)
