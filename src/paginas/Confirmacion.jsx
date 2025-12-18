@@ -15,6 +15,22 @@ export default function Confirmacion() {
   const [showFavoritos, setShowFavoritos] = useState(false);
 
   useEffect(() => {
+  // 🔥 FUERZA LIBERACIÓN TOTAL DEL SCROLL
+  document.body.style.overflow = "auto";
+  document.documentElement.style.overflow = "auto";
+
+  return () => {
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
+  };
+}, []);
+
+  useEffect(() => {
+  document.body.style.overflow = "auto";
+}, []);
+
+
+  useEffect(() => {
     const duration = 3000;
     const end = Date.now() + duration;
 
@@ -41,7 +57,7 @@ export default function Confirmacion() {
   }, []);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 font-sans overflow-hidden bg-white selection:bg-rose-200 selection:text-rose-900">
+     <div className="min-h-screen relative flex items-center justify-center p-4 font-sans bg-white selection:text-rose-900">
 
       {/* Fondo animado */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -84,9 +100,14 @@ export default function Confirmacion() {
             </span>! 💖
           </p>
 
-          <p className="text-gray-400 text-sm max-w-xs mx-auto mb-10">
-            Tu pedido está siendo procesado con mucho amor. Te enviaremos los detalles a tu correo pronto.
-          </p>
+          <div className="text-gray-400 text-sm max-w-xs mx-auto mb-10 space-y-2">
+  <p>
+    Tu pedido está siendo procesado con mucho amor. Te enviaremos los detalles a tu correo pronto.
+  </p>
+  <p>
+    <span className="font-bold text-red-500">¡YA ESTÁS PARTICIPANDO!</span> en el sorteo. ¡Mucha suerte!
+  </p>
+</div>
 
           {/* Botones */}
           <div className="flex flex-col gap-3 w-full">
