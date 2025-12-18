@@ -5,15 +5,16 @@ export default function SorteoPopup({ isOpen, onClose }) {
   const navigate = useNavigate();
 
   const irAlSorteo = () => {
-    onClose();
-    navigate("/");
+  onClose();
+  navigate("/");
 
-    setTimeout(() => {
-      document
-        .getElementById("sorteo")
-        ?.scrollIntoView({ behavior: "smooth" });
-    }, 300);
-  };
+  setTimeout(() => {
+    document
+      .getElementById("sorteo-bad-bunny")
+      ?.scrollIntoView({ behavior: "smooth" });
+  }, 300);
+};
+
 
   return (
     <AnimatePresence>
@@ -81,14 +82,14 @@ export default function SorteoPopup({ isOpen, onClose }) {
 
               {/* 🎯 CTA */}
               <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 }}
-                onClick={irAlSorteo}
-                className="mx-auto md:mx-0 px-10 py-4 rounded-full bg-gray-900 text-white font-bold tracking-wide hover:bg-rose-600 transition-all shadow-lg hover:shadow-rose-300/40"
-              >
-                Participar ahora ✨
-              </motion.button>
+  initial={{ opacity: 0, scale: 0.9 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ delay: 0.6 }}
+  onClick={irAlSorteo}
+  className="mx-auto md:mx-0 px-10 py-4 rounded-full bg-gray-900 text-white font-bold tracking-wide hover:bg-rose-600 transition-all shadow-lg hover:shadow-rose-300/40"
+>
+  Participar ahora ✨
+</motion.button>
 
               <button
                 onClick={onClose}

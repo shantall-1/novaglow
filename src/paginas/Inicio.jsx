@@ -4,6 +4,7 @@ import { ArrowRight, Star, Instagram, Sparkles, Play } from 'lucide-react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import CuponNovaGlow from '../layouts/Cupon';
 import SorteoPopup from "../componentes/SorteoPopup";
+import { useLocation } from "react-router-dom";
 
 // 1. IMPORTACIONES DE FIREBASE
 import { db } from "../lib/firebase"; 
@@ -29,7 +30,7 @@ const Inicio = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const targetRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: targetRef, offset: ["start start", "end start"] });
-    
+    const location = useLocation();
 
 
   // Nuevo estado para almacenar los productos de Firebase
@@ -38,6 +39,17 @@ const Inicio = () => {
 
   // Parallax sutil
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  useEffect(() => {
+  if (location.hash) {
+    const el = document.querySelector(location.hash);
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }
+}, [location]);
 
   // --- Lógica Countdown ---
   useEffect(() => {
@@ -335,7 +347,10 @@ useEffect(() => {
       {/* ==========================================================================
     6. SECCIÓN ESPECIAL: NIGHT GLOW x EUPHORIA (SORTEO BAD BUNNY)
 ========================================================================== */}
-<section className="py-32 bg-black text-white relative overflow-hidden">
+<section
+  id="sorteo-bad-bunny"
+  className="py-32 bg-black text-white relative overflow-hidden"
+>
   {/* Glows de fondo con los colores de NovaGlow */}
   <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-[#ff0080]/10 rounded-full blur-[120px] pointer-events-none"></div>
   <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
